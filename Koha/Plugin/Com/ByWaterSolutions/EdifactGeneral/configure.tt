@@ -1,0 +1,108 @@
+[% INCLUDE 'doc-head-open.inc' %]
+ <title>Koha: Edifact Enhanced Plugin: Configuration</title>
+[% INCLUDE 'doc-head-close.inc' %]
+</head>
+<body>
+[% INCLUDE 'header.inc' %]
+[% INCLUDE 'cat-search.inc' %]
+
+<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/plugins/plugins-home.pl">Plugins</a> &rsaquo; Edifact Enhanced &rsaquo; Configuration</div>
+
+<div id="doc3">
+    <!-- Notice our form here has no 'action', this is good, it means that our forms will always get passed back to 'plugins/run.pl'. You could hard code it instead if you prefer -->
+    <form method="get">
+        <!-- Always pass these two parameters so the plugin system knows what to execute! -->
+        <input type="hidden" name="class" value="[% CLASS %]"/>
+        <input type="hidden" name="method" value="[% METHOD %]"/>
+
+        <fieldset id="configuration-options" class="rows" style="display: block;">
+            <legend>Configuration options</legend>
+
+            <fieldset class="rows">
+              <legend>Buyer SAN</legend>
+              <ol>
+                <li>
+                   <label for="id_code_qualifier">Buyer qualifier:</label>
+                   <select name="buyer_id_code_qualifier" id="buyer_id_code_qualifier">
+                       <option value="14" [% IF buyer_id_code_qualifier == '14' %]selected="selected"[% END %]>
+                           EAN International
+                       </option>
+                       <option value="31B [% IF buyer_id_code_qualifier == '31B' %]selected="selected"[% END %]">
+                          US SAN Agency
+                       </option>
+                       <option value="91" [% IF buyer_id_code_qualifier == '91' %]selected="selected"[% END %]>
+                          Assigned by supplier
+                       </option>
+                       <option value="92" [% IF buyer_id_code_qualifier == '92' %]selected="selected"[% END %]>
+                          Assigned by buyer
+                       </option>
+                   </select>
+                </li>
+                <li>
+                   <label for="buyer_san">Buyer SAN: </label>
+                   <input type="text" name="buyer_san" id="buyer_san" size="20" maxlength="90" value="[% buyer_san %]">
+                </li>
+                Entering a SAN here will generate an additional NAD+BY segment for the order file with the SAN and qualifier supplied.
+              </ol>
+            </fieldset>
+
+            <fieldset class="rows">
+              <legend>File suffixes</legend>
+              <ol>
+                <li>
+                   <label for="order_file_suffix">Order file: </label>
+                   <input type="text" name="order_file_suffix" id="order_file_suffix" size="20" maxlength="90" value="[% order_file_suffix %]">
+                </li>
+              </ol>
+            </fieldset>
+
+            <fieldset class="rows">
+              <legend>LIN values</legend>
+              <ol>
+                <li>
+                   <label for="lin_use_ean">EAN: </label>
+                     <input type="checkbox" name="lin_use_ean" id="lin_use_ean" value="1" [% IF lin_use_ean %]checked="checked"[% END %]>
+                </li>
+                <li>
+                   <label for="lin_use_issn">ISSN: </label>
+                     <input type="checkbox" name="lin_use_issn" id="lin_use_issn" value="1" [% IF lin_use_issn %]checked="checked"[% END %]>
+                </li>
+                <li>
+                   <label for="lin_use_issn">ISBN: </label>
+                     <input type="checkbox" name="lin_use_isbn" id="lin_use_isbn" value="1" [% IF lin_use_isbn %]checked="checked"[% END %]>
+                </li>
+              </ol>
+              LIN field will be populated using the first valid identifier found for the order line, from top to bottom.
+            </fieldset>
+
+            <fieldset class="rows">
+              <legend>PIA values</legend>
+              <ol>
+                <li>
+                   <label for="pia_use_ean">EAN: </label>
+                     <input type="checkbox" name="pia_use_ean" id="pia_use_ean" value="1" [% IF pia_use_ean %]checked="checked"[% END %]>
+                </li>
+                <li>
+                   <label for="pia_use_issn">ISSN: </label>
+                     <input type="checkbox" name="pia_use_issn" id="pia_use_issn" value="1" [% IF pia_use_issn %]checked="checked"[% END %]>
+                </li>
+                <li>
+                   <label for="pia_use_isbn10">ISBN-10: </label>
+                     <input type="checkbox" name="pia_use_isbn10" id="pia_use_isbn10" value="1" [% IF pia_use_isbn10 %]checked="checked"[% END %]>
+                </li>
+                <li>
+                   <label for="pia_use_isbn13">ISBN-13: </label>
+                     <input type="checkbox" name="pia_use_isbn13" id="pia_use_isbn13" value="1" [% IF pia_use_isbn13 %]checked="checked"[% END %]>
+                </li>
+                PIA fields will be generated for each identifier selected if that identifier exists for the given order line.
+              </ol>
+            </fieldset>
+
+            <p>
+
+            <input type="hidden" name="save" value="1" />
+            <input type="submit" value="Save configuration" />
+        </fieldset>
+    </form>
+
+[% INCLUDE 'intranet-bottom.inc' %]
