@@ -22,8 +22,8 @@ use warnings;
 use File::Slurp;
 use Carp;
 use Encode qw( from_to );
-use Koha::Edifact::Segment;
-use Koha::Edifact::Message;
+use Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Segment;
+use Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Message;
 
 my $separator = {
     component => q{\:},
@@ -38,12 +38,10 @@ sub new {
     my ( $class, $param_hashref ) = @_;
     my $transmission;
     my $self = ();
-    warn "NEW KITCHENSINK EDIFACT";
 
     if ( $param_hashref->{filename} ) {
         if ( $param_hashref->{transmission} ) {
-            carp
-"Cannot instantiate $class : both filename and transmission passed";
+            carp "Cannot instantiate $class : both filename and transmission passed";
             return;
         }
         $transmission = read_file( $param_hashref->{filename} );
@@ -52,6 +50,9 @@ sub new {
         $transmission = $param_hashref->{transmission};
     }
     $self->{transmission} = _init($transmission);
+
+    # We may need to look up data about the invoice later
+    $self->{invoice_message} = $param_hashref->{invoice_message};
 
     bless $self, $class;
     return $self;
@@ -172,7 +173,7 @@ sub message_array {
         elsif ( $seg->tag eq 'UNT' ) {
             $in_msg = 0;
             if ( @{$msg} ) {
-                push @{$msg_arr}, Koha::Edifact::Message->new($msg);
+                push @{$msg_arr}, Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Message->new($msg);
                 $msg = [];
             }
         }
@@ -224,7 +225,7 @@ sub segmentize {
 }x;
     my @segmented;
     while ( $raw =~ /($re)/g ) {
-        push @segmented, Koha::Edifact::Segment->new( { seg_string => $1 } );
+        push @segmented, Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Segment->new( { seg_string => $1 } );
     }
     return \@segmented;
 }

@@ -3,6 +3,8 @@ package Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral;
 ## It's good practive to use Modern::Perl
 use Modern::Perl;
 
+use Carp;
+
 ## Required for all plugins
 use base qw(Koha::Plugins::Base);
 
@@ -11,6 +13,10 @@ use C4::Context;
 use C4::Branch;
 use C4::Members;
 use C4::Auth;
+use C4::Biblio;
+use C4::Items;
+use Koha::EDI;
+use Koha::DateUtils;
 
 ## Here we set our plugin version
 our $VERSION = 1.00;
@@ -44,9 +50,18 @@ sub new {
     return $self;
 }
 
-## The existance of an 'edifact' subroutine means the plugin is capable
+## The existance of a 'edifact' subroutine means the plugin is capable
 ## of running replacing the default Edifact modules for generated Edifcat messages
 sub edifact {
+    my ( $self, $args ) = @_;
+
+    require Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact;
+
+    my $edifact = Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact->new( $args );
+    return $edifact;
+}
+
+sub edifact_order {
     my ( $self, $args ) = @_;
 
     require Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Order;
@@ -54,6 +69,237 @@ sub edifact {
     $args->{params}->{plugin} = $self;
     my $edifact_order = Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Order->new( $args->{params} );
     return $edifact_order;
+}
+
+sub edifact_transport {
+    my ( $self, $args ) = @_;
+
+    require Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Transport;
+
+    $args->{params}->{plugin} = $self;
+
+    my $edifact_transport = Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Transport->new( $args->{vendor_edi_account_id} );
+
+    return $edifact_transport;
+}
+
+sub edifact_process_invoice {
+    my ( $self, $args ) = @_;
+
+    my $invoice_message = $args->{invoice};
+
+    $invoice_message->status('processing');
+    $invoice_message->update;
+
+    my $schema = Koha::Database->new()->schema();
+    my $logger = Log::Log4perl->get_logger();
+    my $vendor_acct;
+
+    my $plugin = $invoice_message->edi_acct()->plugin();
+    my $edi_plugin;
+    if ( $plugin ) {
+        $edi_plugin = Koha::Plugins::Handler->run(
+            {
+                class  => $plugin,
+                method => 'edifact',
+                params => {
+                    invoice_message => $invoice_message,
+                    transmission => $invoice_message->raw_msg,
+                }
+            }
+        );
+    }
+
+    my $edi = $edi_plugin ||
+      Koha::Edifact->new( { transmission => $invoice_message->raw_msg, } );
+
+    my $messages = $edi->message_array();
+
+    if ( @{$messages} ) {
+
+        # BGM contains an invoice number
+        foreach my $msg ( @{$messages} ) {
+            my $invoicenumber  = $msg->docmsg_number();
+            my $shipmentcharge = $msg->shipment_charge();
+            my $msg_date       = $msg->message_date;
+            my $tax_date       = $msg->tax_point_date;
+            if ( !defined $tax_date || $tax_date !~ m/^\d{8}/xms ) {
+                $tax_date = $msg_date;
+            }
+
+            my $vendor_ean = $msg->supplier_ean;
+            if ( !defined $vendor_acct || $vendor_ean ne $vendor_acct->san ) {
+                $vendor_acct = $schema->resultset('VendorEdiAccount')->search(
+                    {
+                        san => $vendor_ean,
+                    }
+                )->single;
+            }
+            if ( !$vendor_acct ) {
+                carp "Cannot find vendor with ean $vendor_ean for invoice $invoicenumber in $invoice_message->filename";
+                next;
+            }
+            $invoice_message->edi_acct( $vendor_acct->id );
+            $logger->trace("Adding invoice:$invoicenumber");
+            my $new_invoice = $schema->resultset('Aqinvoice')->create(
+                {
+                    invoicenumber         => $invoicenumber,
+                    booksellerid          => $invoice_message->vendor_id,
+                    shipmentdate          => $msg_date,
+                    billingdate           => $tax_date,
+                    shipmentcost          => $shipmentcharge,
+                    shipmentcost_budgetid => $vendor_acct->shipment_budget,
+                    message_id            => $invoice_message->id,
+                }
+            );
+            my $invoiceid = $new_invoice->invoiceid;
+            $logger->trace("Added as invoiceno :$invoiceid");
+            my $lines = $msg->lineitems();
+
+            foreach my $line ( @{$lines} ) {
+                my $ordernumber = $line->ordernumber;
+                $logger->trace( "Receipting order:$ordernumber Qty: ",
+                    $line->quantity );
+
+                my $order = $schema->resultset('Aqorder')->find($ordernumber);
+
+      # ModReceiveOrder does not validate that $ordernumber exists validate here
+                if ($order) {
+
+                    # check suggestions
+                    my $s = $schema->resultset('Suggestion')->search(
+                        {
+                            biblionumber => $order->biblionumber->biblionumber,
+                        }
+                    )->single;
+                    if ($s) {
+                        ModSuggestion(
+                            {
+                                suggestionid => $s->suggestionid,
+                                STATUS       => 'AVAILABLE',
+                            }
+                        );
+                    }
+
+                    my $price = Koha::EDI::_get_invoiced_price($line);
+
+                    if ( $order->quantity > $line->quantity ) {
+                        my $ordered = $order->quantity;
+
+                        # part receipt
+                        $order->orderstatus('partial');
+                        $order->quantity( $ordered - $line->quantity );
+                        $order->update;
+                        my $received_order = $order->copy(
+                            {
+                                ordernumber      => undef,
+                                quantity         => $line->quantity,
+                                quantityreceived => $line->quantity,
+                                orderstatus      => 'complete',
+                                unitprice        => $price,
+                                invoiceid        => $invoiceid,
+                                datereceived     => $msg_date,
+                            }
+                        );
+                        #FIXME transfer_items( $schema, $line, $order, $received_order );
+                        _receipt_items( $schema, $line, $received_order->ordernumber );
+                    }
+                    else {    # simple receipt all copies on order
+                        $order->quantityreceived( $line->quantity );
+                        $order->datereceived($msg_date);
+                        $order->invoiceid($invoiceid);
+                        $order->unitprice($price);
+                        $order->orderstatus('complete');
+                        $order->update;
+                        _receipt_items( $schema, $line, $ordernumber );
+                    }
+                }
+                else {
+                    $logger->error(
+                        "No order found for $ordernumber Invoice:$invoicenumber"
+                    );
+                    next;
+                }
+
+            }
+
+        }
+    }
+
+    $invoice_message->status('received');
+    $invoice_message->update;    # status and basketno link
+    return;
+}
+
+sub _receipt_items {
+    my ( $schema, $inv_line, $ordernumber ) = @_;
+    my $logger   = Log::Log4perl->get_logger();
+    my $quantity = $inv_line->quantity;
+
+    # itemnumber is not a foreign key ??? makes this a bit cumbersome
+    my @order_items = $schema->resultset('AqordersItem')->search(
+        {
+            ordernumber => $ordernumber,
+        }
+    );
+
+    my $items_recieved_count = 0;
+
+    foreach my $order_item (@order_items) {
+        my $item =
+          $schema->resultset('Item')->find( $order_item->itemnumber() );
+        unless ($item) {
+            carp("No item found for order line $ordernumber!");
+            next;
+        }
+
+        my $order      = $order_item->ordernumber();
+        my $basket     = $order->basketno();
+        my $bookseller = $basket->booksellerid();
+
+        # Date aquired
+        $item->dateaccessioned( dt_from_string() );
+
+        # Source of acquisition, i.e. Vendor ID
+        $item->booksellerid( $bookseller->id() );
+
+        # Cost, normal purchase price, i.e. actual paid price
+        $item->price( $order->unitprice() );
+
+        # Cost, replacement price
+        $item->replacementprice( $order->rrp() );
+
+        # Price effective from
+        $item->replacementpricedate( dt_from_string() );
+
+        # Note that this was recieved via EDI
+        $item->itemnotes_nonpublic("Recieved via EDIFACT");
+
+        $item->update();
+
+        my $biblionumber = $item->get_column('biblionumber');
+        my $itemnumber   = $item->id();
+        if ( C4::Context->preference('AcqCreateItem') eq 'ordering' ) {
+            my @affects = split q{\|}, C4::Context->preference("AcqItemSetSubfieldsWhenReceived");
+            if (@affects) {
+                my $frameworkcode = GetFrameworkCode($biblionumber);
+                my ($itemfield) = GetMarcFromKohaField( 'items.itemnumber', $frameworkcode );
+                my $item_marc = C4::Items::GetMarcItem( $biblionumber, $itemnumber );
+                for my $affect (@affects) {
+                    my ( $sf, $v ) = split q{=}, $affect, 2;
+
+                    foreach ( $item_marc->field($itemfield) ) {
+                        $_->update( $sf => $v );
+                    }
+                }
+
+                C4::Items::ModItemFromMarc( $item_marc, $biblionumber, $itemnumber );
+            }
+        }
+
+        $items_recieved_count++;
+        last if $items_recieved_count == $quantity;
+    }
 }
 
 ## If your tool is complicated enough to needs it's own setting/configuration
