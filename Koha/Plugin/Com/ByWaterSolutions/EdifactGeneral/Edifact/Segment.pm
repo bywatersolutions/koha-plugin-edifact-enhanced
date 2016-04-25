@@ -1,4 +1,4 @@
-package Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Segment;
+package Koha::Plugin::Com::ByWaterSolutions::EdifactIngram::Edifact::Segment;
 
 # Copyright 2014 PTFS-Europe Ltd
 #

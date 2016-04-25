@@ -1,4 +1,4 @@
-package Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral;
+package Koha::Plugin::Com::ByWaterSolutions::EdifactIngram;
 
 ## It's good practive to use Modern::Perl
 use Modern::Perl;
@@ -55,30 +55,30 @@ sub new {
 sub edifact {
     my ( $self, $args ) = @_;
     
-    require Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact;
+    require Koha::Plugin::Com::ByWaterSolutions::EdifactIngram::Edifact;
 
-    my $edifact = Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact->new( $args );
+    my $edifact = Koha::Plugin::Com::ByWaterSolutions::EdifactIngram::Edifact->new( $args );
     return $edifact;
 }
 
 sub edifact_order {
     my ( $self, $args ) = @_;
     
-    require Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Order;
+    require Koha::Plugin::Com::ByWaterSolutions::EdifactIngram::Edifact::Order;
 
     $args->{params}->{plugin} = $self;
-    my $edifact_order = Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Order->new( $args->{params} );
+    my $edifact_order = Koha::Plugin::Com::ByWaterSolutions::EdifactIngram::Edifact::Order->new( $args->{params} );
     return $edifact_order;
 }
 
 sub edifact_transport {
     my ( $self, $args ) = @_;
     
-    require Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Transport;
+    require Koha::Plugin::Com::ByWaterSolutions::EdifactIngram::Edifact::Transport;
 
     $args->{params}->{plugin} = $self;
 
-    my $edifact_transport = Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Transport->new( $args->{vendor_edi_account_id} );
+    my $edifact_transport = Koha::Plugin::Com::ByWaterSolutions::EdifactIngram::Edifact::Transport->new( $args->{vendor_edi_account_id} );
 
     return $edifact_transport;
 }

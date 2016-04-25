@@ -1,4 +1,4 @@
-package Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Message;
+package Koha::Plugin::Com::ByWaterSolutions::EdifactIngram::Edifact::Message;
 
 # Copyright 2014 PTFS-Europe Ltd
 #

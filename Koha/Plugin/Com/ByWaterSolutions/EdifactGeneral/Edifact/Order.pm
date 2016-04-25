@@ -1,4 +1,4 @@
-package Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Order;
+package Koha::Plugin::Com::ByWaterSolutions::EdifactIngram::Edifact::Order;
 
 use Modern::Perl;
 use utf8;
