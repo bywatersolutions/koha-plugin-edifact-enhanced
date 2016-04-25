@@ -54,7 +54,7 @@ sub new {
 ## of running replacing the default Edifact modules for generated Edifcat messages
 sub edifact {
     my ( $self, $args ) = @_;
-
+    
     require Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact;
 
     my $edifact = Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact->new( $args );
@@ -63,7 +63,7 @@ sub edifact {
 
 sub edifact_order {
     my ( $self, $args ) = @_;
-
+    
     require Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Order;
 
     $args->{params}->{plugin} = $self;
@@ -73,7 +73,7 @@ sub edifact_order {
 
 sub edifact_transport {
     my ( $self, $args ) = @_;
-
+    
     require Koha::Plugin::Com::ByWaterSolutions::EdifactGeneral::Edifact::Transport;
 
     $args->{params}->{plugin} = $self;
@@ -85,12 +85,10 @@ sub edifact_transport {
 
 sub edifact_process_invoice {
     my ( $self, $args ) = @_;
-
     my $invoice_message = $args->{invoice};
-
+warn "INVOICE: $invoice_message";
     $invoice_message->status('processing');
     $invoice_message->update;
-
     my $schema = Koha::Database->new()->schema();
     my $logger = Log::Log4perl->get_logger();
     my $vendor_acct;
@@ -120,14 +118,19 @@ sub edifact_process_invoice {
         # BGM contains an invoice number
         foreach my $msg ( @{$messages} ) {
             my $invoicenumber  = $msg->docmsg_number();
+warn "INVOICE: $invoicenumber";
             my $shipmentcharge = $msg->shipment_charge();
+warn "SHIPMENT CHARGE: $shipmentcharge";
             my $msg_date       = $msg->message_date;
+warn "MSG DATE: $msg_date";
             my $tax_date       = $msg->tax_point_date;
+warn "TAX DATE: $tax_date";
             if ( !defined $tax_date || $tax_date !~ m/^\d{8}/xms ) {
                 $tax_date = $msg_date;
             }
 
             my $vendor_ean = $msg->supplier_ean;
+warn "VENDOR EAN: $vendor_ean";
             if ( !defined $vendor_acct || $vendor_ean ne $vendor_acct->san ) {
                 $vendor_acct = $schema->resultset('VendorEdiAccount')->search(
                     {
@@ -158,10 +161,12 @@ sub edifact_process_invoice {
 
             foreach my $line ( @{$lines} ) {
                 my $ordernumber = $line->ordernumber;
+warn "ORDERNUMBER: $ordernumber";
                 $logger->trace( "Receipting order:$ordernumber Qty: ",
                     $line->quantity );
 
                 my $order = $schema->resultset('Aqorder')->find($ordernumber);
+warn "ORDER: $order";
 
       # ModReceiveOrder does not validate that $ordernumber exists validate here
                 if ($order) {
@@ -182,6 +187,9 @@ sub edifact_process_invoice {
                     }
 
                     my $price = Koha::EDI::_get_invoiced_price($line);
+warn "PRICE: $price";
+warn "ORDER QTY: " . $order->quantity;
+warn "LINE QTY: " . $line->quantity;
 
                     if ( $order->quantity > $line->quantity ) {
                         my $ordered = $order->quantity;
@@ -245,60 +253,59 @@ sub _receipt_items {
 
     my $items_recieved_count = 0;
 
-    foreach my $order_item (@order_items) {
-        my $item =
-          $schema->resultset('Item')->find( $order_item->itemnumber() );
-        unless ($item) {
-            carp("No item found for order line $ordernumber!");
-            next;
-        }
+    foreach my $order_item ( @order_items ) {
+       my $item = $schema->resultset('Item')->find( $order_item->itemnumber() );
+       unless ( $item ) {
+           carp("No item found for order line $ordernumber!");
+           next;
+       }
 
-        my $order      = $order_item->ordernumber();
-        my $basket     = $order->basketno();
-        my $bookseller = $basket->booksellerid();
+       my $order = $order_item->ordernumber();
+       my $basket = $order->basketno();
+       my $bookseller = $basket->booksellerid();
 
-        # Date aquired
-        $item->dateaccessioned( dt_from_string() );
+       # Date aquired
+       $item->dateaccessioned( dt_from_string() );
 
-        # Source of acquisition, i.e. Vendor ID
-        $item->booksellerid( $bookseller->id() );
+       # Source of acquisition, i.e. Vendor ID
+       $item->booksellerid( $bookseller->id() );
 
-        # Cost, normal purchase price, i.e. actual paid price
-        $item->price( $order->unitprice() );
+       # Cost, normal purchase price, i.e. actual paid price
+       $item->price( $order->unitprice() );
 
-        # Cost, replacement price
-        $item->replacementprice( $order->rrp() );
+       # Cost, replacement price
+       $item->replacementprice( $order->rrp() );
 
-        # Price effective from
-        $item->replacementpricedate( dt_from_string() );
+       # Price effective from
+       $item->replacementpricedate( dt_from_string() );
 
-        # Note that this was recieved via EDI
-        $item->itemnotes_nonpublic("Recieved via EDIFACT");
+       # Note that this was recieved via EDI
+       $item->itemnotes_nonpublic( "Recieved via EDIFACT" );
 
-        $item->update();
+       $item->update();
 
-        my $biblionumber = $item->get_column('biblionumber');
-        my $itemnumber   = $item->id();
-        if ( C4::Context->preference('AcqCreateItem') eq 'ordering' ) {
-            my @affects = split q{\|}, C4::Context->preference("AcqItemSetSubfieldsWhenReceived");
-            if (@affects) {
-                my $frameworkcode = GetFrameworkCode($biblionumber);
-                my ($itemfield) = GetMarcFromKohaField( 'items.itemnumber', $frameworkcode );
-                my $item_marc = C4::Items::GetMarcItem( $biblionumber, $itemnumber );
-                for my $affect (@affects) {
-                    my ( $sf, $v ) = split q{=}, $affect, 2;
+       my $biblionumber = $item->get_column('biblionumber');
+       my $itemnumber   = $item->id();
+       if ( C4::Context->preference('AcqCreateItem') eq 'ordering' ) {
+           my @affects = split q{\|}, C4::Context->preference("AcqItemSetSubfieldsWhenReceived");
+           if ( @affects ) {
+               my $frameworkcode = GetFrameworkCode($biblionumber);
+               my ( $itemfield ) = GetMarcFromKohaField( 'items.itemnumber', $frameworkcode );
+			   my $item_marc = C4::Items::GetMarcItem( $biblionumber, $itemnumber );
+			   for my $affect ( @affects ) {
+				   my ( $sf, $v ) = split q{=}, $affect, 2;
 
-                    foreach ( $item_marc->field($itemfield) ) {
-                        $_->update( $sf => $v );
-                    }
-                }
+				   foreach ( $item_marc->field($itemfield) ) {
+					   $_->update( $sf => $v );
+				   }
+			   }
 
-                C4::Items::ModItemFromMarc( $item_marc, $biblionumber, $itemnumber );
-            }
-        }
+			   C4::Items::ModItemFromMarc( $item_marc, $biblionumber, $itemnumber );
+           }
+       }
 
-        $items_recieved_count++;
-        last if $items_recieved_count == $quantity;
+       $items_recieved_count++;
+       last if $items_recieved_count == $quantity; 
     }
 }
 
