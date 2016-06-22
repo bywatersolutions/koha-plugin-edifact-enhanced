@@ -331,8 +331,11 @@ sub configure {
             pia_use_isbn13    => $self->retrieve_data('pia_use_isbn13'),
             order_file_suffix => $self->retrieve_data('order_file_suffix'),
             buyer_san         => $self->retrieve_data('buyer_san'),
-            buyer_id_code_qualifier =>
-              $self->retrieve_data('buyer_id_code_qualifier'),
+            buyer_id_code_qualifier => $self->retrieve_data('buyer_id_code_qualifier'),
+            buyer_san_in_header     => $self->retrieve_data('buyer_san_in_header'),
+	    buyer_san_in_nadby      => $self->retrieve_data('buyer_san_in_nadby'),
+            branch_ean_in_header    => $self->retrieve_data('branch_ean_in_header'),
+	    branch_ean_in_nadby     => $self->retrieve_data('branch_ean_in_nadby'),
         );
 
         print $cgi->header();
@@ -350,8 +353,11 @@ sub configure {
                 pia_use_isbn13 => $cgi->param('pia_use_isbn13') ? 1 : 0,
                 order_file_suffix => $cgi->param('order_file_suffix'),
                 buyer_san         => $cgi->param('buyer_san'),
-                buyer_id_code_qualifier =>
-                  $cgi->param('buyer_id_code_qualifier'),
+                buyer_id_code_qualifier => $cgi->param('buyer_id_code_qualifier'),
+            	buyer_san_in_header     => $cgi->param('buyer_san_in_header')  ? 1 : 0,
+	    	buyer_san_in_nadby      => $cgi->param('buyer_san_in_nadby')   ? 1 : 0,
+            	branch_ean_in_header    => $cgi->param('branch_ean_in_header') ? 1 : 0,
+	    	branch_ean_in_nadby     => $cgi->param('branch_ean_in_nadby')  ? 1 : 0,
             }
         );
         $self->go_home();

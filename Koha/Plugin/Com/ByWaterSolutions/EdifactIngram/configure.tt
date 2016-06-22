@@ -1,6 +1,15 @@
 [% INCLUDE 'doc-head-open.inc' %]
  <title>Koha: Edifact Enhanced Plugin: Configuration</title>
 [% INCLUDE 'doc-head-close.inc' %]
+
+<script type="text/javascript">
+$( document ).ready(function() {
+    $('.in-header').on('change', function() {
+        $('.in-header').not(this).prop('checked', !$(this).prop('checked') );  
+    });
+});
+</script>
+
 </head>
 <body>
 [% INCLUDE 'header.inc' %]
@@ -38,12 +47,47 @@
                        </option>
                    </select>
                 </li>
+
                 <li>
                    <label for="buyer_san">Buyer SAN: </label>
                    <input type="text" name="buyer_san" id="buyer_san" size="20" maxlength="90" value="[% buyer_san %]">
                 </li>
-                Entering a SAN here will generate an additional NAD+BY segment for the order file with the SAN and qualifier supplied.
+
+                <fieldset class="rows">
+                    <legend>Fields to send in</legend>
+                   	<ol>
+                		<li>
+                   			<label for="buyer_san_in_header">Header: </label>
+                     		<input type="checkbox" class="in-header" name="buyer_san_in_header" id="buyer_san_in_header" value="1" [% IF buyer_san_in_header %]checked="checked"[% END %]>
+							<span class="hint">If this box is checked, it will replace the Library EAN in the header.</span>
+                		</li>
+                		<li>
+                   			<label for="buyer_san_in_nadby">NAD+BY: </label>
+                     		<input type="checkbox" name="buyer_san_in_nadby" id="buyer_san_in_nadby" value="1" [% IF buyer_san_in_nadby %]checked="checked"[% END %]>
+							<span class="hint">If this box is checked, it will be sent in an additional NAD+BY segment.</span>
+                		</li>
+                  	</ol>
+                </fieldset>
               </ol>
+            </fieldset>
+
+            <fieldset class="rows">
+                <legend>Library EAN</legend>
+                <fieldset class="rows">
+                    <legend>Fields to send in</legend>
+                   	<ol>
+                		<li>
+                   			<label for="branch_ean_in_header">Header: </label>
+                     		<input type="checkbox" class="in-header" name="branch_ean_in_header" id="branch_ean_in_header" value="1" [% IF branch_ean_in_header %]checked="checked"[% END %]>
+							<span class="hint">If this box is checked, it will replace the Library EAN in the header. This is the default non-plugin behavior.</span>
+                		</li>
+                		<li>
+                   			<label for="branch_ean_in_nadby">NAD+BY: </label>
+                     		<input type="checkbox" name="branch_ean_in_nadby" id="branch_ean_in_nadby" value="1" [% IF branch_ean_in_nadby %]checked="checked"[% END %]>
+							<span class="hint">If this box is checked, it will be sent in an additional NAD+BY segment.</span>
+                		</li>
+                  	</ol>
+                </fieldset>
             </fieldset>
 
             <fieldset class="rows">
@@ -105,4 +149,5 @@
         </fieldset>
     </form>
 
+&nbsp;
 [% INCLUDE 'intranet-bottom.inc' %]
