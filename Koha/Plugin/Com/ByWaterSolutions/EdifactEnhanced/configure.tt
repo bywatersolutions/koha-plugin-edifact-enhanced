@@ -116,8 +116,18 @@ $( document ).ready(function() {
                      <input type="checkbox" name="lin_use_issn" id="lin_use_issn" value="1" [% IF lin_use_issn %]checked="checked"[% END %]>
                 </li>
                 <li>
-                   <label for="lin_use_issn">ISBN: </label>
+                   <label for="lin_use_isbn">ISBN: </label>
                      <input type="checkbox" name="lin_use_isbn" id="lin_use_isbn" value="1" [% IF lin_use_isbn %]checked="checked"[% END %]>
+                </li>
+                <li>
+                   <label for="lin_use_upc">UPC: </label>
+                     <input type="checkbox" name="lin_use_upc" id="lin_use_upc" value="1" [% IF lin_use_upc %]checked="checked"[% END %]>
+                     <span class="hint">UPC should be in 024$a of the MARC record.</span>
+                </li>
+                <li>
+                   <label for="lin_use_product_id">Product ID: </label>
+                     <input type="checkbox" name="lin_use_product_id" id="lin_use_product_id" value="1" [% IF lin_use_product_id %]checked="checked"[% END %]>
+                     <span class="hint">Product ID should be in 028$a of the MARC record</span>
                 </li>
               </ol>
               LIN field will be populated using the first valid identifier found for the order line, from top to bottom.
@@ -141,6 +151,16 @@ $( document ).ready(function() {
                 <li>
                    <label for="pia_use_isbn13">ISBN-13: </label>
                      <input type="checkbox" name="pia_use_isbn13" id="pia_use_isbn13" value="1" [% IF pia_use_isbn13 %]checked="checked"[% END %]>
+                </li>
+                <li>
+                   <label for="pia_use_upc">UPC: </label>
+                     <input type="checkbox" name="pia_use_upc" id="pia_use_upc" value="1" [% IF pia_use_upc %]checked="checked"[% END %]>
+                     <span class="hint">UPC should be in 024$a of the MARC record.</span>
+                </li>
+                <li>
+                   <label for="pia_use_product_id">Product ID: </label>
+                     <input type="checkbox" name="pia_use_product_id" id="pia_use_product_id" value="1" [% IF pia_use_product_id %]checked="checked"[% END %]>
+                     <span class="hint">Product ID should be in 028$a of the MARC record</span>
                 </li>
                 PIA fields will be generated for each identifier selected if that identifier exists for the given order line.
               </ol>

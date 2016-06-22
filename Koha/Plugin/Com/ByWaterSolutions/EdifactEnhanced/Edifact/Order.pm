@@ -29,6 +29,7 @@ use Business::ISBN;
 use Koha::Database;
 use C4::Budgets qw( GetBudget );
 use C4::Acquisition qw( GetBasket );
+use C4::Biblio qw( GetMarcBiblio );
 
 Readonly::Scalar my $seg_terminator      => q{'};
 Readonly::Scalar my $separator           => q{+};
@@ -371,6 +372,10 @@ sub order_line {
     # LIN line-number in msg :: if we had a 13 digit ean we could add
     my ( $id_string, $id_code );
 
+    my $record = GetMarcBiblio( $biblionumber );
+    my $upc = _get_upc( $record );
+    my $product_id = _get_product_id( $record );
+
     if ( $orderline->line_item_id ) {
         $id_string = $orderline->line_item_id;
         $id_code = 'EN'; 
@@ -391,6 +396,12 @@ sub order_line {
 
             $id_code = 'EN'
         }
+    } elsif ( $upc && $self->{plugin}->retrieve_data('lin_use_upc') ) {
+        $id_string = $upc;
+        $id_code = 'UP';
+    } elsif ( $product_id && $self->{plugin}->retrieve_data('lin_use_product_id') ) {
+        $id_string = $product_id;
+        $id_code = 'PI';
     }
 
     $self->add_seg( lin_segment( $linenumber, $id_string, $id_code ) );
@@ -430,6 +441,20 @@ sub order_line {
             }
         }
     }
+
+    if ( $upc && $self->{plugin}->retrieve_data('pia_use_upc') && $upc ne $id_string ) {
+        $id_string = $upc;
+        $id_code = 'UP';
+        $self->add_seg( additional_product_id( $id_string, $id_code, $product_id_function_code ) );
+        $product_id_function_code = '1'; # Any further PIAs are just additional
+    } 
+
+    if ( $product_id && $self->{plugin}->retrieve_data('pia_use_product_id') && $product_id ne $id_string ) {
+        $id_string = $product_id;
+        $id_code = 'PI';
+        $self->add_seg( additional_product_id( $id_string, $id_code, $product_id_function_code ) );
+        $product_id_function_code = '1'; # Any further PIAs are just additional
+    } 
 
     my @identifiers;
     foreach my $id ( $biblioitem->ean, $biblioitem->issn, $biblioitem->isbn ) {
@@ -740,6 +765,22 @@ sub encode_text {
         $string =~ s/[+]/?+/g;
     }
     return $string;
+}
+
+sub _get_upc {
+    my ( $record ) = @_;
+
+    my $upc = $record->subfield('024', 'a');
+
+    return $upc;
+}
+
+sub _get_product_id {
+    my ( $record ) = @_;
+
+    my $id = $record->subfield('028', 'a');
+
+    return $id;
 }
 
 1;
