@@ -61,6 +61,10 @@ This section allows you to configure the file suffixes for your vendor
 
 This section lets you set the suffix for the Order messages you will transmit to your vendor.
 
+### Invoice file
+
+This section lets you set the suffix for the Invoices messages Koha will look for from the vendor.
+
 ### LIN values
 
 Each order line in Koha generates an LIN segment in an Edifact Order message.
@@ -111,3 +115,25 @@ Send all ISBN-10s as LIN identifiers.
 #### ISBN-13
 
 Send all ISBN-13s as LIN identifiers.
+
+### GIR values
+
+Each item on an order is represented by a set of GIR values. The default for Koha is:
+* LLO - Owning library
+* LST - Item type
+* LSQ - Shelving location
+* LSM - Call number
+
+This section allows you to replace this default list with your own values. The setting should contain a list of key/value pairs of the format:
+key: value
+The space after the colon is important. Don't forget it!
+The key is the name of the GIR field to be sent ( e.g. LLO, LST, etc. )
+The value is the name of any column in the Koha items table ( e.g. homebranch, itemnumber, itemcallnumber, etc )
+
+This setting completely replaces the GIR segements sent by default. The values are not additional.
+
+### Other ORDER configurations
+
+#### Send basket name
+
+By default Koha sends the basket number as the order identifier. This option sends the basket name instead. This is useful if you need to contact the vendor to look into a particular order, as the basket name is easier to look up and tell the vendor. It's possible that a vendor may not be able to handle an alphanumeric order identifier, but all vendors we've worked with so far can.
