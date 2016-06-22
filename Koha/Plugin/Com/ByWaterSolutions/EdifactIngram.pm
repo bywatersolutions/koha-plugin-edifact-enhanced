@@ -23,7 +23,7 @@ our $VERSION = 1.00;
 
 ## Here is our metadata, some keys are required, some are optional
 our $metadata = {
-    name   => 'Edifact Ingram',
+    name   => 'Edifact - Ingram',
     author => 'Kyle M Hall',
     description => 'Edifact Enhanced plugin customized for Ingram',
     date_authored   => '2015-12-21',
