@@ -24,6 +24,7 @@ use utf8;
 use Carp;
 use DateTime;
 use Readonly;
+use YAML qw( Load );
 use Business::ISBN;
 use Koha::Database;
 use C4::Budgets qw( GetBudget );
@@ -479,7 +480,7 @@ sub order_line {
     if ( $orderline->order_vendornote ) {
         $ol_fields->{servicing_instruction} = $orderline->order_vendornote;
     }
-    $self->add_seg( gir_segments( $ol_fields, @items ) );
+    $self->add_seg( $self->gir_segments( $ol_fields, @items ) );
 
     # TBD what if #items exceeds quantity
 
@@ -591,22 +592,36 @@ sub imd_segment {
 }
 
 sub gir_segments {
-    my ( $orderfields, @onorderitems ) = @_;
+    my ( $self, $orderfields, @onorderitems ) = @_;
 
     my $budget_code = $orderfields->{budget_code};
     my @segments;
     my $sequence_no = 1;
+
+    my $gir_mapping = $self->{plugin}->retrieve_data('gir_mapping');
+    if ( $gir_mapping ) {
+        $gir_mapping .= "\n\n"; # YAML insists on newlines at the end
+        eval {
+            $gir_mapping = YAML::Load($gir_mapping);
+        };
+    }
+
     foreach my $item (@onorderitems) {
         my $seg = sprintf 'GIR+%03d', $sequence_no;
         $seg .= add_gir_identity_number( 'LFN', $budget_code );
         if ( C4::Context->preference('AcqCreateItem') eq 'ordering' ) {
-            $seg .=
-              add_gir_identity_number( 'LLO', $item->homebranch->branchcode );
-            $seg .= add_gir_identity_number( 'LST', $item->itype );
-            $seg .= add_gir_identity_number( 'LSQ', $item->location );
-            $seg .= add_gir_identity_number( 'LSM', $item->itemcallnumber );
-
-            # itemcallnumber -> shelfmark
+            if ( $gir_mapping ) {
+		foreach my $tag ( sort keys %$gir_mapping ) {
+                    $seg .= add_gir_identity_number( $tag, $item->get_column( $gir_mapping->{$tag} ) );
+                }
+            }
+            else {
+                $seg .= add_gir_identity_number( 'LLO', $item->homebranch->branchcode );
+                $seg .= add_gir_identity_number( 'LST', $item->itype );
+                $seg .= add_gir_identity_number( 'LSQ', $item->location );
+                $seg .= add_gir_identity_number( 'LSM', $item->itemcallnumber );
+                # itemcallnumber -> shelfmark
+            }
         }
         else {
             if ( $item->{branch} ) {
