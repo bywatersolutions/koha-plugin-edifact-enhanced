@@ -274,15 +274,8 @@ sub order_msg_header {
     push @header, message_date_segment( $self->{message_date} );
 
     # NAD-RFF buyer supplier ids
-    push @header,
-      name_and_address(
-        'BUYER',
-        $self->{sender}->ean,
-        $self->{sender}->id_code_qualifier
-      );
-
     if ( $self->{plugin}->retrieve_data('buyer_san_in_nadby') ) {
-		if ( $self->{plugin}->retrieve_data('buyer_san') ) { #FIXME
+		if ( $self->{plugin}->retrieve_data('buyer_san') ) {
 			push @header,
 			  name_and_address(
 				'BUYER',
@@ -296,9 +289,9 @@ sub order_msg_header {
         push @header,
 	        name_and_address(
 		    'BUYER',
-            $self->{sender}->ean,
-            $self->{sender}->id_code_qualifier,
-	      );
+            	    $self->{sender}->ean,
+                    $self->{sender}->id_code_qualifier,
+	        );
     }
 
     push @header,
