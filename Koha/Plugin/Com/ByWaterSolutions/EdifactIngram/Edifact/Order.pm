@@ -270,7 +270,7 @@ sub order_msg_header {
 
     # UNH  see message_header
     # BGM
-    push @header, beginning_of_message( $self->{basket}->basketno );
+    push @header, $self->beginning_of_message( $self->{basket}->basketno );
 
     # DTM
     push @header, message_date_segment( $self->{message_date} );
@@ -315,7 +315,7 @@ sub order_msg_header {
 }
 
 sub beginning_of_message {
-    my $basketno = shift;
+    my ( $self, $basketno ) = @_;
 
     my $document_message_no;
     if ( $self->{plugin}->retrieve_data('send_basketname') ) {
