@@ -36,7 +36,7 @@ $( document ).ready(function() {
                        <option value="14" [% IF buyer_id_code_qualifier == '14' %]selected="selected"[% END %]>
                            EAN International
                        </option>
-                       <option value="31B [% IF buyer_id_code_qualifier == '31B' %]selected="selected"[% END %]">
+                       <option value="31B" [% IF buyer_id_code_qualifier == '31B' %]selected="selected"[% END %]">
                           US SAN Agency
                        </option>
                        <option value="91" [% IF buyer_id_code_qualifier == '91' %]selected="selected"[% END %]>
