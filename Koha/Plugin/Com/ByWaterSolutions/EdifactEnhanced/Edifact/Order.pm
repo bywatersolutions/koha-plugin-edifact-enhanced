@@ -57,7 +57,6 @@ sub new {
 
         $self->{plugin} = $parameter_hashref->{plugin};
     }
-    warn "PLUGIN: $self->{plugin}";
 
     # validate that its worth proceeding
     if ( !$self->{orderlines} ) {

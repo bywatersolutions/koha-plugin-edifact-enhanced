@@ -97,6 +97,10 @@ $( document ).ready(function() {
                    <label for="order_file_suffix">Order file: </label>
                    <input type="text" name="order_file_suffix" id="order_file_suffix" size="20" maxlength="90" value="[% order_file_suffix %]">
                 </li>
+                <li>
+                   <label for="invoice_file_suffix">Invoice file: </label>
+                   <input type="text" name="invoice_file_suffix" id="invoice_file_suffix" size="20" maxlength="90" value="[% invoice_file_suffix %]">
+                </li>
               </ol>
             </fieldset>
 

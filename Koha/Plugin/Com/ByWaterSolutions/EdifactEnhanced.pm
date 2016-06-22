@@ -78,7 +78,7 @@ sub edifact_transport {
 
     $args->{params}->{plugin} = $self;
 
-    my $edifact_transport = Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Transport->new( $args->{vendor_edi_account_id} );
+    my $edifact_transport = Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Transport->new( $args->{vendor_edi_account_id}, $self );
 
     return $edifact_transport;
 }
@@ -322,22 +322,23 @@ sub configure {
 
         ## Grab the values we already have for our settings, if any exist
         $template->param(
-            lin_use_ean       => $self->retrieve_data('lin_use_ean'),
-            lin_use_issn      => $self->retrieve_data('lin_use_issn'),
-            lin_use_isbn      => $self->retrieve_data('lin_use_isbn'),
-            pia_use_ean       => $self->retrieve_data('pia_use_ean'),
-            pia_use_issn      => $self->retrieve_data('pia_use_issn'),
-            pia_use_isbn10    => $self->retrieve_data('pia_use_isbn10'),
-            pia_use_isbn13    => $self->retrieve_data('pia_use_isbn13'),
-            order_file_suffix => $self->retrieve_data('order_file_suffix'),
-            buyer_san         => $self->retrieve_data('buyer_san'),
-            gir_mapping       => $self->retrieve_data('gir_mapping'),
-            send_basketname   => $self->retrieve_data('send_basketname'),
+            lin_use_ean             => $self->retrieve_data('lin_use_ean'),
+            lin_use_issn            => $self->retrieve_data('lin_use_issn'),
+            lin_use_isbn            => $self->retrieve_data('lin_use_isbn'),
+            pia_use_ean             => $self->retrieve_data('pia_use_ean'),
+            pia_use_issn            => $self->retrieve_data('pia_use_issn'),
+            pia_use_isbn10          => $self->retrieve_data('pia_use_isbn10'),
+            pia_use_isbn13          => $self->retrieve_data('pia_use_isbn13'),
+            order_file_suffix       => $self->retrieve_data('order_file_suffix'),
+            invoice_file_suffix     => $self->retrieve_data('invoice_file_suffix'),
+            buyer_san               => $self->retrieve_data('buyer_san'),
+            gir_mapping             => $self->retrieve_data('gir_mapping'),
+            send_basketname         => $self->retrieve_data('send_basketname'),
             buyer_id_code_qualifier => $self->retrieve_data('buyer_id_code_qualifier'),
             buyer_san_in_header     => $self->retrieve_data('buyer_san_in_header'),
-	    buyer_san_in_nadby      => $self->retrieve_data('buyer_san_in_nadby'),
+            buyer_san_in_nadby      => $self->retrieve_data('buyer_san_in_nadby'),
             branch_ean_in_header    => $self->retrieve_data('branch_ean_in_header'),
-	    branch_ean_in_nadby     => $self->retrieve_data('branch_ean_in_nadby'),
+            branch_ean_in_nadby     => $self->retrieve_data('branch_ean_in_nadby'),
         );
 
         print $cgi->header();
@@ -346,22 +347,23 @@ sub configure {
     else {
         $self->store_data(
             {
-                lin_use_ean    => $cgi->param('lin_use_ean')    ? 1 : 0,
-                lin_use_issn   => $cgi->param('lin_use_issn')   ? 1 : 0,
-                lin_use_isbn   => $cgi->param('lin_use_isbn')   ? 1 : 0,
-                pia_use_ean    => $cgi->param('pia_use_ean')    ? 1 : 0,
-                pia_use_issn   => $cgi->param('pia_use_issn')   ? 1 : 0,
-                pia_use_isbn10 => $cgi->param('pia_use_isbn10') ? 1 : 0,
-                pia_use_isbn13 => $cgi->param('pia_use_isbn13') ? 1 : 0,
+                lin_use_ean     => $cgi->param('lin_use_ean')     ? 1 : 0,
+                lin_use_issn    => $cgi->param('lin_use_issn')    ? 1 : 0,
+                lin_use_isbn    => $cgi->param('lin_use_isbn')    ? 1 : 0,
+                pia_use_ean     => $cgi->param('pia_use_ean')     ? 1 : 0,
+                pia_use_issn    => $cgi->param('pia_use_issn')    ? 1 : 0,
+                pia_use_isbn10  => $cgi->param('pia_use_isbn10')  ? 1 : 0,
+                pia_use_isbn13  => $cgi->param('pia_use_isbn13')  ? 1 : 0,
                 send_basketname => $cgi->param('send_basketname') ? 1 : 0,
-                order_file_suffix => $cgi->param('order_file_suffix'),
-                buyer_san         => $cgi->param('buyer_san'),
-                gir_mapping       => $cgi->param('gir_mapping'),
+                order_file_suffix   => $cgi->param('order_file_suffix'),
+                invoice_file_suffix => $cgi->param('invoice_file_suffix'),
+                buyer_san           => $cgi->param('buyer_san'),
+                gir_mapping         => $cgi->param('gir_mapping'),
                 buyer_id_code_qualifier => $cgi->param('buyer_id_code_qualifier'),
-            	buyer_san_in_header     => $cgi->param('buyer_san_in_header')  ? 1 : 0,
-	    	buyer_san_in_nadby      => $cgi->param('buyer_san_in_nadby')   ? 1 : 0,
-            	branch_ean_in_header    => $cgi->param('branch_ean_in_header') ? 1 : 0,
-	    	branch_ean_in_nadby     => $cgi->param('branch_ean_in_nadby')  ? 1 : 0,
+                buyer_san_in_header     => $cgi->param('buyer_san_in_header') ? 1 : 0,
+                buyer_san_in_nadby      => $cgi->param('buyer_san_in_nadby') ? 1 : 0,
+                branch_ean_in_header    => $cgi->param('branch_ean_in_header') ? 1 : 0,
+                branch_ean_in_nadby     => $cgi->param('branch_ean_in_nadby') ? 1 : 0,
             }
         );
         $self->go_home();

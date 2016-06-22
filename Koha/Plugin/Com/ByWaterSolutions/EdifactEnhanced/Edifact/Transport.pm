@@ -33,15 +33,16 @@ use Koha::Database;
 use Encode qw( from_to );
 
 sub new {
-    my ( $class, $account_id ) = @_;
+    my ( $class, $account_id, $plugin ) = @_;
     my $database = Koha::Database->new();
     my $schema   = $database->schema();
     my $acct     = $schema->resultset('VendorEdiAccount')->find($account_id);
     my $self     = {
-        account     => $acct,
-        schema      => $schema,
-        working_dir => File::Spec->tmpdir(),    #temporary work directory
+        account       => $acct,
+        schema        => $schema,
+        working_dir   => File::Spec->tmpdir(),    #temporary work directory
         transfer_date => DateTime->now( time_zone => 'local' ),
+        plugin        => $plugin,
     };
 
     bless $self, $class;
@@ -360,7 +361,7 @@ sub _get_file_ext {
 
     my %file_types = (
         QUOTE   => 'XXX',
-        INVOICE => 'EIN',
+        INVOICE => $self->{plugin}->retrieve_data('invoice_file_suffix') || 'EIN',
     );
 
     if ( exists $file_types{$type} ) {
