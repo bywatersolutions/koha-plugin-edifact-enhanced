@@ -28,6 +28,7 @@ use YAML qw( Load );
 use Business::ISBN;
 use Koha::Database;
 use C4::Budgets qw( GetBudget );
+use C4::Acquisition qw( GetBasket );
 
 Readonly::Scalar my $seg_terminator      => q{'};
 Readonly::Scalar my $separator           => q{+};
@@ -315,7 +316,14 @@ sub order_msg_header {
 
 sub beginning_of_message {
     my $basketno = shift;
-    my $document_message_no = sprintf '%011d', $basketno;
+
+    my $document_message_no;
+    if ( $self->{plugin}->retrieve_data('send_basketname') ) {
+        my $basket = GetBasket( $basketno );
+        $document_message_no = $basket->{basketname};
+    } else {
+        $document_message_no = sprintf '%011d', $basketno;
+    }
 
     #    my $message_function = 9;    # original 7 = retransmission
     # message_code values

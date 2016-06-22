@@ -157,6 +157,16 @@ $( document ).ready(function() {
               </ol>
             </fieldset>
 
+            <fieldset class="rows">
+              <legend>Other ORDER configurations</legend>
+              <ol>
+                <li>
+                   <label for="send_basketname">Send basket name: </label>
+                   <input type="checkbox" name="send_basketname" id="send_basketname" value="1" [% IF send_basketname %]checked="checked"[% END %]>
+                   <span class="hint">Send the basket name in the BGM instead of the basket number.</span>
+                </li>
+            </fieldset>
+
             <p>
 
             <input type="hidden" name="save" value="1" />
