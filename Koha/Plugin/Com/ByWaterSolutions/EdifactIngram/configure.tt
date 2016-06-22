@@ -146,7 +146,7 @@ $( document ).ready(function() {
               <legend>GIR values</legend>
               <ol>
                 <li>
-                   <label for="gir_mapping">ISBN-13: </label>
+                   <label for="gir_mapping">Values: </label>
                    <textarea name="gir_mapping" id="gir_mapping" rows="10" cols="50">[% gir_mapping %]</textarea>
                 </li>
                 List GIR fields a a list of key value pairs, where the key is the GIR segment tag and the value is the item field name i.e.
