@@ -94,6 +94,16 @@ This identifier must be an ISBN-13.
 The plugin will find all ISBNs related to this order line from the record and use the last valid ISBN-13 it finds.
 If no native ISBN-13 is found, it will convert the first first valid ISBN-10 to an ISBN-13 and send that as the identifier.
 
+#### UPC
+
+Send the UPC as the LIN identifier.
+The UPC must be stored in the MARC record in field 024$a.
+
+#### Product ID
+
+Send the Product ID as the LIN identifier.
+The Product ID must be stored in the MARC record in field 028$a.
+
 ### PIA values
 
 Within each LIN segment can be multiple PIA segments.
@@ -110,11 +120,21 @@ Send the ISSN as a PIA identifier
 
 #### ISBN-10
 
-Send all ISBN-10s as LIN identifiers.
+Send all ISBN-10s as PIA identifiers.
 
 #### ISBN-13
 
-Send all ISBN-13s as LIN identifiers.
+Send all ISBN-13s as PIA identifiers.
+
+#### UPC
+
+Send the UPC as a PIA identifier.
+The UPC must be stored in the MARC record in field 024$a.
+
+#### Product ID
+
+Send the Product ID as a PIA identifier.
+The Product ID must be stored in the MARC record in field 028$a.
 
 ### GIR values
 
