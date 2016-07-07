@@ -167,6 +167,12 @@ warn "ORDERNUMBER: $ordernumber";
 
                 my $order = $schema->resultset('Aqorder')->find($ordernumber);
 warn "ORDER: $order";
+                my $biblio = $order->biblionumber();
+warn "BIBLIO: $biblio";
+		unless ( $biblio ) {
+                    $logger->error("No record found for order $ordernumber, record probably deleted");
+                    next;
+                }
 
       # ModReceiveOrder does not validate that $ordernumber exists validate here
                 if ($order) {
@@ -174,7 +180,7 @@ warn "ORDER: $order";
                     # check suggestions
                     my $s = $schema->resultset('Suggestion')->search(
                         {
-                            biblionumber => $order->biblionumber->biblionumber,
+                            biblionumber => $biblio->biblionumber,
                         }
                     )->single;
                     if ($s) {
