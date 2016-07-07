@@ -201,8 +201,8 @@ warn "LINE QTY: " . $line->quantity;
                         my $received_order = $order->copy(
                             {
                                 ordernumber      => undef,
-                                quantity         => $line->quantity,
-                                quantityreceived => $line->quantity,
+                                quantity         => $line->quantity || 1,
+                                quantityreceived => $line->quantity || 1,
                                 orderstatus      => 'complete',
                                 unitprice        => $price,
                                 invoiceid        => $invoiceid,
