@@ -1,6 +1,6 @@
 {
-  "name": "koha-plugin-edifact-enhanced",
-  "description": "Koha Edifact Enhanced Plugin",
+  "name": "koha-plugin-edifact-enhanced-midwest_tape",
+  "description": "Koha Edifact Enhanced Plugin - Midwest Tape",
   "devDependencies": {
     "gulp": "^3.9.1",
     "gulp-cli": "^1.2.2",
