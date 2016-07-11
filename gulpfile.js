@@ -10,7 +10,7 @@ const today = dt.format('Y-m-d');
 const package_json = JSON.parse(fs.readFileSync('./package.json'));
 const release_filename = `${package_json.name}-v${package_json.version}.kpz`;
 
-const pm_file = 'EdifactEnhanced.pm';
+const pm_file = 'EdifactMidwestTape.pm';
 const pm_file_path = 'Koha/Plugin/Com/ByWaterSolutions/';
 const pm_file_path_full = pm_file_path + pm_file;
 const pm_file_path_dist = 'dist/' + pm_file_path;
@@ -36,6 +36,7 @@ gulp.task('build', () => {
 gulp.task('release', () => {
     gulp.src(release_filename)
         .pipe(release({
+            tag: package_json.version + '-' + process.env.TRAVIS_BRANCH,
             manifest: require('./package.json') // package.json from which default values will be extracted if they're missing
         }));
 });
