@@ -644,15 +644,37 @@ sub gir_segments {
     }
 
     foreach my $item (@onorderitems) {
-        my $seg = sprintf 'GIR+%03d', $sequence_no;
-        $seg .= add_gir_identity_number( 'LFN', $budget_code );
+        my $start = sprintf 'GIR+%03d', $sequence_no;
+	my $seg = $start;
         if ( C4::Context->preference('AcqCreateItem') eq 'ordering' ) {
             if ( $gir_mapping ) {
+		my $i = 1;
 		foreach my $tag ( sort keys %$gir_mapping ) {
-                    $seg .= add_gir_identity_number( $tag, $item->get_column( $gir_mapping->{$tag} ) );
+
+                    my $string;
+                    if ( $gir_mapping->{$tag} eq 'servicing_instruction' ) {
+                        $string = add_gir_identity_number( $tag, $orderfields->{servicing_instruction} );
+                    } elsif ( $gir_mapping->{$tag} eq 'budget_code' ) {
+        		$string = add_gir_identity_number( $tag, $budget_code );
+                    } else {
+                        $string = add_gir_identity_number( $tag, $item->get_column( $gir_mapping->{$tag} ) );
+                    }
+
+                    if ( $string ) { # tag is only added if it's not empty, don't increment i if it is
+
+                        if ( $i % 5 == 0 ) { # Every 5th tag, start a fresh GIR segment
+                            push( @segments, $seg );
+                            $seg = $start;	
+                        }
+
+                        $seg .= $string; # Add the field/value to the segment
+
+		        $i++; # Increment our counter of the number of GIR fields
+                    }
                 }
             }
             else {
+        	$seg .= add_gir_identity_number( 'LFN', $budget_code );
                 $seg .= add_gir_identity_number( 'LLO', $item->homebranch->branchcode );
                 $seg .= add_gir_identity_number( 'LST', $item->itype );
                 $seg .= add_gir_identity_number( 'LSQ', $item->location );
@@ -667,10 +689,13 @@ sub gir_segments {
             $seg .= add_gir_identity_number( 'LST', $item->{itemtype} );
             $seg .= add_gir_identity_number( 'LSM', $item->{shelfmark} );
         }
-        if ( $orderfields->{servicing_instruction} ) {
+
+        # If we are using the GIR custom mapping, we deal with this above
+        if ( $orderfields->{servicing_instruction} && !$gir_mapping) {
             $seg .= add_gir_identity_number( 'LVT',
                 $orderfields->{servicing_instruction} );
         }
+
         $sequence_no++;
         push @segments, $seg;
     }

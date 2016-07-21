@@ -117,6 +117,7 @@ warn "INVOICE: $invoice_message";
 
         # BGM contains an invoice number
         foreach my $msg ( @{$messages} ) {
+warn "MSG: " . Data::Dumper::Dumper( $msg );
             my $invoicenumber  = $msg->docmsg_number();
 warn "INVOICE: $invoicenumber";
             my $shipmentcharge = $msg->shipment_charge();
@@ -160,6 +161,7 @@ warn "VENDOR EAN: $vendor_ean";
             my $lines = $msg->lineitems();
 
             foreach my $line ( @{$lines} ) {
+warn "LINE: " . Data::Dumper::Dumper( $line );
                 my $ordernumber = $line->ordernumber;
 warn "ORDERNUMBER: $ordernumber";
                 $logger->trace( "Receipting order:$ordernumber Qty: ",
