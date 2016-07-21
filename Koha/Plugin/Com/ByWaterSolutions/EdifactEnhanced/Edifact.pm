@@ -152,7 +152,7 @@ sub _init {
     }
     else {
         my $s = substr $msg, 10;
-        croak "File does not start with a Service string advice :$s";
+        carp "File does not start with a Service string advice :$s";
     }
 }
 
