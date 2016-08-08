@@ -514,8 +514,15 @@ sub order_line {
         $ol_fields->{servicing_instruction} = $orderline->order_vendornote;
     }
 
-    $self->add_seg( $self->gir_segments( $ol_fields, @items ) )
-        unless $self->{plugin}->retrieve_data('gir_disable');
+    $self->add_seg(
+        $self->gir_segments(
+            {
+                orderline_fields => $ol_fields,
+                orderline        => $orderline,
+                items            => \@items,
+            }
+        )
+    ) unless $self->{plugin}->retrieve_data('gir_disable');
 
     # TBD what if #items exceeds quantity
 
@@ -627,7 +634,11 @@ sub imd_segment {
 }
 
 sub gir_segments {
-    my ( $self, $orderfields, @onorderitems ) = @_;
+    my ( $self, $params ) = @_;
+
+    my $orderfields = $params->{orderline_fields};
+    my @onorderitems = @{ $params->{items} };
+    my $orderline = $params->{orderline};
 
     return unless $self->{plugin}->retrieve_data('gir_disable');
 
@@ -654,6 +665,9 @@ sub gir_segments {
                     my $string;
                     if ( $gir_mapping->{$tag} eq 'servicing_instruction' ) {
                         $string = add_gir_identity_number( $tag, $orderfields->{servicing_instruction} );
+                    } elsif ( $gir_mapping->{$tag} =~ /^aqorders/ ) {
+                        my (undef, $column ) = split( /\./, $gir_mapping->{$tag} );
+                        $string = add_gir_identity_number( $tag, $orderline->get_column( $column ) );
                     } elsif ( $gir_mapping->{$tag} eq 'budget_code' ) {
         		$string = add_gir_identity_number( $tag, $budget_code );
                     } else {
