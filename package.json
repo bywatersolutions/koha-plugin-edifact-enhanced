@@ -1,6 +1,6 @@
 {
-  "name": "koha-plugin-edifact-enhanced",
-  "description": "Koha Edifact Enhanced Plugin",
+  "name": "koha-plugin-edifact-enhanced-findaway",
+  "description": "Koha Edifact Enhanced Plugin - Findaway",
   "devDependencies": {
     "gulp": "^3.9.1",
     "gulp-cli": "^1.2.2",
