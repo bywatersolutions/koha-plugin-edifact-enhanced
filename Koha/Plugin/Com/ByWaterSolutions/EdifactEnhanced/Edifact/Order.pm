@@ -507,12 +507,15 @@ sub order_line {
             push @items, $item_hash;
         }
     }
+
     my $budget = GetBudget( $orderline->budget_id );
     my $ol_fields = { budget_code => $budget->{budget_code}, };
     if ( $orderline->order_vendornote ) {
         $ol_fields->{servicing_instruction} = $orderline->order_vendornote;
     }
-    $self->add_seg( $self->gir_segments( $ol_fields, @items ) );
+
+    $self->add_seg( $self->gir_segments( $ol_fields, @items ) )
+        unless $self->{plugin}->retrieve_data('gir_disable');
 
     # TBD what if #items exceeds quantity
 
@@ -625,6 +628,8 @@ sub imd_segment {
 
 sub gir_segments {
     my ( $self, $orderfields, @onorderitems ) = @_;
+
+    return unless $self->{plugin}->retrieve_data('gir_disable');
 
     my $budget_code = $orderfields->{budget_code};
     my @segments;

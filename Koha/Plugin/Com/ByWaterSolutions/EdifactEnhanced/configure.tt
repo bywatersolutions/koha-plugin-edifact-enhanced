@@ -170,7 +170,11 @@ $( document ).ready(function() {
               <legend>GIR values</legend>
               <ol>
                 <li>
-                   <label for="gir_mapping">Values: </label>
+                   <label for="gir_disable">Don't send: </label>
+                   <input type="checkbox" name="gir_disable" id="gir_disable" value="1" [% IF gir_disable %]checked="checked"[% END %]>
+                   <span class="hint">If checked, GIR segments will <i>not</i> be sent as part of your EDIFACT order message.</span>
+                <li>
+                   <label for="gir_mapping">Mapping: </label>
                    <textarea name="gir_mapping" id="gir_mapping" rows="10" cols="50">[% gir_mapping %]</textarea>
                 </li>
                 List GIR fields a a list of key value pairs, where the key is the GIR segment tag and the value is the item field name i.e.
