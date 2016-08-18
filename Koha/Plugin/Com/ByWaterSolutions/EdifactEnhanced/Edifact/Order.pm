@@ -640,7 +640,7 @@ sub gir_segments {
     my @onorderitems = @{ $params->{items} };
     my $orderline = $params->{orderline};
 
-    return unless $self->{plugin}->retrieve_data('gir_disable');
+    return if $self->{plugin}->retrieve_data('gir_disable');
 
     my $budget_code = $orderfields->{budget_code};
     my @segments;
