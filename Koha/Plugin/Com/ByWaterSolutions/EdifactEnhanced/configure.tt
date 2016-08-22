@@ -195,6 +195,21 @@ $( document ).ready(function() {
                 </li>
             </fieldset>
 
+            <fieldset class="rows">
+              <legend>Other INVOICE configurations</legend>
+              <ol>
+                <li>
+                   <label for="ship_budget_from_orderline">Shipping budget from order line: </label>
+                   <input type="checkbox" name="ship_budget_from_orderline" id="ship_budget_from_orderline" value="1" [% IF ship_budget_from_orderline %]checked="checked"[% END %]>
+                   <span class="hint">Set the invoice shipping cost fund to the fund used for the last order line of an invoice.</span>
+                </li>
+                <li>
+                   <label for="close_invoice_on_receipt">Close invoice on receipt: </label>
+                   <input type="checkbox" name="close_invoice_on_receipt" id="close_invoice_on_receipt" value="1" [% IF close_invoice_on_receipt %]checked="checked"[% END %]>
+                   <span class="hint">When an invoice is recieved, set it to closed automatically.</span>
+                </li>
+            </fieldset>
+
             <p>
 
             <input type="hidden" name="save" value="1" />

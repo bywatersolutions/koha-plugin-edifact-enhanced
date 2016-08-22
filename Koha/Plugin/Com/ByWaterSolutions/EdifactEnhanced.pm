@@ -178,6 +178,7 @@ warn "BIBLIO: $biblio";
 
       # ModReceiveOrder does not validate that $ordernumber exists validate here
                 if ($order) {
+                    $new_invoice->shipmentcost_budgetid( $order->budget_id ) if $self->retrieve_data('ship_budget_from_orderline');
 
                     # check suggestions
                     my $s = $schema->resultset('Suggestion')->search(
@@ -238,6 +239,10 @@ warn "LINE QTY: " . $line->quantity;
                 }
 
             }
+
+            my $now = dt_from_string();
+            $new_invoice->closedate( $now->ymd() ) if $self->retrieve_data('close_invoice_on_receipt');
+            $new_invoice->update(); # shipment budgetid may have been updated
 
         }
     }
@@ -352,6 +357,8 @@ sub configure {
             buyer_san_in_nadby      => $self->retrieve_data('buyer_san_in_nadby'),
             branch_ean_in_header    => $self->retrieve_data('branch_ean_in_header'),
             branch_ean_in_nadby     => $self->retrieve_data('branch_ean_in_nadby'),
+            ship_budget_from_orderline => $self->retrieve_data('ship_budget_from_orderline'),
+            close_invoice_on_receipt   => $self->retrieve_data('close_invoice_on_receipt'),
         );
 
         print $cgi->header();
@@ -382,6 +389,8 @@ sub configure {
                 buyer_san_in_nadby      => $cgi->param('buyer_san_in_nadby')   ? 1 : 0,
                 branch_ean_in_header    => $cgi->param('branch_ean_in_header') ? 1 : 0,
                 branch_ean_in_nadby     => $cgi->param('branch_ean_in_nadby')  ? 1 : 0,
+                ship_budget_from_orderline => $cgi->param('ship_budget_from_orderline') ? 1 : 0,
+                close_invoice_on_receipt   => $cgi->param('close_invoice_on_receipt')   ? 1 : 0,
             }
         );
         $self->go_home();
