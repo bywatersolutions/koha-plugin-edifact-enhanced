@@ -387,6 +387,8 @@ sub order_line {
         $id_code = 'IS';
     } elsif ( $biblioitem->isbn && $self->{plugin}->retrieve_data('lin_use_isbn') ) {
         foreach my $isbn ( split( q{\|}, $biblioitem->isbn ) ) {
+            $isbn =~ s/^\s+|\s+$//g; # Remove leading and trailing spaces
+            ( $isbn ) = split( / /, $isbn ); # Take only the first part as the isbn, assume anything after the first space is junk
             $isbn = Business::ISBN->new($isbn);
             next unless $isbn;
             next unless $isbn->is_valid();
@@ -427,6 +429,8 @@ sub order_line {
 
     if ( $biblioitem->isbn ) {
         foreach my $isbn ( split( q{\|}, $biblioitem->isbn ) ) {
+            $isbn =~ s/^\s+|\s+$//g; # Remove leading and trailing spaces
+            ( $isbn ) = split( / /, $isbn ); # Take only the first part as the isbn, assume anything after the first space is junk
             $isbn = Business::ISBN->new($isbn);
             next unless $isbn;
             next unless $isbn->is_valid();
