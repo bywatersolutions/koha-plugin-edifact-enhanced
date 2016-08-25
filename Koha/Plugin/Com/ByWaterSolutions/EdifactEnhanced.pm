@@ -86,7 +86,6 @@ sub edifact_transport {
 sub edifact_process_invoice {
     my ( $self, $args ) = @_;
     my $invoice_message = $args->{invoice};
-warn "INVOICE: $invoice_message";
     $invoice_message->status('processing');
     $invoice_message->update;
     my $schema = Koha::Database->new()->schema();
@@ -117,21 +116,15 @@ warn "INVOICE: $invoice_message";
 
         # BGM contains an invoice number
         foreach my $msg ( @{$messages} ) {
-warn "MSG: " . Data::Dumper::Dumper( $msg );
             my $invoicenumber  = $msg->docmsg_number();
-warn "INVOICE: $invoicenumber";
             my $shipmentcharge = $msg->shipment_charge();
-warn "SHIPMENT CHARGE: $shipmentcharge";
             my $msg_date       = $msg->message_date;
-warn "MSG DATE: $msg_date";
             my $tax_date       = $msg->tax_point_date;
-warn "TAX DATE: $tax_date";
             if ( !defined $tax_date || $tax_date !~ m/^\d{8}/xms ) {
                 $tax_date = $msg_date;
             }
 
             my $vendor_ean = $msg->supplier_ean;
-warn "VENDOR EAN: $vendor_ean";
             if ( !defined $vendor_acct || $vendor_ean ne $vendor_acct->san ) {
                 $vendor_acct = $schema->resultset('VendorEdiAccount')->search(
                     {
@@ -161,17 +154,18 @@ warn "VENDOR EAN: $vendor_ean";
             my $lines = $msg->lineitems();
 
             foreach my $line ( @{$lines} ) {
-warn "LINE: " . Data::Dumper::Dumper( $line );
                 my $ordernumber = $line->ordernumber;
-warn "ORDERNUMBER: $ordernumber";
                 $logger->trace( "Receipting order:$ordernumber Qty: ",
                     $line->quantity );
 
                 my $order = $schema->resultset('Aqorder')->find($ordernumber);
-warn "ORDER: $order";
+                unless ( $order ) {
+                    $logger->error("No order found for order number $ordernumber, the vendor is probably sending the wrong value in the RFF+LI segment.");
+                    next;
+                }
+
                 my $biblio = $order->biblionumber();
-warn "BIBLIO: $biblio";
-		unless ( $biblio ) {
+                unless ( $biblio ) {
                     $logger->error("No record found for order $ordernumber, record probably deleted");
                     next;
                 }
@@ -196,9 +190,6 @@ warn "BIBLIO: $biblio";
                     }
 
                     my $price = Koha::EDI::_get_invoiced_price($line);
-warn "PRICE: $price";
-warn "ORDER QTY: " . $order->quantity;
-warn "LINE QTY: " . $line->quantity;
 
                     if ( $order->quantity > $line->quantity ) {
                         my $ordered = $order->quantity;
