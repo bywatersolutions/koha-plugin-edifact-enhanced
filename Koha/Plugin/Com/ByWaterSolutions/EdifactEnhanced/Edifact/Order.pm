@@ -396,7 +396,21 @@ sub order_line {
             $id_string ||= $isbn13->as_string([]);
             $id_string = $isbn13->as_string([]) if $isbn->type() eq 'ISBN13'; #Prefer true ISBN-13 over converted ISBN-13
 
-            $id_code = 'EN'
+            $id_code = 'EN';
+        }
+        # None of the ISBNs found were valid, let's get a bit less picky and use something that at least *looks* like an ISBN-13
+        unless ( $id_string && $id_code ) {
+            foreach my $isbn ( split( q{\|}, $biblioitem->isbn ) ) {
+                $isbn =~ s/^\s+|\s+$//g; # Remove leading and trailing spaces
+                ( $isbn ) = split( / /, $isbn ); # Take only the first part as the isbn, assume anything after the first space is junk
+
+                next unless length($isbn) == 13; # Is it a 13 digit string? If so, use it.
+
+                $id_string = $isbn;
+                $id_code = 'EN';
+
+                last;
+            }
         }
     } elsif ( $upc && $self->{plugin}->retrieve_data('lin_use_upc') ) {
         $id_string = $upc;
