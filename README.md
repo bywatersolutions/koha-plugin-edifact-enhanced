@@ -1,3 +1,7 @@
+# Rittenhouse EDI Plugin for Rittenhouse
+
+The latest installation and configuration documentation for the Rittenhouse EDI plugin for Koha is available in [PDF](https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/blob/brodart/INSTALLATION/INSTALLATION.pdf) and [on the web](https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/blob/brodart/INSTALLATION/INSTALLATION.adoc).
+
 # Koha Enhanced Edifact Plugin
 
 A Koha Edifact plugin that replicates the existing Edifact behavior with additional options. 
