@@ -117,7 +117,23 @@ $( document ).ready(function() {
                 </li>
                 <li>
                    <label for="lin_use_isbn">ISBN: </label>
-                     <input type="checkbox" name="lin_use_isbn" id="lin_use_isbn" value="1" [% IF lin_use_isbn %]checked="checked"[% END %]>
+                   <input type="checkbox" name="lin_use_isbn" id="lin_use_isbn" value="1" [% IF lin_use_isbn %]checked="checked"[% END %]>
+
+                   <fieldset class="rows">
+                       <legend>ISBN options</legend>
+
+                       <p>
+                       <input type="checkbox" name="lin_force_first_isbn" id="lin_force_first_isbn" value="1" [% IF lin_force_first_isbn %]checked="checked"[% END %]>
+                       <span class="hint">Force the use of the first ISBN if sending ISBN in the LIN segment.</span>
+
+                       <p>
+                       <input type="checkbox" name="lin_use_invalid_isbn13" id="lin_use_invalid_isbn13" value="1" [% IF lin_use_invalid_isbn13 %]checked="checked"[% END %]>
+                       <span class="hint">Allow invalid ISBN-13s to be used for the LIN segment. ISBN must be exactly 13 characters.</span>
+
+                       <p>
+                       <input type="checkbox" name="lin_use_invalid_isbn_any" id="lin_use_invalid_isbn_any" value="1" [% IF lin_use_invalid_isbn_any %]checked="checked"[% END %]>
+                       <span class="hint">Allow the use of any invalid ISBN in the LIN segment. Best practice is to try for invalid ISBN-13s first.</span>
+                   </fieldset>
                 </li>
                 <li>
                    <label for="lin_use_upc">UPC: </label>

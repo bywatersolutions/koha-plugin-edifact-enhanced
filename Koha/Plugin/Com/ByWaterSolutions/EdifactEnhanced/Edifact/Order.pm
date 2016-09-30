@@ -26,6 +26,7 @@ use DateTime;
 use Readonly;
 use YAML qw( Load );
 use Business::ISBN;
+use Clone 'clone';
 use Koha::Database;
 use C4::Budgets qw( GetBudget );
 use C4::Acquisition qw( GetBasket );
@@ -386,9 +387,20 @@ sub order_line {
         $id_string = $biblioitem->issn;
         $id_code = 'IS';
     } elsif ( $biblioitem->isbn && $self->{plugin}->retrieve_data('lin_use_isbn') ) {
-        foreach my $isbn ( split( q{\|}, $biblioitem->isbn ) ) {
+        my @dirty_isbns = split( q{\|}, $biblioitem->isbn );
+
+        my @isbns;
+        foreach my $isbn ( @dirty_isbns ) {
             $isbn =~ s/^\s+|\s+$//g; # Remove leading and trailing spaces
             ( $isbn ) = split( / /, $isbn ); # Take only the first part as the isbn, assume anything after the first space is junk
+            push( @isbns, $isbn );
+        }
+
+        # This option forces the system to use the first and only the first isbn, so get rid of the rest
+        @isbns = ( $isbns[0] ) if $self->{plugin}->retrieve_data('lin_force_first_isbn');
+
+        foreach my $i ( reverse @isbns ) { # Reverse list so we prefer isbns from top to bottom of isbn list
+            my $isbn = clone($i); # Copy so we don't alter the list, $isbn is a ref
             $isbn = Business::ISBN->new($isbn);
             next unless $isbn;
             next unless $isbn->is_valid();
@@ -399,17 +411,23 @@ sub order_line {
             $id_code = 'EN';
         }
         # None of the ISBNs found were valid, let's get a bit less picky and use something that at least *looks* like an ISBN-13
-        unless ( $id_string && $id_code ) {
-            foreach my $isbn ( split( q{\|}, $biblioitem->isbn ) ) {
-                $isbn =~ s/^\s+|\s+$//g; # Remove leading and trailing spaces
-                ( $isbn ) = split( / /, $isbn ); # Take only the first part as the isbn, assume anything after the first space is junk
+        if ( $self->{plugin}->retrieve_data('lin_use_invalid_isbn13') ) {
+            unless ( $id_string && $id_code ) {
+                foreach my $isbn ( @isbns ) {
+                    next unless length($isbn) == 13; # Is it a 13 digit string? If so, use it.
 
-                next unless length($isbn) == 13; # Is it a 13 digit string? If so, use it.
+                    $id_string = $isbn;
+                    $id_code = 'EN';
 
-                $id_string = $isbn;
-                $id_code = 'EN';
-
-                last;
+                    last;
+                }
+            }
+        }
+        # Wow, we didn't even find a 13 character string? Fine, let's just toss in whatever we find and hope the vendor can deal with it
+        if ( $self->{plugin}->retrieve_data('lin_use_invalid_isbn_any') ) {
+            unless ( $id_string && $id_code ) {
+                    $id_string = $isbns[0];
+                    $id_code = 'EN';
             }
         }
     } elsif ( $upc && $self->{plugin}->retrieve_data('lin_use_upc') ) {
