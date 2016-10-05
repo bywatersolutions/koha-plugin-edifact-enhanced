@@ -94,6 +94,20 @@ This identifier must be an ISBN-13.
 The plugin will find all ISBNs related to this order line from the record and use the last valid ISBN-13 it finds.
 If no native ISBN-13 is found, it will convert the first first valid ISBN-10 to an ISBN-13 and send that as the identifier.
 
+The ISBN field has further options:
+
+##### Force the use of the first ISBN if sending ISBN in the LIN segment.
+
+This allows the plugin to ensure that the first ISBN is the only one that might be used for the LIN segment.
+
+##### Allow invalid ISBN-13s to be used for the LIN segment. ISBN must be exactly 13 characters.
+
+If the vendor uses invalid ISBN-13s as internal identifiers ( such as Baker & Taylor ), this option will allow invalid ISBN-13s to be used in the LIN segment.
+
+##### Allow the use of any invalid ISBN in the LIN segment.
+
+This option will allow even invalid ISBNs that do not have 13 characters to be transmitted in the LIN segment. Best practice is to try for invalid ISBN-13s first.
+
 #### UPC
 
 Send the UPC as the LIN identifier.
