@@ -171,3 +171,15 @@ This setting completely replaces the GIR segements sent by default. The values a
 #### Send basket name
 
 By default Koha sends the basket number as the order identifier. This option sends the basket name instead. This is useful if you need to contact the vendor to look into a particular order, as the basket name is easier to look up and tell the vendor. It's possible that a vendor may not be able to handle an alphanumeric order identifier, but all vendors we've worked with so far can.
+
+### Other INVOICE configurations
+
+#### Shipping budget from order line
+
+Set the invoice shipping cost fund to the fund used for the last order line of an invoice.
+The use of the last order line is arbitrary. The feature basically assumes that all the order lines on the given invoice use the same fund. By always using the last one we can know which fund was used deterministicaly.
+
+#### Close invoice on receipt
+
+When an invoice is recieved, set it to closed automatically.
+This option is mildly dangerous but highly convenient. It assumes a vendor will always get your shipments to you correctly.
