@@ -210,7 +210,7 @@ sub edifact_process_invoice {
                             }
                         );
                         #FIXME transfer_items( $schema, $line, $order, $received_order );
-                        _receipt_items( $schema, $line, $received_order->ordernumber );
+                        _receipt_items( $self, $schema, $line, $received_order->ordernumber );
                     }
                     else {    # simple receipt all copies on order
                         $order->quantityreceived( $line->quantity );
@@ -219,7 +219,7 @@ sub edifact_process_invoice {
                         $order->unitprice($price);
                         $order->orderstatus('complete');
                         $order->update;
-                        _receipt_items( $schema, $line, $ordernumber );
+                        _receipt_items( $self, $schema, $line, $ordernumber );
                     }
                 }
                 else {
@@ -244,7 +244,7 @@ sub edifact_process_invoice {
 }
 
 sub _receipt_items {
-    my ( $schema, $inv_line, $ordernumber ) = @_;
+    my ( $self, $schema, $inv_line, $ordernumber ) = @_;
     my $logger   = Log::Log4perl->get_logger();
     my $quantity = $inv_line->quantity;
 
