@@ -224,6 +224,11 @@ $( document ).ready(function() {
                    <input type="checkbox" name="close_invoice_on_receipt" id="close_invoice_on_receipt" value="1" [% IF close_invoice_on_receipt %]checked="checked"[% END %]>
                    <span class="hint">When an invoice is recieved, set it to closed automatically.</span>
                 </li>
+                <li>
+                   <label for="add_itemnote_on_receipt">Add item note receipt: </label>
+                   <input type="checkbox" name="add_itemnote_on_receipt" id="add_itemnote_on_receipt" value="1" [% IF add_itemnote_on_receipt %]checked="checked"[% END %]>
+                   <span class="hint">When an item is recieved via EDIFACT, set the item's nonpublic note to "Recieved via EDIFACT".</span>
+                </li>
             </fieldset>
 
             <p>

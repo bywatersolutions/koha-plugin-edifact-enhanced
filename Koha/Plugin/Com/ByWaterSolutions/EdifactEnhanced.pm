@@ -284,7 +284,9 @@ sub _receipt_items {
        $item->replacementpricedate( dt_from_string() );
 
        # Note that this was recieved via EDI
-       $item->itemnotes_nonpublic( "Recieved via EDIFACT" );
+       if ( $self->retrieve_data('add_itemnote_on_receipt') ) {
+           $item->itemnotes_nonpublic( "Recieved via EDIFACT" );
+       }
 
        $item->update();
 
@@ -353,6 +355,7 @@ sub configure {
             branch_ean_in_nadby     => $self->retrieve_data('branch_ean_in_nadby'),
             ship_budget_from_orderline => $self->retrieve_data('ship_budget_from_orderline'),
             close_invoice_on_receipt   => $self->retrieve_data('close_invoice_on_receipt'),
+            add_itemnote_on_receipt    => $self->retrieve_data('add_itemnote_on_receipt'),
         );
 
         print $cgi->header();
@@ -388,6 +391,7 @@ sub configure {
                 branch_ean_in_nadby     => $cgi->param('branch_ean_in_nadby')  ? 1 : 0,
                 ship_budget_from_orderline => $cgi->param('ship_budget_from_orderline') ? 1 : 0,
                 close_invoice_on_receipt   => $cgi->param('close_invoice_on_receipt')   ? 1 : 0,
+                add_itemnote_on_receipt    => $cgi->param('add_itemnote_on_receipt')   ? 1 : 0,
             }
         );
         $self->go_home();
