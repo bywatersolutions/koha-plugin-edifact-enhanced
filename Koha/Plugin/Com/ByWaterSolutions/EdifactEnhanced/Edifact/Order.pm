@@ -377,25 +377,28 @@ sub order_line {
     my $upc = _get_upc( $record );
     my $product_id = _get_product_id( $record );
 
+    # The EAN may be hiding in the ISBN field, so let's get them now and clean them up
+    my @dirty_isbns = split( q{\|}, $biblioitem->isbn );
+    my @isbns;
+    foreach my $isbn ( @dirty_isbns ) {
+        $isbn =~ s/^\s+|\s+$//g; # Remove leading and trailing spaces
+        ( $isbn ) = split( / /, $isbn ); # Take only the first part as the isbn, assume anything after the first space is junk
+        push( @isbns, $isbn );
+    }
+
+    my @eans = grep( /^978/, @isbns ); # Assume all strings starting with 978 are EANs
+    @isbns = grep( !/^978/, @isbns ); # Filter those EANs out of the list of ISBNs
+
     if ( $orderline->line_item_id ) {
         $id_string = $orderline->line_item_id;
-        $id_code = 'EN'; 
-    } elsif ( $biblioitem->ean && $self->{plugin}->retrieve_data('lin_use_ean') ) {
-        $id_string = $biblioitem->ean;
+        $id_code = 'EN';
+    } elsif ( ( $biblioitem->ean || @eans  ) && $self->{plugin}->retrieve_data('lin_use_ean') ) {
+        $id_string = $biblioitem->ean || $eans[0];
         $id_code = 'EN';
     } elsif ( $biblioitem->issn && $self->{plugin}->retrieve_data('lin_use_issn') ) {
         $id_string = $biblioitem->issn;
         $id_code = 'IS';
     } elsif ( $biblioitem->isbn && $self->{plugin}->retrieve_data('lin_use_isbn') ) {
-        my @dirty_isbns = split( q{\|}, $biblioitem->isbn );
-
-        my @isbns;
-        foreach my $isbn ( @dirty_isbns ) {
-            $isbn =~ s/^\s+|\s+$//g; # Remove leading and trailing spaces
-            ( $isbn ) = split( / /, $isbn ); # Take only the first part as the isbn, assume anything after the first space is junk
-            push( @isbns, $isbn );
-        }
-
         # This option forces the system to use the first and only the first isbn, so get rid of the rest
         @isbns = ( $isbns[0] ) if $self->{plugin}->retrieve_data('lin_force_first_isbn');
 
@@ -406,7 +409,7 @@ sub order_line {
             next unless $isbn->is_valid();
             my $isbn13 = $isbn->as_isbn13();
             $id_string ||= $isbn13->as_string([]);
-            $id_string = $isbn13->as_string([]) if $isbn->type() eq 'ISBN13'; #Prefer true ISBN-13 over converted ISBN-13
+            $id_string = $isbn13->as_string([]) if $isbn->type() eq 'ISBN13'; # Prefer true ISBN-13 over converted ISBN-13
 
             $id_code = 'EN';
         }
