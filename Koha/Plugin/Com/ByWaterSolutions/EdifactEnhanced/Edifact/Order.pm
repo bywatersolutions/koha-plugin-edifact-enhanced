@@ -26,6 +26,7 @@ use DateTime;
 use Readonly;
 use YAML qw( Load );
 use Business::ISBN;
+use Business::Barcode::EAN13 qw( valid_barcode );
 use Clone 'clone';
 use Koha::Database;
 use C4::Budgets qw( GetBudget );
@@ -386,8 +387,7 @@ sub order_line {
         push( @isbns, $isbn );
     }
 
-    my @eans = grep( /^978/, @isbns ); # Assume all strings starting with 978 are EANs
-    @isbns = grep( !/^978/, @isbns ); # Filter those EANs out of the list of ISBNs
+    my @eans = grep( valid_barcode($_), @isbns );
 
     if ( $orderline->line_item_id ) {
         $id_string = $orderline->line_item_id;
