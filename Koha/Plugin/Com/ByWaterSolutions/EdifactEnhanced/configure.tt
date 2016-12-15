@@ -209,6 +209,16 @@ $( document ).ready(function() {
                    <input type="checkbox" name="send_basketname" id="send_basketname" value="1" [% IF send_basketname %]checked="checked"[% END %]>
                    <span class="hint">Send the basket name in the BGM instead of the basket number.</span>
                 </li>
+                <li>
+                   <label for="split_gir">GIR Subfield per line: </label>
+                   <select name="split_gir" id="split_gir">
+                       [% FOREACH i IN [0 .. 20] %]
+                           <option value="[% i %]" [% IF split_gir == i %]selected="selected"[% END %]>[% i %]</option>
+                       [% END %]
+                   </select>
+                   <span class="hint">Split the GIR into multiple lines where each line has this many subfields. Set to 0 for no GIR splitting.</span>
+                </li>
+              </ol>
             </fieldset>
 
             <fieldset class="rows">
@@ -229,6 +239,7 @@ $( document ).ready(function() {
                    <input type="checkbox" name="add_itemnote_on_receipt" id="add_itemnote_on_receipt" value="1" [% IF add_itemnote_on_receipt %]checked="checked"[% END %]>
                    <span class="hint">When an item is recieved via EDIFACT, set the item's nonpublic note to "Recieved via EDIFACT".</span>
                 </li>
+              </ol>
             </fieldset>
 
             <p>

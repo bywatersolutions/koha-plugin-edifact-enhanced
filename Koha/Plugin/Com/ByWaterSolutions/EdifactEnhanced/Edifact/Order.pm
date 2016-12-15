@@ -693,6 +693,9 @@ sub gir_segments {
         };
     }
 
+    my $gir_split = $self->{plugin}->retrieve_data('gir_split') || '999999'; # 0 = false = unlimited
+    $gir_split++;
+
     foreach my $item (@onorderitems) {
         my $start = sprintf 'GIR+%03d', $sequence_no;
 	my $seg = $start;
@@ -715,7 +718,7 @@ sub gir_segments {
 
                     if ( $string ) { # tag is only added if it's not empty, don't increment i if it is
 
-                        if ( $i % 5 == 0 ) { # Every 5th tag, start a fresh GIR segment
+                        if ( $i % $gir_split == 0 ) { # Every 5th tag, start a fresh GIR segment
                             push( @segments, $seg );
                             $seg = $start;	
                         }
