@@ -190,6 +190,7 @@ sub buyer_ean {
 
 sub supplier_ean {
     my $self = shift;
+    my @nad_su;
     foreach my $s ( @{ $self->{datasegs} } ) {
         if ( $s->tag eq 'LIN' ) {
             last;
@@ -197,12 +198,11 @@ sub supplier_ean {
         if ( $s->tag eq 'NAD' ) {
             my $qualifier = $s->elem(0);
             if ( $qualifier eq 'SU' ) {
-                return $s->elem( 1, 0 );
+                push( @nad_su, $s->elem( 1, 0 ) );
             }
         }
     }
-    return;
-
+    return join( q{ }, @nad_su );
 }
 
 sub lineitems {
