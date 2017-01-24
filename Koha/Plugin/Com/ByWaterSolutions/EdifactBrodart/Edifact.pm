@@ -194,7 +194,7 @@ sub service_string_advice {
     # At present this just validates that the ssa
     # is standard Edifact
     # TBD reset the seps if non standard
-    if ( $ssa ne q{:+.? '} ) {
+    if ( $ssa ne q{:+.?*'} ) {
         carp " Non standard Service String Advice [$ssa]";
         return;
     }
