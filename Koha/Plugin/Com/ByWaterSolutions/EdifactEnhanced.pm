@@ -123,19 +123,24 @@ sub edifact_process_invoice {
                 $tax_date = $msg_date;
             }
 
-            my $vendor_ean = $msg->supplier_ean;
-            if ( !defined $vendor_acct || $vendor_ean ne $vendor_acct->san ) {
-                $vendor_acct = $schema->resultset('VendorEdiAccount')->search(
-                    {
-                        san => $vendor_ean,
-                    }
-                )->single;
-            }
-            if ( !$vendor_acct ) {
-                carp "Cannot find vendor with ean $vendor_ean for invoice $invoicenumber in $invoice_message->filename";
-                next;
-            }
-            $invoice_message->edi_acct( $vendor_acct->id );
+## This method is proved to be highly unreliable. We should get the vendor from the edifact_messages column vendor_id
+## and limit our search for ordernumbers to that vendor
+#            my $vendor_ean = $msg->supplier_ean;
+#            if ( !defined $vendor_acct || $vendor_ean ne $vendor_acct->san ) {
+#                $vendor_acct = $schema->resultset('VendorEdiAccount')->search(
+#                    {
+#                        san => $vendor_ean,
+#                    }
+#                )->single;
+#            }
+#            if ( !$vendor_acct ) {
+#                carp "Cannot find vendor with ean $vendor_ean for invoice $invoicenumber in $invoice_message->filename";
+#                next;
+#            }
+#            $invoice_message->edi_acct( $vendor_acct->id );
+
+            my $vendor_acct = $invoice_message->edi_acct();
+
             $logger->trace("Adding invoice:$invoicenumber");
             my $new_invoice = $schema->resultset('Aqinvoice')->create(
                 {
@@ -169,7 +174,13 @@ sub edifact_process_invoice {
                     next;
                 }
 
-      # ModReceiveOrder does not validate that $ordernumber exists validate here
+                my $vendor_id = $invoice_message->vendor_id();
+                if ( $order->basketno()->get_column('booksellerid') ne $vendor_id ) {
+                    $logger->error("The order found for order number $ordernumber is valid, but the vendor for that order does not match the vendor that sent the invoice.");
+                    next;
+                }
+
+                # ModReceiveOrder does not validate that $ordernumber exists validate here
                 if ($order) {
                     $new_invoice->shipmentcost_budgetid( $order->budget_id ) if $self->retrieve_data('ship_budget_from_orderline');
 
