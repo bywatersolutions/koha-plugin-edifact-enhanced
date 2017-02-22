@@ -129,9 +129,9 @@ sub shipment_charge {
         my $delivery = 0;
         my $amt      = 0;
         foreach my $s ( @{ $self->{datasegs} } ) {
-            if ( $s->tag eq 'LIN' ) {
-                last;
-            }
+#            if ( $s->tag eq 'LIN' ) {
+#                last;
+#            }
             if ( $s->tag eq 'ALC' ) {
                 if ( $s->elem(0) eq 'C' ) {    # Its a charge
                     if ( $s->elem( 4, 0 ) eq 'DL' ) {    # delivery charge
@@ -141,7 +141,10 @@ sub shipment_charge {
                 next;
             }
             if ( $s->tag eq 'MOA' ) {
-                $amt += $s->elem( 0, 1 );
+                # Qualifier 8 = Value Added ( barcodes, lamination, etc. )
+                if ( $s->elem( 0, 0 ) == 8 ) {
+                    $amt += $s->elem( 0, 1 );
+                }
             }
         }
         return $amt;

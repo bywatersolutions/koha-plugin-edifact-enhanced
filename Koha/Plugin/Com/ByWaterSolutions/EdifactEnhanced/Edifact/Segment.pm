@@ -64,6 +64,7 @@ sub elem {
         }
     } # else element undefined ( out of range
 
+    $value ||= q{};
     $value =~ s/[^[:print:]]+//g; # Remove non-printable characters like newlines
     return $value;
 }
