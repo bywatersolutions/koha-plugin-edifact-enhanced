@@ -273,14 +273,16 @@ sub _receipt_items {
        # Source of acquisition, i.e. Vendor ID
        $item->booksellerid( $bookseller->id() );
 
-       # Cost, normal purchase price, i.e. actual paid price
-       $item->price( $order->unitprice() );
+       unless ( $self->retrieve_data('no_update_item_price') ) {
+           # Cost, normal purchase price, i.e. actual paid price
+           $item->price( $order->unitprice() );
 
-       # Cost, replacement price
-       $item->replacementprice( $order->rrp() );
+           # Cost, replacement price
+           $item->replacementprice( $order->rrp() );
 
-       # Price effective from
-       $item->replacementpricedate( dt_from_string() );
+           # Price effective from
+           $item->replacementpricedate( dt_from_string() );
+       }
 
        # Note that this was recieved via EDI
        if ( $self->retrieve_data('add_itemnote_on_receipt') ) {
@@ -356,6 +358,7 @@ sub configure {
             ship_budget_from_orderline => $self->retrieve_data('ship_budget_from_orderline'),
             close_invoice_on_receipt   => $self->retrieve_data('close_invoice_on_receipt'),
             add_itemnote_on_receipt    => $self->retrieve_data('add_itemnote_on_receipt'),
+            no_update_item_price       => $self->retrieve_data('no_update_item_price'),
         );
 
         print $cgi->header();
@@ -393,6 +396,7 @@ sub configure {
                 ship_budget_from_orderline => $cgi->param('ship_budget_from_orderline') ? 1 : 0,
                 close_invoice_on_receipt   => $cgi->param('close_invoice_on_receipt')   ? 1 : 0,
                 add_itemnote_on_receipt    => $cgi->param('add_itemnote_on_receipt')   ? 1 : 0,
+                no_update_item_price       => $cgi->param('no_update_item_price')   ? 1 : 0,
             }
         );
         $self->go_home();
