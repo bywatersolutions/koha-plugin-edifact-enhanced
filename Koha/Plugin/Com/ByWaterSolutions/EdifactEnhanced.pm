@@ -284,6 +284,11 @@ sub _receipt_items {
            $item->replacementpricedate( dt_from_string() );
        }
 
+       my $set_nfl_on_receipt = $self->retrieve_data('set_nfl_on_receipt');
+       if ( defined( $set_nfl_on_receipt ) && $set_nfl_on_receipt ne q{} ) {
+           $item->notforloan( $set_nfl_on_receipt );
+       }
+
        # Note that this was recieved via EDI
        if ( $self->retrieve_data('add_itemnote_on_receipt') ) {
            $item->itemnotes_nonpublic( "Recieved via EDIFACT" );
@@ -359,6 +364,7 @@ sub configure {
             close_invoice_on_receipt   => $self->retrieve_data('close_invoice_on_receipt'),
             add_itemnote_on_receipt    => $self->retrieve_data('add_itemnote_on_receipt'),
             no_update_item_price       => $self->retrieve_data('no_update_item_price'),
+            set_nfl_on_receipt         => $self->retrieve_data('set_nfl_on_receipt') // q{},
         );
 
         print $cgi->header();
@@ -397,6 +403,7 @@ sub configure {
                 close_invoice_on_receipt   => $cgi->param('close_invoice_on_receipt')   ? 1 : 0,
                 add_itemnote_on_receipt    => $cgi->param('add_itemnote_on_receipt')   ? 1 : 0,
                 no_update_item_price       => $cgi->param('no_update_item_price')   ? 1 : 0,
+                set_nfl_on_receipt       => $cgi->param('set_nfl_on_receipt') // q{},
             }
         );
         $self->go_home();

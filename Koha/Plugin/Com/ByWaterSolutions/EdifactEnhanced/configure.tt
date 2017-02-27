@@ -1,3 +1,4 @@
+[% USE AuthorisedValues %]
 [% INCLUDE 'doc-head-open.inc' %]
  <title>Koha: Edifact Enhanced Plugin: Configuration</title>
 [% INCLUDE 'doc-head-close.inc' %]
@@ -246,6 +247,22 @@ $( document ).ready(function() {
                    <label for="no_update_item_price">Don't update item price: </label>
                    <input type="checkbox" name="no_update_item_price" id="no_update_item_price" value="1" [% IF no_update_item_price %]checked="checked"[% END %]>
                    <span class="hint">Do <em>not</em> update the item's price based on the item price in the recieved invoice.</span>
+                </li>
+
+                <li>
+                   <label for="set_nfl_on_receipt">Not for loan status: </label>
+                   <select name="set_nfl_on_receipt" id="set_nfl_on_receipt">
+                       <option value="">Leave Value Unchanged</option>
+                       [% SET avs = AuthorisedValues.GetAuthValueDropbox( 'NOT_LOAN', set_nfl_on_receipt ) %]
+                       [% FOR av IN avs %]
+                           [% IF av.value == set_nfl_on_receipt %]
+                               <option value="[% av.value %]" selected="selected">[% av.label | html_entity %]</option>
+                           [% ELSE %]
+                               <option value="[% av.value %]">[% av.label | html_entity %]</option>
+                           [% END %]
+                       [% END %]
+                   </select>
+                   <span class="hint">On receipt, set an item's not for loan status to the following.</span>
                 </li>
               </ol>
             </fieldset>
