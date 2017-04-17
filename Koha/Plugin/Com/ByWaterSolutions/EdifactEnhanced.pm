@@ -116,7 +116,7 @@ sub edifact_process_invoice {
         # BGM contains an invoice number
         foreach my $msg ( @{$messages} ) {
             my $invoicenumber  = $msg->docmsg_number();
-            my $shipmentcharge = $msg->shipment_charge();
+            my $shipmentcharge = $msg->shipment_charge( $self );
             my $msg_date       = $msg->message_date;
             my $tax_date       = $msg->tax_point_date;
             if ( !defined $tax_date || $tax_date !~ m/^\d{8}/xms ) {
@@ -374,6 +374,8 @@ sub configure {
             branch_ean_in_header    => $self->retrieve_data('branch_ean_in_header'),
             branch_ean_in_nadby     => $self->retrieve_data('branch_ean_in_nadby'),
             ship_budget_from_orderline => $self->retrieve_data('ship_budget_from_orderline'),
+            shipment_charges_alc_dl    => $self->retrieve_data('shipment_charges_alc_dl'),
+            shipment_charges_moa_8     => $self->retrieve_data('shipment_charges_moa_8'),
             close_invoice_on_receipt   => $self->retrieve_data('close_invoice_on_receipt'),
             add_itemnote_on_receipt    => $self->retrieve_data('add_itemnote_on_receipt'),
             no_update_item_price       => $self->retrieve_data('no_update_item_price'),
@@ -413,6 +415,8 @@ sub configure {
                 branch_ean_in_header    => $cgi->param('branch_ean_in_header') ? 1 : 0,
                 branch_ean_in_nadby     => $cgi->param('branch_ean_in_nadby')  ? 1 : 0,
                 ship_budget_from_orderline => $cgi->param('ship_budget_from_orderline') ? 1 : 0,
+                shipment_charges_alc_dl    => $cgi->param('shipment_charges_alc_dl') ? 1 : 0,
+                shipment_charges_moa_8     => $cgi->param('shipment_charges_moa_8') ? 1 : 0,
                 close_invoice_on_receipt   => $cgi->param('close_invoice_on_receipt')   ? 1 : 0,
                 add_itemnote_on_receipt    => $cgi->param('add_itemnote_on_receipt')   ? 1 : 0,
                 no_update_item_price       => $cgi->param('no_update_item_price')   ? 1 : 0,

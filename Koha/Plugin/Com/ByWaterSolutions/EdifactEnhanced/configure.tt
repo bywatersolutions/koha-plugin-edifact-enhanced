@@ -232,6 +232,18 @@ $( document ).ready(function() {
                 </li>
 
                 <li>
+                   <label for="shipment_charges_alc_dl">Shipping - Use ALC DL: </label>
+                   <input type="checkbox" name="shipment_charges_alc_dl" id="shipment_charges_alc_dl" value="1" [% IF shipment_charges_alc_dl %]checked="checked"[% END %]>
+                   <span class="hint">Add ALC charges of type DL ( Delivery ) to the shipping cost for an invoice.</span>
+                </li>
+
+                <li>
+                   <label for="shipment_charges_moa_8">Shipping - Use MOA+8: </label>
+                   <input type="checkbox" name="shipment_charges_moa_8" id="shipment_charges_moa_8" value="1" [% IF shipment_charges_moa_8 %]checked="checked"[% END %]>
+                   <span class="hint">Add MOA charges with a qualifier 8, Value Added ( barcodes, lamination, etc. ) to the shipping cost for an invoice.</span>
+                </li>
+
+                <li>
                    <label for="close_invoice_on_receipt">Close invoice on receipt: </label>
                    <input type="checkbox" name="close_invoice_on_receipt" id="close_invoice_on_receipt" value="1" [% IF close_invoice_on_receipt %]checked="checked"[% END %]>
                    <span class="hint">When an invoice is recieved, set it to closed automatically.</span>

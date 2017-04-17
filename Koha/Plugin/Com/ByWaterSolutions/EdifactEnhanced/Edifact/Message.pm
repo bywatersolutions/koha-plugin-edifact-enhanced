@@ -121,6 +121,7 @@ sub expiry_date {
 
 sub shipment_charge {
     my $self = shift;
+    my $edifact_plugin = shift;
 
     # A large number of different charges can be expressed at invoice and
     # item level but the only one koha takes cognizance of is shipment
@@ -132,18 +133,22 @@ sub shipment_charge {
 #            if ( $s->tag eq 'LIN' ) {
 #                last;
 #            }
-            if ( $s->tag eq 'ALC' ) {
-                if ( $s->elem(0) eq 'C' ) {    # Its a charge
-                    if ( $s->elem( 4, 0 ) eq 'DL' ) {    # delivery charge
-                        $delivery = 1;
+            if ( $self->retrieve_data('shipment_charges_alc_dl') ) {
+                if ( $s->tag eq 'ALC' ) {
+                    if ( $s->elem(0) eq 'C' ) {    # Its a charge
+                        if ( $s->elem( 4, 0 ) eq 'DL' ) {    # delivery charge
+                            $delivery = 1;
+                        }
                     }
+                    next;
                 }
-                next;
             }
-            if ( $s->tag eq 'MOA' ) {
-                # Qualifier 8 = Value Added ( barcodes, lamination, etc. )
-                if ( $s->elem( 0, 0 ) == 8 ) {
-                    $amt += $s->elem( 0, 1 );
+            if ( $self->retrieve_data('shipment_charges_moa_8') ) {
+                if ( $s->tag eq 'MOA' ) {
+                    # Qualifier 8 = Value Added ( barcodes, lamination, etc. )
+                    if ( $s->elem( 0, 0 ) == 8 ) {
+                        $amt += $s->elem( 0, 1 );
+                    }
                 }
             }
         }
