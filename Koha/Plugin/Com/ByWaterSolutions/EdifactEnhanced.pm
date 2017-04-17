@@ -227,8 +227,8 @@ sub edifact_process_invoice {
                         $order->datereceived($msg_date);
                         $order->invoiceid($invoiceid);
                         $order->unitprice($price);
-                        $order->unitprice_tax_excluded($price);
-                        $order->unitprice_tax_included($price);
+                        eval { $order->unitprice_tax_excluded($price); }; # doesn't work in 3.22
+                        eval { $order->unitprice_tax_included($price); }; # doesn't work in 3.22
                         $order->orderstatus('complete');
                         $order->update;
                         _receipt_items( $self, $schema, $line, $ordernumber );

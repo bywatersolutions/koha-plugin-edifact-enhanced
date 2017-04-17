@@ -133,7 +133,7 @@ sub shipment_charge {
 #            if ( $s->tag eq 'LIN' ) {
 #                last;
 #            }
-            if ( $self->retrieve_data('shipment_charges_alc_dl') ) {
+            if ( $edifact_plugin->retrieve_data('shipment_charges_alc_dl') ) {
                 if ( $s->tag eq 'ALC' ) {
                     if ( $s->elem(0) eq 'C' ) {    # Its a charge
                         if ( $s->elem( 4, 0 ) eq 'DL' ) {    # delivery charge
@@ -143,7 +143,7 @@ sub shipment_charge {
                     next;
                 }
             }
-            if ( $self->retrieve_data('shipment_charges_moa_8') ) {
+            if ( $edifact_plugin->retrieve_data('shipment_charges_moa_8') ) {
                 if ( $s->tag eq 'MOA' ) {
                     # Qualifier 8 = Value Added ( barcodes, lamination, etc. )
                     if ( $s->elem( 0, 0 ) == 8 ) {
