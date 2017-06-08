@@ -175,9 +175,24 @@ sub edifact_process_invoice {
                 }
 
                 my $vendor_id = $invoice_message->vendor_id();
-                if ( $order->basketno()->get_column('booksellerid') ne $vendor_id ) {
+                my $basket_vendor_id = $order->basketno()->get_column('booksellerid');
+                if ( $basket_vendor_id ne $vendor_id ) {
                     $logger->error("The order found for order number $ordernumber is valid, but the vendor for that order does not match the vendor that sent the invoice.");
-                    next;
+
+                    my $edi_vendor = $schema->resultset('VendorEdiAccount')->find({ vendor_id => $vendor_id});
+                    next unless $edi_vendor;
+
+                    my $basket_vendor = $schema->resultset('VendorEdiAccount')->find({ vendor_id => $basket_vendor_id });
+                    next unless $basket_vendor;
+
+                    # This is necessary because some libraries use the same plugin for multiple "vendors" that are really the same vendor.
+                    # Because of this, the first edi vendor instance will pick up all the invoices for all the different instances.
+                    # So as long as they share the same plugin, we should allow the item to be recieved
+                    if ( $edi_vendor->plugin eq $basket_vendor->plugin ) {
+                        $logger->error("The plugin used by the vendor is the same as that used by the basket, allow it. PLUGIN: " . $edi_vendor->plugin );
+                    } else {
+                        next;
+                    }
                 }
 
                 # ModReceiveOrder does not validate that $ordernumber exists validate here
