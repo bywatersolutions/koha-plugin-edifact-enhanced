@@ -698,43 +698,56 @@ sub gir_segments {
 
     foreach my $item (@onorderitems) {
         my $start = sprintf 'GIR+%03d', $sequence_no;
-	my $seg = $start;
+        my $seg = $start;
         if ( C4::Context->preference('AcqCreateItem') eq 'ordering' ) {
-            if ( $gir_mapping ) {
-		my $i = 1;
-		foreach my $tag ( sort keys %$gir_mapping ) {
+            if ($gir_mapping) {
+                my $i = 1;
+                foreach my $tag ( sort keys %$gir_mapping ) {
 
                     my $string;
                     if ( $gir_mapping->{$tag} eq 'servicing_instruction' ) {
                         $string = add_gir_identity_number( $tag, $orderfields->{servicing_instruction} );
-                    } elsif ( $gir_mapping->{$tag} =~ /^aqorders/ ) {
-                        my (undef, $column ) = split( /\./, $gir_mapping->{$tag} );
-                        $string = add_gir_identity_number( $tag, $orderline->get_column( $column ) );
-                    } elsif ( $gir_mapping->{$tag} eq 'budget_code' ) {
-        		$string = add_gir_identity_number( $tag, $budget_code );
-                    } else {
+                    }
+                    elsif ( $gir_mapping->{$tag} =~ /^aqorders/ ) {
+                        my ( undef, $column ) = split( /\./, $gir_mapping->{$tag} );
+                        $string = add_gir_identity_number( $tag, $orderline->get_column($column) );
+                    }
+                    elsif ( $gir_mapping->{$tag} eq 'budget_code' ) {
+                        $string = add_gir_identity_number( $tag, $budget_code );
+                    }
+                    elsif ( index( $gir_mapping->{$tag}, '$' ) != -1 ) {
+                        my ( $field, $subfield ) = split( '$', $gir_mapping->{$tag} );
+                        my $marc = GetMarcBiblio( $orderline->biblionumber() );
+                        my $value = $marc->subfield( $field, $subfield );
+                        $string = add_gir_identity_number( $tag, $value );
+                    }
+                    else {
                         $string = add_gir_identity_number( $tag, $item->get_column( $gir_mapping->{$tag} ) );
                     }
 
-                    if ( $string ) { # tag is only added if it's not empty, don't increment i if it is
+                    if ($string) {
+                        # tag is only added if it's not empty, don't increment i if it is
 
-                        if ( $i % $split_gir == 0 ) { # Every 5th tag, start a fresh GIR segment
+                        if ( $i % $split_gir == 0 )
+                        {    # Every 5th tag, start a fresh GIR segment
                             push( @segments, $seg );
-                            $seg = $start;	
+                            $seg = $start;
                         }
 
                         $seg .= $string; # Add the field/value to the segment
 
-		        $i++; # Increment our counter of the number of GIR fields
+                        $i++; # Increment our counter of the number of GIR fields
                     }
                 }
             }
             else {
-        	$seg .= add_gir_identity_number( 'LFN', $budget_code );
-                $seg .= add_gir_identity_number( 'LLO', $item->homebranch->branchcode );
+                $seg .= add_gir_identity_number( 'LFN', $budget_code );
+                $seg .= add_gir_identity_number( 'LLO',
+                    $item->homebranch->branchcode );
                 $seg .= add_gir_identity_number( 'LST', $item->itype );
                 $seg .= add_gir_identity_number( 'LSQ', $item->location );
                 $seg .= add_gir_identity_number( 'LSM', $item->itemcallnumber );
+
                 # itemcallnumber -> shelfmark
             }
         }
@@ -747,7 +760,7 @@ sub gir_segments {
         }
 
         # If we are using the GIR custom mapping, we deal with this above
-        if ( $orderfields->{servicing_instruction} && !$gir_mapping) {
+        if ( $orderfields->{servicing_instruction} && !$gir_mapping ) {
             $seg .= add_gir_identity_number( 'LVT',
                 $orderfields->{servicing_instruction} );
         }
