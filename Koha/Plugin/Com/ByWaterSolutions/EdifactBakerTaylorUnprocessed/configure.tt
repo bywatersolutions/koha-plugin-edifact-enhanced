@@ -270,7 +270,8 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
               <ol>
                 <li>
                    <label for="gir_disable">Don't send: </label>
-                   <input type="checkbox" name="gir_disable" id="gir_disable" value="1" [% IF gir_disable %]checked="checked"[% END %]>
+                   <input type="checkbox" checked="checked" disabled="disabled">
+                   <input type="hidden" name="gir_disable" id="gir_disable" value="1">
                    <span class="hint">If checked, GIR segments will <i>not</i> be sent as part of your EDIFACT order message.</span>
                 </li>
 
