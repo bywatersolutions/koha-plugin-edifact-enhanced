@@ -206,6 +206,11 @@ $( document ).ready(function() {
               <legend>Other ORDER configurations</legend>
               <ol>
                 <li>
+                   <label for="send_rff_bfn">Send RFF+BFN: </label>
+                   <input type="checkbox" name="send_rff_bfn" id="send_rff_bfn" value="1" [% IF send_rff_bfn %]checked="checked"[% END %]>
+                   <span class="hint">For each LIN segment, send an RFF+BFN containing the order budget code used.</span>
+                </li>
+                <li>
                    <label for="send_basketname">Send basket name: </label>
                    <input type="checkbox" name="send_basketname" id="send_basketname" value="1" [% IF send_basketname %]checked="checked"[% END %]>
                    <span class="hint">Send the basket name in the BGM instead of the basket number.</span>

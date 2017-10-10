@@ -553,6 +553,9 @@ sub order_line {
         $ol_fields->{servicing_instruction} = $orderline->order_vendornote;
     }
 
+    $self->add_seg("RFF+BFN:$budget->{budget_code}$seg_terminator")
+        if $self->{plugin}->retrieve_data('send_rff_bfn');
+
     $self->add_seg(
         $self->gir_segments(
             {
