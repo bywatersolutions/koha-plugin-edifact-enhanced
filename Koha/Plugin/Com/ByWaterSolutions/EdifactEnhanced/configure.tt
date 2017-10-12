@@ -272,10 +272,10 @@ $( document ).ready(function() {
                        <option value="">Leave Value Unchanged</option>
                        [% SET avs = AuthorisedValues.GetAuthValueDropbox( 'NOT_LOAN', set_nfl_on_receipt ) %]
                        [% FOR av IN avs %]
-                           [% IF av.value == set_nfl_on_receipt %]
-                               <option value="[% av.value %]" selected="selected">[% av.label | html_entity %]</option>
+                           [% IF av.authorised_value == set_nfl_on_receipt %]
+                               <option value="[% av.authorised_value %]" selected="selected">[% av.lib | html_entity %]</option>
                            [% ELSE %]
-                               <option value="[% av.value %]">[% av.label | html_entity %]</option>
+                               <option value="[% av.authorised_value %]">[% av.lib | html_entity %]</option>
                            [% END %]
                        [% END %]
                    </select>
