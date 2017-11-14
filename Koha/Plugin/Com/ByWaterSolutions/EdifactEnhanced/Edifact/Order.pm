@@ -708,7 +708,10 @@ sub gir_segments {
                 foreach my $tag ( sort keys %$gir_mapping ) {
 
                     my $string;
-                    if ( $gir_mapping->{$tag} eq 'servicing_instruction' ) {
+                    if ( $gir_mapping->{$tag} =~ m/^\\/ ) {
+                       # If value begins with an backslash, assume the value itself should be used
+                       $string = add_gir_identity_number( $tag, substr( $gir_mapping->{$tag}, 1 ) );
+                    } elsif ( $gir_mapping->{$tag} eq 'servicing_instruction' ) {
                         $string = add_gir_identity_number( $tag, $orderfields->{servicing_instruction} );
                     }
                     elsif ( $gir_mapping->{$tag} =~ /^aqorders/ ) {
