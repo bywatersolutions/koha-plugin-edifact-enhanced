@@ -8,7 +8,19 @@ $( document ).ready(function() {
     $('.in-header').on('change', function() {
         $('.in-header').not(this).prop('checked', !$(this).prop('checked') );  
     });
+
+    check_if_buyer_san_use_username();
+    $('#buyer_san_use_username').on('change', check_if_buyer_san_use_username );
 });
+
+function check_if_buyer_san_use_username() {
+    if ( $('#buyer_san_use_username').is(':checked') ) {
+        $('#buyer_san').val("");
+        $('#buyer_san').attr("disabled", "disabled");
+    } else {
+        $('#buyer_san').removeAttr("disabled");
+    }
+}
 </script>
 
 </head>
@@ -52,6 +64,8 @@ $( document ).ready(function() {
                 <li>
                    <label for="buyer_san">Buyer SAN: </label>
                    <input type="text" name="buyer_san" id="buyer_san" size="20" maxlength="90" value="[% buyer_san %]">
+                   <input type="checkbox" name="buyer_san_use_username" id="buyer_san_use_username" [% IF buyer_san_use_username %]checked="checked"[% END %] />
+                   <span class="hint">Use Vendor EDI account username</span>
                 </li>
 
                 <fieldset class="rows">

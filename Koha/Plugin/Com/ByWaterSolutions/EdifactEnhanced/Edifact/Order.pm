@@ -140,13 +140,23 @@ sub interchange_header {
       'UNB+UNOC:3';    # controling agency character set syntax version number
                        # Interchange Sender
     
+    # If plugin is set to send Buyer SAN in header *and* the vendor username as buyer SAN is set, send that
+    if ( $self->{plugin}->retrieve_data('buyer_san_in_header') && $self->{plugin}->retrieve_data('buyer_san_use_username') ) {
+        $hdr .= _interchange_sr_identifier(
+            $self->{recipient}->username,
+            $self->{plugin}->retrieve_data('buyer_id_code_qualifier')
+        );    # interchange sender
     # If plugin is set to send Buyer SAN in header *and* the buyer SAN is set, send it, otheruse use the defautl of the branch EAN
-    if ( $self->{plugin}->retrieve_data('buyer_san_in_header') && $self->{plugin}->retrieve_data('buyer_san') ) {
-        $hdr .= _interchange_sr_identifier( $self->{plugin}->retrieve_data('buyer_san'),
-            $self->{plugin}->retrieve_data('buyer_id_code_qualifier') );    # interchange sender
+    } elsif ( $self->{plugin}->retrieve_data('buyer_san_in_header') && $self->{plugin}->retrieve_data('buyer_san') ) {
+        $hdr .= _interchange_sr_identifier(
+            $self->{plugin}->retrieve_data('buyer_san'),
+            $self->{plugin}->retrieve_data('buyer_id_code_qualifier')
+        );    # interchange sender
     } else {
-        $hdr .= _interchange_sr_identifier( $self->{sender}->ean,
-            $self->{sender}->id_code_qualifier );    # interchange sender
+        $hdr .= _interchange_sr_identifier(
+            $self->{sender}->ean,
+            $self->{sender}->id_code_qualifier
+        );    # interchange sender
     }
 
     $hdr .= _interchange_sr_identifier( $self->{recipient}->san,
