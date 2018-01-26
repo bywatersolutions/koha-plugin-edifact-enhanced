@@ -152,7 +152,8 @@ sub _init {
     }
     else {
         my $s = substr $msg, 10;
-        carp "File does not start with a Service string advice :$s";
+        carp "File does not start with a Service string advice, assuming EDIfact defaults :$s";
+        return segmentize($msg);
     }
 }
 

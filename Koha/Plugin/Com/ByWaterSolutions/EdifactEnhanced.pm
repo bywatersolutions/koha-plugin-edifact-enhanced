@@ -155,21 +155,25 @@ sub edifact_process_invoice {
             );
             my $invoiceid = $new_invoice->invoiceid;
             $logger->trace("Added as invoiceno :$invoiceid");
+            warn("Added as invoice id: $invoiceid");
             my $lines = $msg->lineitems();
 
             foreach my $line ( @{$lines} ) {
                 my $ordernumber = $line->ordernumber;
+                warn "ORDER NUMBER: $ordernumber";
                 $logger->trace( "Receipting order:$ordernumber Qty: ",
                     $line->quantity );
 
                 my $order = $schema->resultset('Aqorder')->find($ordernumber);
                 unless ( $order ) {
+                    warn "No order found for order number $ordernumber, the vendor is probably sending the wrong value in the RFF+LI segment.";
                     $logger->error("No order found for order number $ordernumber, the vendor is probably sending the wrong value in the RFF+LI segment.");
                     next;
                 }
 
                 my $biblio = $order->biblionumber();
                 unless ( $biblio ) {
+                    warn "No record found for order $ordernumber, record probably deleted";
                     $logger->error("No record found for order $ordernumber, record probably deleted");
                     next;
                 }
