@@ -453,10 +453,12 @@ sub order_line {
 
     $self->add_seg( lin_segment( $linenumber, $id_string, $id_code ) );
 
-
     # PIA isbn or other id
     my $product_id_function_code = $id_string ? '1' : '5'; # If we have an id in LIN, these are just additional identifiers
     $product_id_function_code = '5'; # Custom for Ingram, Ingram always wants PIA to be '5'. Will use LIN id instead of PIA if it exists anyway.
+
+    $self->add_seg( additional_product_id( $id_string, $id_code, $product_id_function_code ) )
+        if $id_string && $self->{plugin}->retrieve_data('pia_send_lin');
 
     if ( $biblioitem->ean && $self->{plugin}->retrieve_data('pia_use_ean') && $biblioitem->ean ne $id_string ) {
         $id_string = $biblioitem->ean;

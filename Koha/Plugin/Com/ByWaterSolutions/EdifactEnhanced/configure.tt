@@ -195,6 +195,19 @@ function check_if_buyer_san_use_username() {
                 </li>
                 PIA fields will be generated for each identifier selected if that identifier exists for the given order line.
               </ol>
+
+              <fieldset class="rows">
+                <legend>PIA options</legend>
+
+                <ol>
+                  <li>
+                     <label for="pia_send_lin">Send LIN: </label>
+                     <input type="checkbox" name="pia_send_lin" id="pia_send_lin" value="1" [% IF pia_send_lin %]checked="checked"[% END %]>
+                     <span class="hint">Send LIN value in a PIA as well.</span>
+                  </li>
+                </ol>
+
+              </fieldset>
             </fieldset>
 
             <fieldset class="rows">
