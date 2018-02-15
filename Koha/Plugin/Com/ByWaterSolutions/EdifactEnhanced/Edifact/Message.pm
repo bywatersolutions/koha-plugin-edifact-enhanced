@@ -143,21 +143,22 @@ sub shipment_charge {
                     next;
                 }
             }
-            if ( $edifact_plugin->retrieve_data('shipment_charges_moa_8') ) {
-                if ( $s->tag eq 'MOA' ) {
-                    # Qualifier 8 = Value Added ( barcodes, lamination, etc. )
-                    if ( $s->elem( 0, 0 ) == 8 ) {
-                        $amt += $s->elem( 0, 1 );
-                    }
-                }
-            }
-            if ( $edifact_plugin->retrieve_data('shipment_charges_moa_124') ) {
-                if ( $s->tag eq 'MOA' ) {
-                    # Qualifier 8 = Value Added ( barcodes, lamination, etc. )
-                    if ( $s->elem( 0, 0 ) == 124 ) {
-                        $amt += $s->elem( 0, 1 );
-                    }
-                }
+            if ( $s->tag eq 'MOA' ) {
+                my $qualifier = $s->elem( 0, 0 );
+                my $elem_amt  = $s->elem( 0, 1 );
+
+                # Qualifier 8 = Value Added ( barcodes, lamination, etc. )
+                $amt += $elem_amt
+                  if $qualifier == 8
+                  && $edifact_plugin->retrieve_data('shipment_charges_moa_8');
+
+                $amt += $elem_amt
+                  if $qualifier == 124
+                  && $edifact_plugin->retrieve_data('shipment_charges_moa_124');
+
+                $amt += $elem_amt
+                  if $qualifier == 304
+                  && $edifact_plugin->retrieve_data('shipment_charges_moa_304');
             }
         }
         return $amt;
