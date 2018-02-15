@@ -151,6 +151,14 @@ sub shipment_charge {
                     }
                 }
             }
+            if ( $edifact_plugin->retrieve_data('shipment_charges_moa_124') ) {
+                if ( $s->tag eq 'MOA' ) {
+                    # Qualifier 8 = Value Added ( barcodes, lamination, etc. )
+                    if ( $s->elem( 0, 0 ) == 124 ) {
+                        $amt += $s->elem( 0, 1 );
+                    }
+                }
+            }
         }
         return $amt;
     }

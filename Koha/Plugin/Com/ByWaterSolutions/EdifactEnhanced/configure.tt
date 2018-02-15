@@ -263,16 +263,24 @@ function check_if_buyer_san_use_username() {
                    <span class="hint">Set the invoice shipping cost fund to the fund used for the last order line of an invoice.</span>
                 </li>
 
+                <!-- Doesn't seem to do anything in Koha, so let's not bother showing it
                 <li>
                    <label for="shipment_charges_alc_dl">Shipping - Use ALC DL: </label>
                    <input type="checkbox" name="shipment_charges_alc_dl" id="shipment_charges_alc_dl" value="1" [% IF shipment_charges_alc_dl %]checked="checked"[% END %]>
                    <span class="hint">Add ALC charges of type DL ( Delivery ) to the shipping cost for an invoice.</span>
                 </li>
+                -->
 
                 <li>
-                   <label for="shipment_charges_moa_8">Shipping - Use MOA+8: </label>
+                   <label for="shipment_charges_moa_8">Shipping - MOA+8: </label>
                    <input type="checkbox" name="shipment_charges_moa_8" id="shipment_charges_moa_8" value="1" [% IF shipment_charges_moa_8 %]checked="checked"[% END %]>
                    <span class="hint">Add MOA charges with a qualifier 8, Value Added ( barcodes, lamination, etc. ) to the shipping cost for an invoice.</span>
+                </li>
+
+                <li>
+                   <label for="shipment_charges_moa_124">Shipping - MOA+124: </label>
+                   <input type="checkbox" name="shipment_charges_moa_124" id="shipment_charges_moa_124" value="1" [% IF shipment_charges_moa_124 %]checked="checked"[% END %]>
+                   <span class="hint">Add MOA charges with a qualifier 124 to the shipping cost for an invoice.</span>
                 </li>
 
                 <li>
