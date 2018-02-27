@@ -671,6 +671,8 @@ sub order_line {
     my $rff = join q{}, 'RFF+LI:', $orderline->ordernumber, $seg_terminator;
     $self->add_seg($rff);
 
+    $self->add_seg('LOC+7+multi::92');
+
     # RFF : suppliers unique quotation reference number
     if ( $orderline->suppliers_reference_number ) {
         $rff = join q{}, 'RFF+', $orderline->suppliers_reference_qualifier,
