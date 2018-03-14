@@ -53,7 +53,7 @@ sub new {
 ## of running replacing the default Edifact modules for generated Edifcat messages
 sub edifact {
     my ( $self, $args ) = @_;
-    
+
     require Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact;
 
     my $edifact = Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact->new( $args );
@@ -62,7 +62,7 @@ sub edifact {
 
 sub edifact_order {
     my ( $self, $args ) = @_;
-    
+
     require Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Order;
 
     $args->{params}->{plugin} = $self;
@@ -72,7 +72,7 @@ sub edifact_order {
 
 sub edifact_transport {
     my ( $self, $args ) = @_;
-    
+
     require Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Transport;
 
     $args->{params}->{plugin} = $self;
@@ -335,16 +335,16 @@ sub _receipt_items {
            if ( @affects ) {
                my $frameworkcode = GetFrameworkCode($biblionumber);
                my ( $itemfield ) = GetMarcFromKohaField( 'items.itemnumber', $frameworkcode );
-			   my $item_marc = C4::Items::GetMarcItem( $biblionumber, $itemnumber );
-			   for my $affect ( @affects ) {
-				   my ( $sf, $v ) = split q{=}, $affect, 2;
+               my $item_marc = C4::Items::GetMarcItem( $biblionumber, $itemnumber );
+               for my $affect ( @affects ) {
+                   my ( $sf, $v ) = split q{=}, $affect, 2;
 
-				   foreach ( $item_marc->field($itemfield) ) {
-					   $_->update( $sf => $v );
-				   }
-			   }
+                   foreach ( $item_marc->field($itemfield) ) {
+                       $_->update( $sf => $v );
+                   }
+               }
 
-			   C4::Items::ModItemFromMarc( $item_marc, $biblionumber, $itemnumber );
+               C4::Items::ModItemFromMarc( $item_marc, $biblionumber, $itemnumber );
            }
        }
 
@@ -369,12 +369,13 @@ sub configure {
             lin_use_ean             => $self->retrieve_data('lin_use_ean'),
             lin_use_issn            => $self->retrieve_data('lin_use_issn'),
             lin_use_isbn            => $self->retrieve_data('lin_use_isbn'),
-            lin_force_first_isbn   => $self->retrieve_data('lin_force_first_isbn'),
-            lin_use_invalid_isbn13   => $self->retrieve_data('lin_use_invalid_isbn13'),
-            lin_use_invalid_isbn_any   => $self->retrieve_data('lin_use_invalid_isbn_any'),
+            lin_force_first_isbn    => $self->retrieve_data('lin_force_first_isbn'),
+            lin_use_invalid_isbn13  => $self->retrieve_data('lin_use_invalid_isbn13'),
+            lin_use_invalid_isbn_any=> $self->retrieve_data('lin_use_invalid_isbn_any'),
             lin_use_upc             => $self->retrieve_data('lin_use_upc'),
             lin_use_product_id      => $self->retrieve_data('lin_use_product_id'),
-            pia_send_lin           => $self->retrieve_data('pia_send_lin'),
+            pia_send_lin            => $self->retrieve_data('pia_send_lin'),
+            pia_limit               => $self->retrieve_data('pia_limit'),
             pia_use_ean             => $self->retrieve_data('pia_use_ean'),
             pia_use_issn            => $self->retrieve_data('pia_use_issn'),
             pia_use_isbn10          => $self->retrieve_data('pia_use_isbn10'),
@@ -420,7 +421,7 @@ sub configure {
                 lin_use_invalid_isbn_any => $cgi->param('lin_use_invalid_isbn_any') ? 1 : 0,
                 lin_use_upc        => $cgi->param('lin_use_upc')        ? 1 : 0,
                 lin_use_product_id => $cgi->param('lin_use_product_id') ? 1 : 0,
-                pia_send_lin      => $cgi->param('pia_send_lin')      ? 1 : 0,
+                pia_send_lin       => $cgi->param('pia_send_lin')      ? 1 : 0,
                 pia_use_ean        => $cgi->param('pia_use_ean')        ? 1 : 0,
                 pia_use_issn       => $cgi->param('pia_use_issn')       ? 1 : 0,
                 pia_use_isbn10     => $cgi->param('pia_use_isbn10')     ? 1 : 0,
@@ -450,6 +451,7 @@ sub configure {
                 add_itemnote_on_receipt    => $cgi->param('add_itemnote_on_receipt')   ? 1 : 0,
                 no_update_item_price       => $cgi->param('no_update_item_price')   ? 1 : 0,
                 set_nfl_on_receipt       => $cgi->param('set_nfl_on_receipt') // q{},
+                pia_limit          => defined $cgi->param('pia_limit') ? $cgi->param('pia_limit') : undef,
             }
         );
         $self->go_home();

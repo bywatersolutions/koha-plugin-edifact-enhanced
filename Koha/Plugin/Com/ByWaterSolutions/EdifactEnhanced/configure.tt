@@ -205,6 +205,11 @@ function check_if_buyer_san_use_username() {
                      <input type="checkbox" name="pia_send_lin" id="pia_send_lin" value="1" [% IF pia_send_lin %]checked="checked"[% END %]>
                      <span class="hint">Send LIN value in a PIA as well.</span>
                   </li>
+                  <li>
+                     <label for="pia_limit">Limit: </label>
+                     <input type="number" name="pia_limit" id="pia_limit" step="1" min="0" max="999" value="[% pia_limit %]" />
+                     <span class="hint">Send LIN value in a PIA as well.</span>
+                  </li>
                 </ol>
 
               </fieldset>

@@ -453,26 +453,33 @@ sub order_line {
 
     $self->add_seg( lin_segment( $linenumber, $id_string, $id_code ) );
 
+    my $pia_limit = $self->{plugin}->retrieve_data('pia_limit');
+    my $pia_count = defined $pia_limit ? 99999999 : $pia_limit;
+
     # PIA isbn or other id
     my $product_id_function_code = $id_string ? '1' : '5'; # If we have an id in LIN, these are just additional identifiers
     $product_id_function_code = '5'; # Custom for Ingram, Ingram always wants PIA to be '5'. Will use LIN id instead of PIA if it exists anyway.
 
-    $self->add_seg( additional_product_id( $id_string, $id_code, $product_id_function_code ) )
-        if $id_string && $self->{plugin}->retrieve_data('pia_send_lin');
+    if ( $id_string && $self->{plugin}->retrieve_data('pia_send_lin') && $pia_count < $pia_limit ) {
+        $self->add_seg( additional_product_id( $id_string, $id_code, $product_id_function_code ) )
+        $pia_count++;
+    }
 
-    if ( $biblioitem->ean && $self->{plugin}->retrieve_data('pia_use_ean') && $biblioitem->ean ne $id_string ) {
+    if ( $biblioitem->ean && $self->{plugin}->retrieve_data('pia_use_ean') && $biblioitem->ean ne $id_string && $pia_count < $pia_limit ) {
         $id_string = $biblioitem->ean;
         $id_code = 'EN';
         $self->add_seg( additional_product_id( $id_string, $id_code, $product_id_function_code ) );
         $product_id_function_code = '1'; # Any further PIAs are just additional
-    } 
+        $pia_count++;
+    }
 
-    if ( $biblioitem->issn && $self->{plugin}->retrieve_data('pia_use_issn') && $biblioitem->issn ne $id_string ) {
+    if ( $biblioitem->issn && $self->{plugin}->retrieve_data('pia_use_issn') && $biblioitem->issn ne $id_string && $pia_count < $pia_limit ) {
         $id_string = $biblioitem->issn;
         $id_code = 'IS';
         $self->add_seg( additional_product_id( $id_string, $id_code, $product_id_function_code ) );
         $product_id_function_code = '1'; # Any further PIAs are just additional
-    } 
+        $pia_count++;
+    }
 
     if ( $biblioitem->isbn ) {
         foreach my $isbn ( split( q{\|}, $biblioitem->isbn ) ) {
@@ -482,38 +489,46 @@ sub order_line {
             next unless $isbn;
             next unless $isbn->is_valid();
 
-            if ( $self->{plugin}->retrieve_data('pia_use_isbn10') && $isbn->type() eq 'ISBN10' && $isbn->as_string([]) ne $id_string ) {
+            if ( $self->{plugin}->retrieve_data('pia_use_isbn10') && $isbn->type() eq 'ISBN10' && $isbn->as_string([]) ne $id_string && $pia_count < $pia_limit ) {
                 $self->add_seg( additional_product_id( $isbn->as_string([]), 'IB', $product_id_function_code ) );
                 $product_id_function_code = '1'; # Any further PIAs are just additional
+                $pia_count++;
             }
-            if ( $self->{plugin}->retrieve_data('pia_use_isbn10') && $isbn->type() eq 'ISBN13' && $isbn->as_string([]) ne $id_string ) {
+            if ( $self->{plugin}->retrieve_data('pia_use_isbn10') && $isbn->type() eq 'ISBN13' && $isbn->as_string([]) ne $id_string && $pia_count < $pia_limit ) {
                 $self->add_seg( additional_product_id( $isbn->as_string([]), 'EN', $product_id_function_code ) );
                 $product_id_function_code = '1'; # Any further PIAs are just additional
+                $pia_count++;
             }
         }
     }
 
-    if ( $upc && $self->{plugin}->retrieve_data('pia_use_upc') && $upc ne $id_string ) {
+    if ( $upc && $self->{plugin}->retrieve_data('pia_use_upc') && $upc ne $id_string && $pia_count < $pia_limit ) {
         $id_string = $upc;
         $id_code = 'UP';
         $self->add_seg( additional_product_id( $id_string, $id_code, $product_id_function_code ) );
         $product_id_function_code = '1'; # Any further PIAs are just additional
-    } 
+        $pia_count++;
+    }
 
-    if ( $product_id && $self->{plugin}->retrieve_data('pia_use_product_id') && $product_id ne $id_string ) {
+    if ( $product_id && $self->{plugin}->retrieve_data('pia_use_product_id') && $product_id ne $id_string && $pia_count < $pia_limit ) {
         $id_string = $product_id;
         $id_code = 'PI';
         $self->add_seg( additional_product_id( $id_string, $id_code, $product_id_function_code ) );
         $product_id_function_code = '1'; # Any further PIAs are just additional
-    } 
-
-    my @identifiers;
-    foreach my $id ( $biblioitem->ean, $biblioitem->issn, $biblioitem->isbn ) {
-        if ( $id && $id ne $id_string ) {
-            push @identifiers, $id;
-        }
+        $pia_count++;
     }
-    $self->add_seg( additional_product_id( join( ' ', @identifiers ) ) );
+
+    if ( $pia_count < $pia_limit ) {
+        my @identifiers;
+        foreach my $id ( $biblioitem->ean, $biblioitem->issn, $biblioitem->isbn ) {
+            if ( $id && $id ne $id_string ) {
+                push @identifiers, $id;
+            }
+        }
+        # Pretty sure the call below will never return anything
+        $self->add_seg( additional_product_id( join( ' ', @identifiers ) ) );
+        $pia_count++;
+    }
 
     # IMD biblio description
     if ($use_marc_based_description) {
