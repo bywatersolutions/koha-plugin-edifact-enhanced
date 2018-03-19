@@ -157,6 +157,10 @@ sub shipment_charge {
                   && $edifact_plugin->retrieve_data('shipment_charges_moa_124');
 
                 $amt += $elem_amt
+                  if $qualifier == 131
+                  && $edifact_plugin->retrieve_data('shipment_charges_moa_131');
+
+                $amt += $elem_amt
                   if $qualifier == 304
                   && $edifact_plugin->retrieve_data('shipment_charges_moa_304');
             }

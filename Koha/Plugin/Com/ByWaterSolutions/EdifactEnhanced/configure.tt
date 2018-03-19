@@ -289,6 +289,12 @@ function check_if_buyer_san_use_username() {
                 </li>
 
                 <li>
+                   <label for="shipment_charges_moa_131">Shipping - MOA+131: </label>
+                   <input type="checkbox" name="shipment_charges_moa_131" id="shipment_charges_moa_131" value="1" [% IF shipment_charges_moa_131 %]checked="checked"[% END %]>
+                   <span class="hint">Add MOA charges with a qualifier 131 to the shipping cost for an invoice.</span>
+                </li>
+
+                <li>
                    <label for="shipment_charges_moa_304">Shipping - MOA+304: </label>
                    <input type="checkbox" name="shipment_charges_moa_304" id="shipment_charges_moa_304" value="1" [% IF shipment_charges_moa_304 %]checked="checked"[% END %]>
                    <span class="hint">Add MOA charges with a qualifier 304 to the shipping cost for an invoice.</span>
