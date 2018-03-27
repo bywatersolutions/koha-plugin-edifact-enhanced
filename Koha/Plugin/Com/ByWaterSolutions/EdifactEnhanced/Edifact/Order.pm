@@ -749,9 +749,9 @@ sub gir_segments {
                         $string = add_gir_identity_number( $tag, $budget_code );
                     }
                     elsif ( index( $gir_mapping->{$tag}, '$' ) != -1 ) {
-                        my ( $field, $subfield ) = split( '$', $gir_mapping->{$tag} );
-                        my $marc = GetMarcBiblio( $orderline->biblionumber() );
-                        my $value = $marc->subfield( $field, $subfield );
+                        my ( $field, $subfield ) = split( '\$', $gir_mapping->{$tag} );
+                        my $marc = GetMarcBiblio( $orderline->biblionumber->id );
+                        my $value = $subfield ? $marc->subfield( $field, $subfield ) : $marc->field( $field )->data();
                         $string = add_gir_identity_number( $tag, $value );
                     }
                     else {
