@@ -305,10 +305,14 @@ sub _receipt_items {
        # Source of acquisition, i.e. Vendor ID
        $item->booksellerid( $bookseller->id() );
 
-       unless ( $self->retrieve_data('no_update_item_price') ) {
+       my $update_item_price = $self->retrieve_data('no_update_item_price');
+       $update_item_price = 'update_both'    if $update_item_price eq '0';
+       $update_item_price = 'update_neither' if $update_item_price eq '1';
+       if ( $update_item_price eq 'update_both' || $update_item_price eq 'update_price' ) {
            # Cost, normal purchase price, i.e. actual paid price
            $item->price( $order->unitprice() );
-
+       }
+       if ( $update_item_price eq 'update_both' || $update_item_price eq 'update_replacementprice' ) {
            # Cost, replacement price
            $item->replacementprice( $order->rrp() );
 
@@ -451,7 +455,7 @@ sub configure {
                 shipment_charges_moa_304   => $cgi->param('shipment_charges_moa_304') ? 1 : 0,
                 close_invoice_on_receipt   => $cgi->param('close_invoice_on_receipt')   ? 1 : 0,
                 add_itemnote_on_receipt    => $cgi->param('add_itemnote_on_receipt')   ? 1 : 0,
-                no_update_item_price       => $cgi->param('no_update_item_price')   ? 1 : 0,
+                no_update_item_price       => $cgi->param('no_update_item_price'),
                 set_nfl_on_receipt       => $cgi->param('set_nfl_on_receipt') // q{},
                 pia_limit          => defined $cgi->param('pia_limit') ? $cgi->param('pia_limit') : undef,
             }

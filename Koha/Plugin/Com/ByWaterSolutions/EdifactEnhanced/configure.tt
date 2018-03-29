@@ -313,9 +313,14 @@ function check_if_buyer_san_use_username() {
                 </li>
 
                 <li>
-                   <label for="no_update_item_price">Don't update item price: </label>
-                   <input type="checkbox" name="no_update_item_price" id="no_update_item_price" value="1" [% IF no_update_item_price %]checked="checked"[% END %]>
-                   <span class="hint">Do <em>not</em> update the item's price based on the item price in the recieved invoice.</span>
+                   <label for="no_update_item_price">Update item prices: </label>
+                   <select name="no_update_item_price" id="no_update_item_price">
+                       <option value="update_both">Update both</option>
+                       <option value="update_neither" [% IF no_update_item_price == 1 || no_update_item_price == 'update_neither' %]selected="selected"[% END %]>Update neither</option>
+                       <option value="update_price" [% IF no_update_item_price == 'update_price' %]selected="selected"[% END %]>Update price only</option>
+                       <option value="update_replacementprice" [% IF no_update_item_price == 'update_replacementprice' %]selected="selected"[% END %]>Update replacement price only</option>
+                   </select>
+                   <span class="hint">Do <em>not</em> update the item prices based on the item price in the recieved invoice.</span>
                 </li>
 
                 <li>
