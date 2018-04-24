@@ -185,4 +185,3 @@ The use of the last order line is arbitrary. The feature basically assumes that 
 
 When an invoice is recieved, set it to closed automatically.
 This option is mildly dangerous but highly convenient. It assumes a vendor will always get your shipments to you correctly.
-
