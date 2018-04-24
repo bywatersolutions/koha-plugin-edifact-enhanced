@@ -18,7 +18,7 @@ use Koha::EDI;
 use Koha::DateUtils;
 
 ## Here we set our plugin version
-our $VERSION = 1.00;
+our $VERSION = "{VERSION}";
 
 ## Here is our metadata, some keys are required, some are optional
 our $metadata = {
@@ -26,7 +26,7 @@ our $metadata = {
     author => 'Kyle M Hall',
     description => 'Edifact Enhanced plugin customized for Ingram',
     date_authored   => '2015-12-21',
-    date_updated    => '2015-12-21',
+    date_updated    => '1900-01-01',
     minimum_version => undef,
     maximum_version => undef,
     version         => $VERSION,

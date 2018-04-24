@@ -11,17 +11,17 @@ foreach my $b ( @branches ) {
 
     print "BRANCH: $branch";
 
-    $cmd = qq{git checkout origin/$branch};
+    $cmd = qq{git checkout github/$branch};
     print "$cmd\n";
     `$cmd`;
     print "$? ERROR: $!\n" && exit 1 if $? != 0;
 
-    $cmd = q{git rebase origin/master};
+    $cmd = q{git rebase github/master};
     print "$cmd\n";
     `$cmd`;
     print "$? ERROR: $!\n" && exit 1 if $? != 0;
 
-    $cmd = qq{git push -f origin HEAD:$branch};
+    $cmd = qq{git push -f github HEAD:$branch};
     print "$cmd\n";
     `$cmd`;
     print "$? ERROR: $!\n" && exit 1 if $? != 0;
