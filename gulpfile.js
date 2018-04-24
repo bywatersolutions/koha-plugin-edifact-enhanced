@@ -36,6 +36,7 @@ gulp.task('build', () => {
 gulp.task('release', () => {
     gulp.src(release_filename)
         .pipe(release({
+            tag: package_json.version + '-' + process.env.TRAVIS_BRANCH,
             manifest: require('./package.json') // package.json from which default values will be extracted if they're missing
         }));
 });
