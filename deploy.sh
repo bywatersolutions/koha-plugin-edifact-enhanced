@@ -12,6 +12,7 @@ then
     git remote add github https://$GITHUB_TOKEN@github.com/bywatersolutions/koha-plugin-edifact-enhanced
     git fetch --all
     git push github HEAD:master
+    bash ./rebase_branches.sh
   else
     gulp build
     gulp release
