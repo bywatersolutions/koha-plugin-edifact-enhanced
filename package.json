@@ -1,12 +1,8 @@
 {
   "name": "koha-plugin-edifact-enhanced",
   "description": "Koha Edifact Enhanced Plugin",
-
-
-  "version": "2.1.16",
-  "previous_version": "2.1.15",
-
-
+  "version": "2.1.17",
+  "previous_version": "2.1.16",
   "devDependencies": {
     "gulp": "^3.9.1",
     "gulp-cli": "^1.2.2",
