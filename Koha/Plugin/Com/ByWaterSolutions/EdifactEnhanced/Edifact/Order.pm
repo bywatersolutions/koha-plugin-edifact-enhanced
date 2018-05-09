@@ -146,6 +146,13 @@ sub interchange_header {
             $self->{recipient}->username,
             $self->{plugin}->retrieve_data('buyer_id_code_qualifier')
         );    # interchange sender
+    # If plugin is set to send Buyer SAN in header *and* the vendor username as buyer SAN is set, send that
+    } elsif ( $self->{plugin}->retrieve_data('buyer_san_in_header') && $self->{plugin}->retrieve_data('buyer_san_use_library_ean_split_first_part') ) {
+        my ( $ean ) = split(/ /, $self->{sender}->ean );
+        $hdr .= _interchange_sr_identifier(
+	    $ean,
+            $self->{plugin}->retrieve_data('buyer_id_code_qualifier')
+        );    # interchange sender
     # If plugin is set to send Buyer SAN in header *and* the buyer SAN is set, send it, otheruse use the defautl of the branch EAN
     } elsif ( $self->{plugin}->retrieve_data('buyer_san_in_header') && $self->{plugin}->retrieve_data('buyer_san') ) {
         $hdr .= _interchange_sr_identifier(

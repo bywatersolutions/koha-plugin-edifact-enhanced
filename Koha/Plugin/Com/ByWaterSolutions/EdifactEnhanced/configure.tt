@@ -11,10 +11,22 @@ $( document ).ready(function() {
 
     check_if_buyer_san_use_username();
     $('#buyer_san_use_username').on('change', check_if_buyer_san_use_username );
+
+    check_if_buyer_san_use_library_ean_split_first_part();
+    $('#buyer_san_use_library_ean_split_first_part').on('change', check_if_buyer_san_use_library_ean_split_first_part );
 });
 
 function check_if_buyer_san_use_username() {
     if ( $('#buyer_san_use_username').is(':checked') ) {
+        $('#buyer_san').val("");
+        $('#buyer_san').attr("disabled", "disabled");
+    } else {
+        $('#buyer_san').removeAttr("disabled");
+    }
+}
+
+function check_if_buyer_san_use_library_ean_split_first_part() {
+    if ( $('#buyer_san_use_library_ean_split_first_part').is(':checked') ) {
         $('#buyer_san').val("");
         $('#buyer_san').attr("disabled", "disabled");
     } else {
@@ -64,8 +76,16 @@ function check_if_buyer_san_use_username() {
                 <li>
                    <label for="buyer_san">Buyer SAN: </label>
                    <input type="text" name="buyer_san" id="buyer_san" size="20" maxlength="90" value="[% buyer_san %]">
+                </li>
+                <li>
                    <input type="checkbox" name="buyer_san_use_username" id="buyer_san_use_username" [% IF buyer_san_use_username %]checked="checked"[% END %] />
-                   <span class="hint">Use Vendor EDI account username</span>
+		   <span class="hint">Works for value in header only, not implemented for use in NAD+BY.</span>
+                   <label for="buyer_san_use_username">Use Vendor EDI account username</span>
+                </li>
+                <li>
+                   <input type="checkbox" name="buyer_san_use_library_ean_split_first_part" id="buyer_san_use_library_ean_split_first_part" [% IF buyer_san_use_library_ean_split_first_part %]checked="checked"[% END %] />
+		   <span class="hint">Split the Library EAN on spaces and use the left-most part. Works for value in header only, not implemented for use in NAD+BY.</span>
+                   <label for="buyer_san_use_library_ean_split_first_part">Use split Library EAN</span>
                 </li>
 
                 <fieldset class="rows">
