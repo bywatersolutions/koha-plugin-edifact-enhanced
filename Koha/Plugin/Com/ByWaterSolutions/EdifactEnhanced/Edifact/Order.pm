@@ -460,8 +460,8 @@ sub order_line {
 
     $self->add_seg( lin_segment( $linenumber, $id_string, $id_code ) );
 
-    my $pia_limit = $self->{plugin}->retrieve_data('pia_limit');
-    my $pia_count = defined $pia_limit ? 99999999 : $pia_limit;
+    my $pia_limit = $self->{plugin}->retrieve_data('pia_limit') // 9999;
+    my $pia_count = 0;
 
     # PIA isbn or other id
     my $product_id_function_code = $id_string ? '1' : '5'; # If we have an id in LIN, these are just additional identifiers
