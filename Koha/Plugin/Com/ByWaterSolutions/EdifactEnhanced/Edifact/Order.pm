@@ -391,7 +391,7 @@ sub order_line {
     # LIN line-number in msg :: if we had a 13 digit ean we could add
     my ( $id_string, $id_code );
 
-    my $record = GetMarcBiblio( $biblionumber );
+    my $record = GetMarcBiblio( { biblionumber => $biblionumber } );
     my $upc = _get_upc( $record );
     my $product_id = _get_product_id( $record );
 
@@ -757,7 +757,7 @@ sub gir_segments {
                     }
                     elsif ( index( $gir_mapping->{$tag}, '$' ) != -1 ) {
                         my ( $field, $subfield ) = split( '\$', $gir_mapping->{$tag} );
-                        my $marc = GetMarcBiblio( $orderline->biblionumber->id );
+                        my $marc = GetMarcBiblio( { biblionumber => $orderline->biblionumber->id } );
                         my $value = $subfield ? $marc->subfield( $field, $subfield ) : $marc->field( $field )->data();
                         $string = add_gir_identity_number( $tag, $value );
                     }
