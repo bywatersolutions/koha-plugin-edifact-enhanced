@@ -191,7 +191,7 @@ sub edifact_process_invoice {
 
                     # This is necessary because some libraries use the same plugin for multiple "vendors" that are really the same vendor.
                     # Because of this, the first edi vendor instance will pick up all the invoices for all the different instances.
-                    # So as long as they share the same plugin, we should allow the item to be recieved
+                    # So as long as they share the same plugin, we should allow the item to be received
                     if ( $edi_vendor->plugin eq $basket_vendor->plugin ) {
                         $logger->error("The plugin used by the vendor is the same as that used by the basket, allow it. PLUGIN: " . $edi_vendor->plugin );
                     } else {
@@ -286,7 +286,7 @@ sub _receipt_items {
         }
     );
 
-    my $items_recieved_count = 0;
+    my $items_received_count = 0;
 
     foreach my $order_item ( @order_items ) {
        my $item = $schema->resultset('Item')->find( $order_item->itemnumber() );
@@ -325,9 +325,9 @@ sub _receipt_items {
            $item->notforloan( $set_nfl_on_receipt );
        }
 
-       # Note that this was recieved via EDI
+       # Note that this was received via EDI
        if ( $self->retrieve_data('add_itemnote_on_receipt') ) {
-           $item->itemnotes_nonpublic( "Recieved via EDIFACT" );
+           $item->itemnotes_nonpublic( "Received via EDIFACT" );
        }
 
        $item->update();
@@ -352,8 +352,8 @@ sub _receipt_items {
            }
        }
 
-       $items_recieved_count++;
-       last if $items_recieved_count == $quantity; 
+       $items_received_count++;
+       last if $items_received_count == $quantity; 
     }
 }
 
