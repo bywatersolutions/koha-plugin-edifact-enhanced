@@ -220,12 +220,17 @@ sub edifact_process_invoice {
 
                     my $price = Koha::EDI::_get_invoiced_price($line);
 
-                    if ( $order->quantity > $line->quantity ) {
+                    my $basket = $order->aqbasket;
+                    my $is_standing = $basket->is_standing;
+
+                    if ( $is_standing || $order->quantity > $line->quantity ) {
                         my $ordered = $order->quantity;
+
+                        my $quantity_remaining = $is_standing ? 1 : $ordered - $line->quantity;
 
                         # part receipt
                         $order->orderstatus('partial');
-                        $order->quantity( $ordered - $line->quantity );
+                        $order->quantity( $quantity_remaining );
                         $order->update;
                         my $received_order = $order->copy(
                             {
