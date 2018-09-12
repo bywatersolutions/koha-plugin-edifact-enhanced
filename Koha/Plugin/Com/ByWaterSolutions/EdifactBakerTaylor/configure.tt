@@ -66,6 +66,7 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                 <li>
                    <label for="id_code_qualifier">Buyer qualifier:</label>
                    <select name="buyer_id_code_qualifier" id="buyer_id_code_qualifier">
+                       <option value="91">Assigned by supplier</option><!-- Default for B&T -->
                        <option value="14" [% IF buyer_id_code_qualifier == '14' %]selected="selected"[% END %]>
                            EAN International
                        </option>
@@ -86,7 +87,7 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                    <input type="text" name="buyer_san" id="buyer_san" size="20" maxlength="90" value="[% buyer_san %]">
                 </li>
                 <li>
-                   <input type="checkbox" name="buyer_san_use_username" id="buyer_san_use_username" [% IF buyer_san_use_username %]checked="checked"[% END %] />
+                   <input type="checkbox" name="buyer_san_use_username" id="buyer_san_use_username" [% IF buyer_san_use_username || !buyer_san_use_username.defined %]checked="checked"[% END %] />
                    <span class="hint">Works for value in header only, not implemented for use in NAD+BY.</span>
                    <label for="buyer_san_use_username">Use Vendor EDI account username</span>
                 </li>
@@ -101,12 +102,12 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
 			<ol>
 				<li>
 					<label for="buyer_san_in_header">Header: </label>
-				<input type="checkbox" class="in-header" name="buyer_san_in_header" id="buyer_san_in_header" value="1" [% IF buyer_san_in_header %]checked="checked"[% END %]>
+				<input type="checkbox" class="in-header" name="buyer_san_in_header" id="buyer_san_in_header" value="1" [% IF buyer_san_in_header || !buyer_san_in_header.defined %]checked="checked"[% END %]>
 							<span class="hint">If this box is checked, it will replace the Library EAN in the header.</span>
 				</li>
 				<li>
 					<label for="buyer_san_in_nadby">NAD+BY: </label>
-				<input type="checkbox" name="buyer_san_in_nadby" id="buyer_san_in_nadby" value="1" [% IF buyer_san_in_nadby %]checked="checked"[% END %]>
+				<input type="checkbox" name="buyer_san_in_nadby" id="buyer_san_in_nadby" value="1" [% IF buyer_san_in_nadby || !buyer_san_in_nadby.defined %]checked="checked"[% END %]>
 							<span class="hint">If this box is checked, it will be sent in an additional NAD+BY segment.</span>
 				</li>
 			</ol>
@@ -142,7 +143,7 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                 </li>
                 <li>
                    <label for="invoice_file_suffix">Invoice file: </label>
-                   <input type="text" name="invoice_file_suffix" id="invoice_file_suffix" size="20" maxlength="90" value="[% invoice_file_suffix %]">
+                   <input type="text" name="invoice_file_suffix" id="invoice_file_suffix" size="20" maxlength="90" value="[% invoice_file_suffix || 'INT' %]">
                 </li>
               </ol>
             </fieldset>
@@ -182,7 +183,7 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                 </li>
                 <li>
                    <label for="lin_use_isbn">ISBN: </label>
-                   <input type="checkbox" name="lin_use_isbn" id="lin_use_isbn" value="1" [% IF lin_use_isbn %]checked="checked"[% END %]>
+                   <input type="checkbox" name="lin_use_isbn" id="lin_use_isbn" value="1" [% IF lin_use_isbn || !lin_use_isbn.defined %]checked="checked"[% END %]>
 
                    <fieldset class="rows">
                        <legend>ISBN options</legend>
@@ -192,7 +193,7 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                        <span class="hint">Force the use of the first ISBN if sending ISBN in the LIN segment.</span>
 
                        <p>
-                       <input type="checkbox" name="lin_use_invalid_isbn13" id="lin_use_invalid_isbn13" value="1" [% IF lin_use_invalid_isbn13 %]checked="checked"[% END %]>
+                       <input type="checkbox" name="lin_use_invalid_isbn13" id="lin_use_invalid_isbn13" value="1" [% IF lin_use_invalid_isbn13 || !lin_use_invalid_isbn13.defined %]checked="checked"[% END %]>
                        <span class="hint">Allow invalid ISBN-13s to be used for the LIN segment. ISBN must be exactly 13 characters.</span>
 
                        <p>
@@ -227,7 +228,7 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                 </li>
                 <li>
                    <label for="pia_use_isbn10">ISBN-10: </label>
-                     <input type="checkbox" name="pia_use_isbn10" id="pia_use_isbn10" value="1" [% IF pia_use_isbn10 %]checked="checked"[% END %]>
+                     <input type="checkbox" name="pia_use_isbn10" id="pia_use_isbn10" value="1" [% IF pia_use_isbn10 || !pia_use_isbn10.defined %]checked="checked"[% END %]>
                 </li>
                 <li>
                    <label for="pia_use_isbn13">ISBN-13: </label>
@@ -252,7 +253,7 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                 <ol>
                   <li>
                      <label for="pia_send_lin">Send LIN: </label>
-                     <input type="checkbox" name="pia_send_lin" id="pia_send_lin" value="1" [% IF pia_send_lin %]checked="checked"[% END %]>
+                     <input type="checkbox" name="pia_send_lin" id="pia_send_lin" value="1" [% IF pia_send_lin || !pia_send_lin.defined %]checked="checked"[% END %]>
                      <span class="hint">Send LIN value in a PIA as well.</span>
                   </li>
                   <li>
@@ -276,7 +277,12 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
 
                 <li>
                    <label for="gir_mapping">Mapping: </label>
-                   <textarea name="gir_mapping" id="gir_mapping" rows="10" cols="50">[% gir_mapping %]</textarea>
+                   <textarea name="gir_mapping" id="gir_mapping" rows="10" cols="50">[% gir_mapping || "LAC: biblionumber
+LCO: itemnumber
+LLO: homebranch
+LSF: ccode
+LSQ: location
+LQT: '\1'" %]</textarea>
                 </li>
                 List GIR fields a a list of key value pairs, where the key is the GIR segment tag and the value is the item field name e.g.
                 <pre>
@@ -312,7 +318,7 @@ LLO:
                 </li>
                 <li>
                    <label for="send_basketname">Send basket name: </label>
-                   <input type="checkbox" name="send_basketname" id="send_basketname" value="1" [% IF send_basketname %]checked="checked"[% END %]>
+                   <input type="checkbox" name="send_basketname" id="send_basketname" value="1" [% IF send_basketname || !send_basketname.defined %]checked="checked"[% END %]>
                    <span class="hint">Send the basket name in the BGM instead of the basket number.</span>
                 </li>
                 <li>
@@ -338,7 +344,7 @@ LLO:
 
                 <li>
                    <label for="ship_budget_from_orderline">Shipping budget from order line: </label>
-                   <input type="checkbox" name="ship_budget_from_orderline" id="ship_budget_from_orderline" value="1" [% IF ship_budget_from_orderline %]checked="checked"[% END %]>
+                   <input type="checkbox" name="ship_budget_from_orderline" id="ship_budget_from_orderline" value="1" [% IF ship_budget_from_orderline || !ship_budget_from_orderline.defined %]checked="checked"[% END %]>
                    <span class="hint">Set the invoice shipping cost fund to the fund used for the last order line of an invoice.</span>
                 </li>
 
@@ -352,7 +358,7 @@ LLO:
 
                 <li>
                    <label for="shipment_charges_moa_8">Shipping - MOA+8: </label>
-                   <input type="checkbox" name="shipment_charges_moa_8" id="shipment_charges_moa_8" value="1" [% IF shipment_charges_moa_8 %]checked="checked"[% END %]>
+                   <input type="checkbox" name="shipment_charges_moa_8" id="shipment_charges_moa_8" value="1" [% IF shipment_charges_moa_8 || !shipment_charges_moa_8.defined %]checked="checked"[% END %]>
                    <span class="hint">Add MOA charges with a qualifier 8, Value Added ( barcodes, lamination, etc. ) to the shipping cost for an invoice.</span>
                 </li>
 
