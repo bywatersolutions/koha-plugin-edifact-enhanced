@@ -141,6 +141,23 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
 
             <fieldset class="rows">
               <legend>LIN values</legend>
+
+              <fieldset class="rows">
+                  <legend>LIN from item field</legend>
+
+                  <ol>
+                    <li>
+                       <label for="lin_use_item_field">Item field: </label>
+                       <input type="text" name="lin_use_item_field" id="lin_use_item_field" value="[% lin_use_item_field %]">
+                       <span class="hint">Value must be a column from the items table.</span>
+                    </li>
+                    <li>
+                       <label for="lin_use_item_field_qualifier">Qualifier: </label>
+                       <input type="text" name="lin_use_item_field_qualifier" id="lin_use_item_field_qualifier" value="[% lin_use_item_field_qualifier %]">
+                    </li>
+                  </ol>
+              </fieldset>
+
               <ol>
                 <li>
                    <label for="lin_use_ean">EAN: </label>

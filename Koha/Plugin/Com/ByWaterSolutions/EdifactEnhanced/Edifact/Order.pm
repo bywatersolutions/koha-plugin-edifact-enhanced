@@ -31,7 +31,7 @@ use Clone 'clone';
 use Koha::Database;
 use C4::Budgets qw( GetBudget );
 use C4::Acquisition qw( GetBasket );
-use C4::Biblio qw( GetMarcBiblio );
+use C4::Biblio qw( GetMarcBiblio GetBiblioData ModBiblio );
 
 Readonly::Scalar my $seg_terminator      => q{'};
 Readonly::Scalar my $separator           => q{+};
@@ -395,6 +395,43 @@ sub order_line {
     my $upc = _get_upc( $record );
     my $product_id = _get_product_id( $record );
 
+
+    my $lin_use_item_field = $self->{plugin}->retrieve_data('lin_use_item_field');
+    my $lin_use_item_field_qualifier = $self->{plugin}->retrieve_data('lin_use_item_field_qualifier');
+    my $line_item_field_value;
+    if ( $lin_use_item_field ) {
+        # Look for a matching item field, get the value of it for the LIN field
+        my ( $aqorder_item ) = $orderline->aqorders_items;
+        my $itemnumber = $aqorder_item->itemnumber;
+        my $item = Koha::Items->find( $itemnumber );
+        my $value = $item->unblessed->{ $lin_use_item_field };
+        $line_item_field_value = $value if $value;
+
+        # Add the ISBN to the record
+        # FIXME: Make this optional, and allow the field/subfield to be configuratable.
+        #        The value we are using is not necessarily an ISBN
+        my @fields = $record->field('020');
+        my $match_found = 0;
+        my $last_isbn_field;
+        foreach my $f ( @fields ) {
+            $last_isbn_field = $f;
+            my $isbn = $f->subfield('a');
+            $match_found = 1 if (index($isbn, $value) != -1);
+        }
+        if ( !$match_found ) {
+            my $field = MARC::Field->new( '020', '', '', 'a' => $value );
+
+            if ( $last_isbn_field ) {
+                $record->insert_fields_after( $last_isbn_field, $field );
+            } else {
+                $record->append_fields( $field );
+            }
+
+            my $bibliodata = GetBiblioData( $biblionumber );
+            ModBiblio( $record, $biblionumber, $bibliodata->{frameworkcode} );
+        }
+    }
+
     # The EAN may be hiding in the ISBN field, so let's get them now and clean them up
     my @dirty_isbns = split( q{\|}, $biblioitem->isbn );
     my @isbns;
@@ -406,7 +443,10 @@ sub order_line {
 
     my @eans = grep( valid_barcode($_), @isbns );
 
-    if ( $orderline->line_item_id ) {
+    if ( $line_item_field_value ) {
+        $id_string = $line_item_field_value;
+        $id_code = $lin_use_item_field_qualifier;
+    } elsif ( $orderline->line_item_id ) {
         $id_string = $orderline->line_item_id;
         $id_code = 'EN';
     } elsif ( ( $biblioitem->ean || @eans  ) && $self->{plugin}->retrieve_data('lin_use_ean') ) {

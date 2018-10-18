@@ -416,6 +416,8 @@ sub configure {
             add_itemnote_on_receipt    => $self->retrieve_data('add_itemnote_on_receipt'),
             no_update_item_price       => $self->retrieve_data('no_update_item_price'),
             set_nfl_on_receipt         => $self->retrieve_data('set_nfl_on_receipt') // q{},
+            lin_use_item_field         => $self->retrieve_data('lin_use_item_field'),
+            lin_use_item_field_qualifier => $self->retrieve_data('lin_use_item_field_qualifier'),
         );
 
         print $cgi->header();
@@ -465,6 +467,8 @@ sub configure {
                 no_update_item_price       => $cgi->param('no_update_item_price'),
                 set_nfl_on_receipt       => $cgi->param('set_nfl_on_receipt') // q{},
                 pia_limit          => defined $cgi->param('pia_limit') ? $cgi->param('pia_limit') : undef,
+                lin_use_item_field           => $cgi->param('lin_use_item_field') || q{},
+                lin_use_item_field_qualifier => $cgi->param('lin_use_item_field_qualifier') || q{},
             }
         );
         $self->go_home();
