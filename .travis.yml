@@ -46,4 +46,5 @@ jobs:
         - git add INSTALLATION/INSTALLATION.pdf
         - git status
         - git commit -m "Update INSTALLATION.pdf [ci-skip]"
-        - git push origin HEAD:${TRAVIS_BRANCH}
+        - git remote add github https://$GITHUB_TOKEN@github.com/bywatersolutions/koha-plugin-edifact-enhanced.git
+        - git push github HEAD:${TRAVIS_BRANCH}
