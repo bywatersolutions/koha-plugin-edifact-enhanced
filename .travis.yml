@@ -1,16 +1,49 @@
-language: node_js
-node_js:
-  - "8"
+sudo: required
 
-install:
-  - echo $TRAVIS_BRANCH
-  - echo $TRAVIS_JOB_ID
-  - echo $TRAVIS_JOB_NUMBER
-  - git log -1 --pretty=oneline
+jobs:
+  include:
+    - stage: Deploy kpz file
+      language: node_js
+      node_js:
+        - "8"
 
-before_script:
-  - npm install -g gulp-cli
-  - npm install jsonfile
+      install:
+        - echo $TRAVIS_BRANCH
+        - echo $TRAVIS_JOB_ID
+        - echo $TRAVIS_JOB_NUMBER
+        - git log -1 --pretty=oneline
 
-script:
-  - bash deploy.sh
+      before_script:
+        - npm install -g gulp-cli
+        - npm install jsonfile
+
+      script:
+        - bash deploy.sh
+
+    - stage: Update documentation PDF
+      services:
+        - docker
+
+      before_install:            
+        - mkdir -p output
+        - docker pull asciidoctor/docker-asciidoctor
+
+      script:
+        - if [ ! -f INSTALLATION/INSTALLATION.adoc ]; then exit 0; fi
+        - docker run -v $TRAVIS_BUILD_DIR:/documents/ --name asciidoc-to-pdf  asciidoctor/docker-asciidoctor asciidoctor-pdf -D /documents/output INSTALLATION/INSTALLATION.adoc
+
+      after_error: 
+        - docker logs asciidoc-to-pdf
+
+      after_failure:
+        - docker logs asciidoc-to-pdf
+
+      after_success:      
+        - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then exit 0; fi
+        - cp libki-manual/output/INSTALLATION.pdf INSTALLATION/INSTALLATION.pdf
+        - git config user.name "Kyle M Hall"
+        - git config user.email "kyle@bywatersolutions.com"
+        - git add INSTALLATION/INSTALLATION.pdf
+        - git status
+        - git commit -m "Update INSTALLATION.pdf [ci-skip]"
+        - git push origin HEAD:${TRAVIS_BRANCH}
