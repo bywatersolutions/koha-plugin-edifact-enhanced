@@ -9,13 +9,14 @@ use Carp;
 use base qw(Koha::Plugins::Base);
 
 ## We will also need to include any Koha libraries we want to access
-use C4::Context;
-use C4::Members;
 use C4::Auth;
 use C4::Biblio;
+use C4::Context;
 use C4::Items;
-use Koha::EDI;
+use C4::Members;
 use Koha::DateUtils;
+use Koha::EDI;
+use Koha::Items;
 
 ## Here we set our plugin version
 our $VERSION = "{VERSION}";
@@ -335,6 +336,12 @@ sub _receipt_items {
            $item->itemnotes_nonpublic( "Received via EDIFACT" );
        }
 
+        my $lin_use_item_field_clear_on_invoice = $self->retrieve_data('lin_use_item_field_clear_on_invoice');
+        if ( $lin_use_item_field_clear_on_invoice ) {
+            my $lin_use_item_field = $self->retrieve_data('lin_use_item_field');
+            $item->set_colum( $lin_use_item_field => q{} );
+        }
+
        $item->update();
 
        my $biblionumber = $item->get_column('biblionumber');
@@ -418,6 +425,7 @@ sub configure {
             set_nfl_on_receipt         => $self->retrieve_data('set_nfl_on_receipt') // q{},
             lin_use_item_field         => $self->retrieve_data('lin_use_item_field'),
             lin_use_item_field_qualifier => $self->retrieve_data('lin_use_item_field_qualifier'),
+            lin_use_item_field_clear_on_invoice => $self->retrieve_data('lin_use_item_field_clear_on_invoice'),
         );
 
         print $cgi->header();
@@ -469,6 +477,7 @@ sub configure {
                 pia_limit          => defined $cgi->param('pia_limit') ? $cgi->param('pia_limit') : undef,
                 lin_use_item_field           => $cgi->param('lin_use_item_field') || q{},
                 lin_use_item_field_qualifier => $cgi->param('lin_use_item_field_qualifier') || q{},
+                lin_use_item_field_clear_on_invoice => $cgi->param('lin_use_item_field_clear_on_invoice') ? 1 : 0,
             }
         );
         $self->go_home();
