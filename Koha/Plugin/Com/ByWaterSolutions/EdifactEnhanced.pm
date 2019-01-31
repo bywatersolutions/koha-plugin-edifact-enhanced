@@ -339,7 +339,7 @@ sub _receipt_items {
         my $lin_use_item_field_clear_on_invoice = $self->retrieve_data('lin_use_item_field_clear_on_invoice');
         if ( $lin_use_item_field_clear_on_invoice ) {
             my $lin_use_item_field = $self->retrieve_data('lin_use_item_field');
-            $item->set_colum( $lin_use_item_field => q{} );
+            $item->set_column( $lin_use_item_field => q{} );
         }
 
        $item->update();
