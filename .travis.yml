@@ -2,7 +2,8 @@ sudo: required
 
 jobs:
   include:
-    - stage: Deploy kpz file
+    - stage: Deploy
+      env: NAME="Deploy KPZ file"
       language: node_js
       node_js:
         - "8"
@@ -20,7 +21,8 @@ jobs:
       script:
         - bash deploy.sh
 
-    - stage: Update documentation PDF
+    - stage: Deploy
+      env: NAME="Update documentation PDF"
       services:
         - docker
 
