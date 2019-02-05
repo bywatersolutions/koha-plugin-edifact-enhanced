@@ -32,6 +32,7 @@ jobs:
 
       script:
         - if [ ! -f INSTALLATION/INSTALLATION.adoc ]; then exit 0; fi
+        - echo "BRANCH: $TRAVIS_BRANCH"
         - docker run -v $TRAVIS_BUILD_DIR:/documents/ --name asciidoc-to-pdf  asciidoctor/docker-asciidoctor asciidoctor-pdf -D /documents/output INSTALLATION/INSTALLATION.adoc
 
       after_error: 
@@ -42,7 +43,8 @@ jobs:
 
       after_success:      
         - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then exit 0; fi
-        - cp libki-manual/output/INSTALLATION.pdf INSTALLATION/INSTALLATION.pdf
+        - cp $TRAVIS_BUILD_DIR/documents/output/INSTALLATION.pdf INSTALLATION/INSTALLATION.pdf
+        - git status
         - git config user.name "Kyle M Hall"
         - git config user.email "kyle@bywatersolutions.com"
         - git add INSTALLATION/INSTALLATION.pdf
