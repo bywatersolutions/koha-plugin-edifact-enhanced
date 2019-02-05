@@ -32,7 +32,7 @@ jobs:
 
       script:
         - if [ ! -f INSTALLATION/INSTALLATION.adoc ]; then exit 0; fi
-        - echo "BRANCH: $TRAVIS_BRANCH"
+        - printf 'BRANCH: %s' $TRAVIS_BRANCH
         - docker run -v $TRAVIS_BUILD_DIR:/documents/ --name asciidoc-to-pdf  asciidoctor/docker-asciidoctor asciidoctor-pdf -D /documents/output INSTALLATION/INSTALLATION.adoc
 
       after_error: 
