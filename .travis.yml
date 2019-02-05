@@ -1,3 +1,4 @@
+---
 sudo: required
 
 jobs:
@@ -26,22 +27,22 @@ jobs:
       services:
         - docker
 
-      before_install:            
+      before_install:
         - mkdir -p output
         - docker pull asciidoctor/docker-asciidoctor
 
       script:
         - if [ ! -f INSTALLATION/INSTALLATION.adoc ]; then exit 0; fi
-        - printf 'BRANCH: %s' $TRAVIS_BRANCH
-        - docker run -v $TRAVIS_BUILD_DIR:/documents/ --name asciidoc-to-pdf  asciidoctor/docker-asciidoctor asciidoctor-pdf -D /documents/output INSTALLATION/INSTALLATION.adoc
+        - printf 'BRANCH: \%s' $TRAVIS_BRANCH
+        - docker run -v $TRAVIS_BUILD_DIR:/documents/ --name asciidoc-to-pdf asciidoctor/docker-asciidoctor asciidoctor-pdf -D /documents/output INSTALLATION/INSTALLATION.adoc
 
-      after_error: 
+      after_error:
         - docker logs asciidoc-to-pdf
 
       after_failure:
         - docker logs asciidoc-to-pdf
 
-      after_success:      
+      after_success:
         - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then exit 0; fi
         - cp $TRAVIS_BUILD_DIR/documents/output/INSTALLATION.pdf INSTALLATION/INSTALLATION.pdf
         - git status
