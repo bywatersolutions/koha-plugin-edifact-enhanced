@@ -43,8 +43,8 @@ jobs:
 
       after_success:
         - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then exit 0; fi
-        - ls -alh $TRAVIS_BUILD_DIR/documents/output/
-        - cp $TRAVIS_BUILD_DIR/documents/output/INSTALLATION.pdf INSTALLATION/INSTALLATION.pdf
+        - ls -alh $TRAVIS_BUILD_DIR/output/
+        - cp $TRAVIS_BUILD_DIR/output/INSTALLATION.pdf INSTALLATION/INSTALLATION.pdf
         - git status
         - git config user.name "Kyle M Hall"
         - git config user.email "kyle@bywatersolutions.com"
