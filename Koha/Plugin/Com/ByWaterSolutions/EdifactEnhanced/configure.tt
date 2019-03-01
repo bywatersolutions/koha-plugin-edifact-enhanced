@@ -43,6 +43,14 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
 <div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/plugins/plugins-home.pl">Plugins</a> &rsaquo; Edifact Enhanced &rsaquo; Configuration</div>
 
 <div id="doc3">
+    [% IF missing_modules %]
+        <div class="alert">
+            <p><strong>A required library is missing!</strong></p>
+            <p>Please ensure that <em>[% missing_modules %]</em> is installed before attempting to use this plugin.</p>
+            <p>Failure to do so may cause errors during use.</p>
+        </div>
+    [% END %]
+
     <!-- Notice our form here has no 'action', this is good, it means that our forms will always get passed back to 'plugins/run.pl'. You could hard code it instead if you prefer -->
     <form method="get">
         <!-- Always pass these two parameters so the plugin system knows what to execute! -->

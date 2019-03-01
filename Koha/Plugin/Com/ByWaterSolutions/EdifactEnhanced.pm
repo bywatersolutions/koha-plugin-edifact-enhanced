@@ -380,6 +380,11 @@ sub configure {
     unless ( $cgi->param('save') ) {
         my $template = $self->get_template( { file => 'configure.tt' } );
 
+        eval "use Business::Barcode::EAN13";
+        if ($@) {
+            $template->param( missing_modules => 'Business::Barcode::EAN13' );
+        }
+
         ## Grab the values we already have for our settings, if any exist
         $template->param(
             lin_use_ean             => $self->retrieve_data('lin_use_ean'),
