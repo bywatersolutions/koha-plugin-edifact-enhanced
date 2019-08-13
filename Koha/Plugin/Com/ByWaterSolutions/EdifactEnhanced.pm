@@ -320,7 +320,7 @@ sub _receipt_items {
        }
        if ( $update_item_price eq 'update_both' || $update_item_price eq 'update_replacementprice' ) {
            # Cost, replacement price
-           $item->replacementprice( $order->rrp() );
+           $item->replacementprice( $order->replacementprice() );
 
            # Price effective from
            $item->replacementpricedate( dt_from_string() );
