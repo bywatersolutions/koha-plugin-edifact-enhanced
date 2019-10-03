@@ -218,7 +218,7 @@ sub ftp_download {
 
     foreach my $filename ( @{$file_list} ) {
 
-        if ( $filename =~ m/[.]$file_ext$/ ) {
+        if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/ ) {
 
             if ( !$ftp->get( $filename, "$self->{working_dir}/$filename" ) ) {
                 $self->_abort_download( $ftp,
@@ -361,7 +361,7 @@ sub _get_file_ext {
 
     my %file_types = (
         QUOTE   => 'XXX',
-        INVOICE => $self->{plugin}->retrieve_data('invoice_file_suffix') || 'EIN',
+        INVOICE => $self->{plugin}->retrieve_data('invoice_file_suffix') || q{},
     );
 
     if ( exists $file_types{$type} ) {
