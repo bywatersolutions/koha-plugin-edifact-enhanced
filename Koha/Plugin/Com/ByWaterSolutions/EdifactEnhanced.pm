@@ -242,6 +242,8 @@ sub edifact_process_invoice {
                                 unitprice        => $price,
                                 invoiceid        => $invoiceid,
                                 datereceived     => $msg_date,
+                                unitprice_tax_excluded => $price,
+                                unitprice_tax_included => $price,
                             }
                         );
                         #FIXME transfer_items( $schema, $line, $order, $received_order );
@@ -252,8 +254,8 @@ sub edifact_process_invoice {
                         $order->datereceived($msg_date);
                         $order->invoiceid($invoiceid);
                         $order->unitprice($price);
-                        eval { $order->unitprice_tax_excluded($price); }; # doesn't work in 3.22
-                        eval { $order->unitprice_tax_included($price); }; # doesn't work in 3.22
+                        $order->unitprice_tax_excluded($price);
+                        $order->unitprice_tax_included($price);
                         $order->orderstatus('complete');
                         $order->update;
                         _receipt_items( $self, $schema, $line, $ordernumber );
