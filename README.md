@@ -5,6 +5,10 @@ This plugin is depends on code that was made available in the 16.05 release of K
 
 This plugin requires Business::Barcode::EAN13 to be installed.
 
+# :warning: PSA
+
+Some vendors insert line break characters every 80 characters by default. This can cause unexpected behavior when processing incoming EDI messages in Koha, using plugins or not! Please ask your vendors to *not* send line breaks in their EDI messages.
+
 ## Configuration options
 
 ### Buyer SAN
