@@ -630,6 +630,13 @@ sub order_line {
     $self->add_seg("RFF+BFN:$budget->{budget_code}$seg_terminator")
         if $self->{plugin}->retrieve_data('send_rff_bfn');
 
+    if ( $self->{plugin}->retrieve_data('send_rff_bfn_biblionumber') ) {
+        # Send biblionumber in RFF+BFN
+        my $rff_bfn = join q{}, 'RFF+BFN:', $orderline->biblionumber, $seg_terminator;
+        $self->add_seg($rff_bfn);
+    }
+
+
     $self->add_seg(
         $self->gir_segments(
             {

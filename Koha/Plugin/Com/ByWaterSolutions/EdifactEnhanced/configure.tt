@@ -87,7 +87,7 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                 </li>
                 <li>
                    <input type="checkbox" name="buyer_san_use_username" id="buyer_san_use_username" [% IF buyer_san_use_username %]checked="checked"[% END %] />
-		   <span class="hint">Works for value in header only, not implemented for use in NAD+BY.</span>
+                   <span class="hint">Works for value in header only, not implemented for use in NAD+BY.</span>
                    <label for="buyer_san_use_username">Use Vendor EDI account username</span>
                 </li>
                 <li>
@@ -288,9 +288,14 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
               <legend>Other ORDER configurations</legend>
               <ol>
                 <li>
-                   <label for="send_rff_bfn">Send RFF+BFN: </label>
+                   <label for="send_rff_bfn">Send fund code in RFF+BFN: </label>
                    <input type="checkbox" name="send_rff_bfn" id="send_rff_bfn" value="1" [% IF send_rff_bfn %]checked="checked"[% END %]>
                    <span class="hint">For each LIN segment, send an RFF+BFN containing the order budget code used.</span>
+                </li>
+                <li>
+                   <label for="send_rff_bfn_biblionumber">Send biblionumber in RFF+BFN: </label>
+                   <input type="checkbox" name="send_rff_bfn_biblionumber" id="send_rff_bfn_biblionumber" value="1" [% IF send_rff_bfn_biblionumber %]checked="checked"[% END %]>
+                   <span class="hint">For each LIN segment, send an RFF+BFN containing the record biblionumber.</span>
                 </li>
                 <li>
                    <label for="send_basketname">Send basket name: </label>
