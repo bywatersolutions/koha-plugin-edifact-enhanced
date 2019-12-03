@@ -632,7 +632,7 @@ sub order_line {
 
     if ( $self->{plugin}->retrieve_data('send_rff_bfn_biblionumber') ) {
         # Send biblionumber in RFF+BFN
-        my $rff_bfn = join q{}, 'RFF+BFN:', $orderline->biblionumber, $seg_terminator;
+        my $rff_bfn = join q{}, 'RFF+BFN:', $orderline->biblionumber->id, $seg_terminator;
         $self->add_seg($rff_bfn);
     }
 
