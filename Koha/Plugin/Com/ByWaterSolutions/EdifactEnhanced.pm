@@ -124,6 +124,25 @@ sub edifact_process_invoice {
                 $tax_date = $msg_date;
             }
 
+            if ( $self->retrieve_data('skip_nonmatching_san_suffix') ) {
+                my $vendor_san = $msg->supplier_ean;
+                my $vendor_suffix = $msg->supplier_suffix;
+                my $vendor_edi_account_id = $self->vendor_edi_account_id;
+                my $vendor_edi_account = $schema->resultset('VendorEdiAccount')->find( $vendor_edi_account_id );
+                my $vendor_edi_account_san = $vendor_edi_account->san;
+
+                warn "MESSAGE VENDOR SAN: $vendor_san";
+                warn "MESSAGE VENDOR SUF: $vendor_suffix";
+                warn "ACCOUNT VENDOR SAN: $vendor_edi_account_san";
+                if ( $vendor_san && $vendor_suffix && $vendor_edi_account_san ) {
+                    if ( $vendor_edi_account_san ne "$vendor_san $vendor_suffix" ) {
+                        $invoice_message->status('new');
+                        return;
+                    }
+                }
+            }
+
+
 ## This method is proved to be highly unreliable. We should get the vendor from the edifact_messages column vendor_id
 ## and limit our search for ordernumbers to that vendor
 #            my $vendor_ean = $msg->supplier_ean;
@@ -434,6 +453,7 @@ sub configure {
             lin_use_item_field         => $self->retrieve_data('lin_use_item_field'),
             lin_use_item_field_qualifier => $self->retrieve_data('lin_use_item_field_qualifier'),
             lin_use_item_field_clear_on_invoice => $self->retrieve_data('lin_use_item_field_clear_on_invoice'),
+            skip_nonmatching_san_suffix         => $self->retrieve_data('skip_nonmatching_san_suffix'),
         );
 
         print $cgi->header();
@@ -487,6 +507,7 @@ sub configure {
                 lin_use_item_field           => $cgi->param('lin_use_item_field') || q{},
                 lin_use_item_field_qualifier => $cgi->param('lin_use_item_field_qualifier') || q{},
                 lin_use_item_field_clear_on_invoice => $cgi->param('lin_use_item_field_clear_on_invoice') ? 1 : 0,
+                skip_nonmatching_san_suffix         => $cgi->param('skip_nonmatching_san_suffix')   ? 1 : 0,
             }
         );
         $self->go_home();
