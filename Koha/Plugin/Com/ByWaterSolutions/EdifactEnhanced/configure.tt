@@ -398,11 +398,9 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                    <label for="skip_nonmatching_san_suffix">Skip non-matching san/suffix combos: </label>
                    <input type="checkbox" name="skip_nonmatching_san_suffix" id="skip_nonmatching_san_suffix" value="1" [% IF skip_nonmatching_san_suffix %]checked="checked"[% END %]>
                    <span class="hint">
-                       This option is to help map invoices to the correct EDI Vendor Record, when using multiple Vendor Recors with the same SAN but different suffixes/ordering account numbers.
-                       Enabling it will skip processing the invoice unless the current EDI Vendor Record's SAN ( from the database ) matches the SAN/Suffix combo from the INVOICE.
+                       This option is to help map invoices to the correct EDI Vendor Record, when using multiple Vendor Records with the same Vendor.
+                       Enabling it will skip processing the invoice unless the current EDI Vendor Record's SAN ( from the database ) matches the SAN from the INVOICE.
                        That way later on, when the correct account is running invoices, it will process it.
-                       Assumes the vendor SAN is in the first NAD+SU, and the Suffix/Account Number is in a second NAD+SU with a 91 qualifier.
-                       NOTE: If vendor sends multiple INVOICES per message, they *must* all be from the same suffix/account number for this to function correctly.
                    </span>
                 </li>
 
