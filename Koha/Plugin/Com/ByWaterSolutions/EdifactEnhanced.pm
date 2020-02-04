@@ -125,18 +125,17 @@ sub edifact_process_invoice {
             }
 
             if ( $self->retrieve_data('skip_nonmatching_san_suffix') ) {
-                my $vendor_san = $msg->supplier_ean;
-                my $vendor_suffix = $msg->supplier_suffix;
+                my $vendor_message_san = $msg->supplier_ean;
                 my $vendor_edi_account_id = $self->vendor_edi_account_id;
                 my $vendor_edi_account = $schema->resultset('VendorEdiAccount')->find( $vendor_edi_account_id );
                 my $vendor_edi_account_san = $vendor_edi_account->san;
 
-                warn "MESSAGE VENDOR SAN: $vendor_san";
-                warn "MESSAGE VENDOR SUF: $vendor_suffix";
+                warn "MESSAGE VENDOR SAN: $vendor_message_san";
                 warn "ACCOUNT VENDOR SAN: $vendor_edi_account_san";
-                if ( $vendor_san && $vendor_suffix && $vendor_edi_account_san ) {
-                    if ( $vendor_edi_account_san ne "$vendor_san $vendor_suffix" ) {
+                if ( $vendor_message_san && $vendor_edi_account_san ) {
+                    if ( $vendor_edi_account_san ne $vendor_message_san ) {
                         $invoice_message->status('new');
+                        $invoice_message->update;
                         return;
                     }
                 }
