@@ -196,43 +196,13 @@ sub supplier_ean {
         }
         if ( $s->tag eq 'NAD' ) {
             my $qualifier = $s->elem(0);
-            if ( $qualifier eq 'SU' ) { #FIXME should also be configurable as per FIXME below
+            if ( $qualifier eq 'SU' ) {
                 return $s->elem( 1, 0 );
             }
         }
     }
     return;
 
-}
-
-#PLUGIN CUSTOM
-# Looks up the 'suffix' for this invoice
-# Suppliers often send two NAD+SU segments e.e.
-# NAD+SU+1697684::31B'
-# NAD+SU+4204331::91'
-# Where one is the EAN/SAN and the other is the 'account' number
-# Some libraries will order from multiple accounts on the same SAN
-# By default Koha will process them all using the the first account
-# with a matcing EAN, reguardless of the suffix/account number
-# By extracting the account number, we can skip over non-matching
-# invoices and allow the 'correct' EDI Account to process it.
-sub supplier_suffix {
-    my $self = shift;
-    foreach my $s ( @{ $self->{datasegs} } ) {
-        if ( $s->tag eq 'LIN' ) {
-            last;
-        }
-        if ( $s->tag eq 'NAD' ) {
-            my $qualifier = $s->elem(0);
-            if ( $qualifier eq 'SU' ) {
-                warn "EDI NAD BY Qualifier: " . $s->elem( 1, 1 );
-                if ( $s->elem( 1, 1 ) eq '91' ) { #FIXME: Make this plugin configurable
-                    return $s->elem( 1, 0 );
-                }
-            }
-        }
-    }
-    return;
 }
 
 sub lineitems {
