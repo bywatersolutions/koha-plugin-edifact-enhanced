@@ -377,6 +377,8 @@ sub name_and_address {
 sub order_line {
     my ( $self, $linenumber, $orderline ) = @_;
 
+    my $basket = Koha::Acquisition::Orders->find( $orderline->ordernumber )->basket;
+
     my $schema = $self->{schema};
     if ( !$orderline->biblionumber )
     {                        # cannot generate an orderline without a bib record
@@ -597,7 +599,7 @@ sub order_line {
     #     we dont currently support this in koha
     # GIR copy-related data
     my @items;
-    if ( C4::Context->preference('AcqCreateItem') eq 'ordering' ) {
+    if ( $basket->effective_create_items eq 'ordering' ) {
         my @linked_itemnumbers = $orderline->aqorders_items;
 
         foreach my $item (@linked_itemnumbers) {
