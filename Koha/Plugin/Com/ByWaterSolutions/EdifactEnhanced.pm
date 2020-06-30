@@ -126,8 +126,7 @@ sub edifact_process_invoice {
 
             if ( $self->retrieve_data('skip_nonmatching_san_suffix') ) {
                 my $vendor_message_san = $msg->supplier_ean;
-                my $vendor_edi_account_id = $self->vendor_edi_account_id;
-                my $vendor_edi_account = $schema->resultset('VendorEdiAccount')->find( $vendor_edi_account_id );
+                my $vendor_edi_account = $invoice_message->edi_acct();
                 my $vendor_edi_account_san = $vendor_edi_account->san;
 
                 warn "MESSAGE VENDOR SAN: $vendor_message_san";
