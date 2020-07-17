@@ -133,9 +133,18 @@ sub edifact_process_invoice {
                 warn "ACCOUNT VENDOR SAN: $vendor_edi_account_san";
                 if ( $vendor_message_san && $vendor_edi_account_san ) {
                     if ( $vendor_edi_account_san ne $vendor_message_san ) {
-                        $invoice_message->status('new');
-                        $invoice_message->update;
-                        return;
+                        warn "Vendor SAN does not match Message SAN";
+                        my $account = $schema->resultset('VendorEdiAccount')->find({ san => $vendor_message_san });
+                        if ( $account ) {
+                            warn "Matcing SAN found in Vendor EDI Accounts! Updating message to matching vendor.";
+                            $invoice_message->update({ edi_acct => $account->id });
+                            $vendor_edi_account = $account;
+                        } else {
+                            warn "No matching SAN found in Vendor EDI Accounts!";
+                            $invoice_message->status('new');
+                            $invoice_message->update;
+                            return;
+                        }
                     }
                 }
             }
