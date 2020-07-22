@@ -779,6 +779,16 @@ sub gir_segments {
         };
     }
 
+    # Load here to use in add_gir_identity_number later
+    my $gir_value_replacements_map = $self->{plugin}->retrieve_data('gir_value_replacements_map');
+    my $map;
+    if ( $gir_value_replacements_map ) {
+        $gir_value_replacements_map .= "\n\n"; # YAML insists on newlines at the end
+        eval {
+            $map = YAML::Load($gir_value_replacements_map);
+        };
+    }
+
     my $split_gir = $self->{plugin}->retrieve_data('split_gir') || '999999'; # 0 = false = unlimited
     $split_gir++;
 
@@ -793,25 +803,25 @@ sub gir_segments {
                     my $string;
                     if ( $gir_mapping->{$tag} =~ m/^\\/ ) {
                        # If value begins with an backslash, assume the value itself should be used
-                       $string = add_gir_identity_number( $tag, substr( $gir_mapping->{$tag}, 1 ) );
+                       $string = add_gir_identity_number( $tag, substr( $gir_mapping->{$tag}, 1 ), $map );
                     } elsif ( $gir_mapping->{$tag} eq 'servicing_instruction' ) {
-                        $string = add_gir_identity_number( $tag, $orderfields->{servicing_instruction} );
+                        $string = add_gir_identity_number( $tag, $orderfields->{servicing_instruction}, $map );
                     }
                     elsif ( $gir_mapping->{$tag} =~ /^aqorders/ ) {
                         my ( undef, $column ) = split( /\./, $gir_mapping->{$tag} );
-                        $string = add_gir_identity_number( $tag, $orderline->get_column($column) );
+                        $string = add_gir_identity_number( $tag, $orderline->get_column($column), $map );
                     }
                     elsif ( $gir_mapping->{$tag} eq 'budget_code' ) {
-                        $string = add_gir_identity_number( $tag, $budget_code );
+                        $string = add_gir_identity_number( $tag, $budget_code, $map );
                     }
                     elsif ( index( $gir_mapping->{$tag}, '$' ) != -1 ) {
                         my ( $field, $subfield ) = split( '\$', $gir_mapping->{$tag} );
                         my $marc = GetMarcBiblio( { biblionumber => $orderline->biblionumber->id } );
                         my $value = $subfield ? $marc->subfield( $field, $subfield ) : $marc->field( $field )->data();
-                        $string = add_gir_identity_number( $tag, $value );
+                        $string = add_gir_identity_number( $tag, $value, $map );
                     }
                     else {
-                        $string = add_gir_identity_number( $tag, $item->get_column( $gir_mapping->{$tag} ) );
+                        $string = add_gir_identity_number( $tag, $item->get_column( $gir_mapping->{$tag} ), $map );
                     }
 
                     if ($string) {
@@ -830,28 +840,27 @@ sub gir_segments {
                 }
             }
             else {
-                $seg .= add_gir_identity_number( 'LFN', $budget_code );
-                $seg .= add_gir_identity_number( 'LLO',
-                    $item->homebranch->branchcode );
-                $seg .= add_gir_identity_number( 'LST', $item->itype );
-                $seg .= add_gir_identity_number( 'LSQ', $item->location );
-                $seg .= add_gir_identity_number( 'LSM', $item->itemcallnumber );
+                $seg .= add_gir_identity_number( 'LFN', $budget_code, $map );
+                $seg .= add_gir_identity_number( 'LLO', $item->homebranch->branchcode, $map );
+                $seg .= add_gir_identity_number( 'LST', $item->itype, $map );
+                $seg .= add_gir_identity_number( 'LSQ', $item->location, $map );
+                $seg .= add_gir_identity_number( 'LSM', $item->itemcallnumber, $map );
 
                 # itemcallnumber -> shelfmark
             }
         }
         else {
             if ( $item->{branch} ) {
-                $seg .= add_gir_identity_number( 'LLO', $item->{branch} );
+                $seg .= add_gir_identity_number( 'LLO', $item->{branch}, $map );
             }
-            $seg .= add_gir_identity_number( 'LST', $item->{itemtype} );
-            $seg .= add_gir_identity_number( 'LSM', $item->{shelfmark} );
+            $seg .= add_gir_identity_number( 'LST', $item->{itemtype}, $map );
+            $seg .= add_gir_identity_number( 'LSM', $item->{shelfmark}, $map );
         }
 
         # If we are using the GIR custom mapping, we deal with this above
         if ( $orderfields->{servicing_instruction} && !$gir_mapping ) {
             $seg .= add_gir_identity_number( 'LVT',
-                $orderfields->{servicing_instruction} );
+                $orderfields->{servicing_instruction}, $map );
         }
 
         $sequence_no++;
@@ -861,7 +870,15 @@ sub gir_segments {
 }
 
 sub add_gir_identity_number {
-    my ( $number_qualifier, $number ) = @_;
+    my ( $number_qualifier, $number, $map ) = @_;
+
+    my $qualifier_map = $map->{$number_qualifier};
+    if ($qualifier_map) {
+        if ( my $value = $qualifier_map->{$number} ) {
+            $number = $value;
+        }
+    }
+
     if ($number) {
         return "+${number}:${number_qualifier}";
     }

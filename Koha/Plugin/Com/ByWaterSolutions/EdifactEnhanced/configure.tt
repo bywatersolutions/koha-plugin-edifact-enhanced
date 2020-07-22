@@ -272,15 +272,28 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                    <label for="gir_disable">Don't send: </label>
                    <input type="checkbox" name="gir_disable" id="gir_disable" value="1" [% IF gir_disable %]checked="checked"[% END %]>
                    <span class="hint">If checked, GIR segments will <i>not</i> be sent as part of your EDIFACT order message.</span>
+                </li>
+
                 <li>
                    <label for="gir_mapping">Mapping: </label>
                    <textarea name="gir_mapping" id="gir_mapping" rows="10" cols="50">[% gir_mapping %]</textarea>
                 </li>
-                List GIR fields a a list of key value pairs, where the key is the GIR segment tag and the value is the item field name i.e.
+                List GIR fields a a list of key value pairs, where the key is the GIR segment tag and the value is the item field name e.g.
                 <pre>
-                    LLO: homebranch
-                    LST: itype
+LLO: homebranch
+LST: itype
                 </pre>
+
+                <li>
+                   <label for="gir_value_replacements_map">Value replacement map: </label>
+                   <textarea name="gir_value_replacements_map" id="gir_value_replacements_map" rows="10" cols="50">[% gir_value_replacements_map %]</textarea>
+                </li>
+                If it is necessary to convert the value of a GIR field to something else, it can be done here. For example, if the branchcodes in your vendor's profiles differ from the branchcodes in Koha, they can be automatically converted. e.g.
+                <pre>
+LLO: 
+   BRANCH_A: BranchA
+                </pre>
+				would convert any LLO value of "BRANCH_A" to "BranchA" in the EDI Order message.
               </ol>
             </fieldset>
 
