@@ -281,6 +281,10 @@ sub edifact_process_invoice {
                         _receipt_items( $self, $schema, $line, $received_order->ordernumber );
                     }
                     else {    # simple receipt all copies on order
+                        if ( $self->retrieve_data('ignore_duplicate_reciepts') ) {
+                           next if $order->quantity eq $order->quantityreceived; 
+                        }
+
                         $order->quantityreceived( $line->quantity );
                         $order->datereceived($msg_date);
                         $order->invoiceid($invoiceid);
@@ -453,6 +457,7 @@ sub configure {
             buyer_san_in_nadby      => $self->retrieve_data('buyer_san_in_nadby'),
             branch_ean_in_header    => $self->retrieve_data('branch_ean_in_header'),
             branch_ean_in_nadby     => $self->retrieve_data('branch_ean_in_nadby'),
+            ignore_duplicate_reciepts => $self->retrieve_data('ignore_duplicate_reciepts'),
             ship_budget_from_orderline => $self->retrieve_data('ship_budget_from_orderline'),
             shipment_charges_alc_dl    => $self->retrieve_data('shipment_charges_alc_dl'),
             shipment_charges_moa_8     => $self->retrieve_data('shipment_charges_moa_8'),
@@ -507,6 +512,7 @@ sub configure {
                 buyer_san_in_nadby      => $cgi->param('buyer_san_in_nadby')   ? 1 : 0,
                 branch_ean_in_header    => $cgi->param('branch_ean_in_header') ? 1 : 0,
                 branch_ean_in_nadby     => $cgi->param('branch_ean_in_nadby')  ? 1 : 0,
+                ignore_duplicate_reciepts => $cgi->param('ignore_duplicate_reciepts') ? 1 : 0,
                 ship_budget_from_orderline => $cgi->param('ship_budget_from_orderline') ? 1 : 0,
                 shipment_charges_alc_dl    => $cgi->param('shipment_charges_alc_dl') ? 1 : 0,
                 shipment_charges_moa_8     => $cgi->param('shipment_charges_moa_8') ? 1 : 0,

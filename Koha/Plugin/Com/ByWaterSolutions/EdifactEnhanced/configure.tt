@@ -331,6 +331,12 @@ LLO:
               <legend>Other INVOICE configurations</legend>
               <ol>
                 <li>
+                   <label for="ignore_duplicate_reciepts">Ignore invoice lines for fully recieved items: </label>
+                   <input type="checkbox" name="ignore_duplicate_reciepts" id="ignore_duplicate_reciepts" value="1" [% IF ignore_duplicate_reciepts %]checked="checked"[% END %]>
+                   <span class="hint">If an order line has been fully recieved but is referenced in a future invoice, do not move the item receipt to the new invoice. Ignore it instead. This option does not work on standing orders.</span>
+                </li>
+
+                <li>
                    <label for="ship_budget_from_orderline">Shipping budget from order line: </label>
                    <input type="checkbox" name="ship_budget_from_orderline" id="ship_budget_from_orderline" value="1" [% IF ship_budget_from_orderline %]checked="checked"[% END %]>
                    <span class="hint">Set the invoice shipping cost fund to the fund used for the last order line of an invoice.</span>
