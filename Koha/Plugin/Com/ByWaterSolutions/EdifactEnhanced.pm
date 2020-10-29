@@ -197,9 +197,16 @@ sub edifact_process_invoice {
                     $line->quantity );
 
                 my $order = $schema->resultset('Aqorder')->find($ordernumber);
+
                 unless ( $order ) {
                     warn "No order found for order number $ordernumber, the vendor is probably sending the wrong value in the RFF+LI segment.";
                     $logger->error("No order found for order number $ordernumber, the vendor is probably sending the wrong value in the RFF+LI segment.");
+                    next;
+                }
+
+                if ( $order->orderstatus eq 'cancelled' ) {
+                    warn "Order number $ordernumber was canceled in Koha, not receiving.";
+                    $logger->error("Order number $ordernumber was canceled in Koha, not receiving.");
                     next;
                 }
 
