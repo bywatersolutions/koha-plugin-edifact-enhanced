@@ -257,7 +257,12 @@ sub edifact_process_invoice {
                         );
                     }
 
-                    my $price = Koha::EDI::_get_invoiced_price($line);
+                    my $quantity = $line->quantity_invoiced;
+                    if (!$quantity) {
+                        $quantity = $line->quantity;
+                    };
+
+                    my $price = Koha::EDI::_get_invoiced_price($line, $quantity);
 
                     my $basket = $order->basketno;
                     my $is_standing = $basket->is_standing;
