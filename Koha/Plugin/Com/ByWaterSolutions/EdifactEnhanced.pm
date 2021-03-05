@@ -14,6 +14,7 @@ use C4::Biblio;
 use C4::Context;
 use C4::Items;
 use C4::Members;
+use C4::Suggestions qw(ModSuggestion);
 use Koha::DateUtils;
 use Koha::EDI;
 use Koha::Items;
