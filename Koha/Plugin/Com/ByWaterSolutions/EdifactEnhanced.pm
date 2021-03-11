@@ -137,7 +137,7 @@ sub edifact_process_invoice {
                         warn "Vendor SAN does not match Message SAN";
                         my $account = $schema->resultset('VendorEdiAccount')->find({ san => $vendor_message_san });
                         if ( $account ) {
-                            warn "Matcing SAN found in Vendor EDI Accounts! Updating message to matching vendor.";
+                            warn "Matching SAN found in Vendor EDI Accounts! Updating message to matching vendor.";
                             $invoice_message->update(
                                 {
                                     edi_acct  => $account->id,
