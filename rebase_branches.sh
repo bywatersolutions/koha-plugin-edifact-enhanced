@@ -9,15 +9,15 @@ do
     branch="$(cut -d'/' -f2 <<<"$x")"
     echo $branch;
 
-    git checkout github/$branch
+    git checkout origin/$branch
     if [ $? -ne 0 ]; then
-        echo "Checkout of github/$branch failed: $?";
+        echo "Checkout of origin/$branch failed: $?";
         exit 1;
     else
-        echo "Checked out github/$branch";
+        echo "Checked out origin/$branch";
     fi
 
-    git rebase github/master
+    git rebase origin/master
     if [ $? -ne 0 ]; then
         echo "Rebase of $branch failed: $?";
         exit 1;
@@ -25,7 +25,7 @@ do
         echo "Rebased $branch";
     fi
 
-    git push -f github HEAD:$branch
+    git push -f origin HEAD:$branch
     if [ $? -ne 0 ]; then
         echo "Push of $branch failed: $?";
         exit 1;
@@ -33,14 +33,18 @@ do
         echo "Pushed $branch";
     fi
 
-    git tag $branch-$TAG
-    git push github $branch-$TAG
-    if [ $? -ne 0 ]; then
-        echo "Push of $branch failed: $?";
-        exit 1;
+    if [ $TAG -ne "master" ]; then;
+        git tag $branch-$TAG
+        git push origin $branch-$TAG
+        if [ $? -ne 0 ]; then
+            echo "Push of $branch failed: $?";
+            exit 1;
+        else
+            echo "Pushed $branch";
+        fi
     else
-        echo "Pushed $branch";
+        echo "Not a tag, not pushing new tags"
     fi
 done
 
-git checkout github/master
+git checkout origin/master
