@@ -175,7 +175,29 @@ sub edifact_process_invoice {
             my $vendor_acct = $invoice_message->edi_acct();
 
             $logger->trace("Adding invoice:$invoicenumber");
-            my $new_invoice = $schema->resultset('Aqinvoice')->create(
+
+            # If this EDI invoice is being reprocessed from the database,
+            # we should re-use the exsting Koha invoice
+            my $new_invoice = $schema->resultset('Aqinvoice')->search(
+                {
+                    invoicenumber         => $invoicenumber,
+                    booksellerid          => $invoice_message->vendor_id,
+                    message_id            => $invoice_message->id,
+                }
+            )->next;
+
+            # If this EDI invoice is being reprocessed because it's been
+            # re-transmitted from the vendor, we won't have a matching
+            # message_id be we should still have the same invoicenumber
+            # and booksellerid
+            $new_invoice ||= $schema->resultset('Aqinvoice')->search(
+                {
+                    invoicenumber         => $invoicenumber,
+                    booksellerid          => $invoice_message->vendor_id,
+                }
+            )->next;
+
+            $new_invoice ||= $schema->resultset('Aqinvoice')->create(
                 {
                     invoicenumber         => $invoicenumber,
                     booksellerid          => $invoice_message->vendor_id,
