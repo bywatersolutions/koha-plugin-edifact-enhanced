@@ -108,6 +108,7 @@ jobs:
         echo "3 MINUTES DONE"
         echo "WAKING UP"
         docker cp $GITHUB_REPO/. koha_koha_1:/var/lib/koha/kohadev/plugins
+        docker exec koha_koha_1 bash -c 'cpanm Business::Barcode::EAN13'
         docker exec koha_koha_1 bash -c 'prove /var/lib/koha/kohadev/plugins/t'
         
     - name: Post test cleanup
