@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "TAG: $TAG"
+
 IFS='
 '
 for x in `git branch -r | grep --invert-match master`;
@@ -24,6 +26,15 @@ do
     fi
 
     git push -f github HEAD:$branch
+    if [ $? -ne 0 ]; then
+        echo "Push of $branch failed: $?";
+        exit 1;
+    else
+        echo "Pushed $branch";
+    fi
+
+    git tag $branch-$TAG
+    git push github $branch-$TAG
     if [ $? -ne 0 ]; then
         echo "Push of $branch failed: $?";
         exit 1;

@@ -123,7 +123,7 @@ jobs:
   release:
     name: Build & Release
     runs-on: ubuntu-latest
-    #if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: unit_tests
     strategy:
       fail-fast: false
@@ -174,7 +174,7 @@ jobs:
 
     - name: Release
       uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
+      if: startsWith(github.ref, 'refs/tags/v')
       with:
         files: |
           ${{ steps.kpz.outputs.filename }}
@@ -192,4 +192,4 @@ jobs:
     - uses: actions/checkout@v1
 
     - name: Print minimum version
-      run: ./rebase_branches.sh
+      run: TAG=${GITHUB_REF##*/} ./rebase_branches.sh
