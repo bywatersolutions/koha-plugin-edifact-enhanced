@@ -9,6 +9,9 @@ do
     branch="$(cut -d'/' -f2 <<<"$x")"
     echo $branch;
 
+    git config --global user.email "kyle@bywatersolutions.com"
+    git config --global user.name "Kyle M Hall"
+
     git checkout origin/$branch
     if [ $? -ne 0 ]; then
         echo "Checkout of origin/$branch failed: $?";
