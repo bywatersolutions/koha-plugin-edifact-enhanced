@@ -36,7 +36,7 @@ do
         echo "Pushed $branch";
     fi
 
-    if [ $TAG -ne "master" ]; then
+    if [ $TAG != "master" ]; then
         git tag $branch-$TAG
         git push https://${GH_TOKEN}:${GH_TOKEN}@github.com/bywatersolutions/koha-plugin-edifact-enhanced.git $branch-$TAG
         if [ $? -ne 0 ]; then
