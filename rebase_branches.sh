@@ -28,7 +28,7 @@ do
         echo "Rebased $branch";
     fi
 
-    git push -f origin HEAD:$branch
+    git push -f https://${GH_TOKEN}:${GH_TOKEN}@github.com/bywatersolutions/koha-plugin-edifact-enhanced.git HEAD:$branch
     if [ $? -ne 0 ]; then
         echo "Push of $branch failed: $?";
         exit 1;
@@ -38,7 +38,7 @@ do
 
     if [ $TAG -ne "master" ]; then
         git tag $branch-$TAG
-        git push origin $branch-$TAG
+        git push https://${GH_TOKEN}:${GH_TOKEN}@github.com/bywatersolutions/koha-plugin-edifact-enhanced.git $branch-$TAG
         if [ $? -ne 0 ]; then
             echo "Push of $branch failed: $?";
             exit 1;
