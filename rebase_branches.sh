@@ -33,7 +33,7 @@ do
         echo "Pushed $branch";
     fi
 
-    if [ $TAG -ne "master" ]; then;
+    if [ $TAG -ne "master" ]; then
         git tag $branch-$TAG
         git push origin $branch-$TAG
         if [ $? -ne 0 ]; then
