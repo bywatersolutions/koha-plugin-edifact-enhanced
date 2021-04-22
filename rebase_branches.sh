@@ -37,8 +37,8 @@ do
     fi
 
     if [ $TAG != "master" ]; then
-        git tag $branch-$TAG
-        git push https://${GH_TOKEN}:${GH_TOKEN}@github.com/bywatersolutions/koha-plugin-edifact-enhanced.git $branch-$TAG
+        git tag $TAG-$branch
+        git push https://${GH_TOKEN}:${GH_TOKEN}@github.com/bywatersolutions/koha-plugin-edifact-enhanced.git $TAG-$branch
         if [ $? -ne 0 ]; then
             echo "Push of $branch failed: $?";
             exit 1;
