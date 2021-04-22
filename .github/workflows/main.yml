@@ -195,4 +195,4 @@ jobs:
     - name: Run rebase_branches.sh
       run: TAG=${GITHUB_REF##*/} ./rebase_branches.sh
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
