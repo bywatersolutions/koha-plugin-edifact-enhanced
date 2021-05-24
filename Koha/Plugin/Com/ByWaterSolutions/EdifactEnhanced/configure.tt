@@ -324,6 +324,12 @@ LLO:
                    </select>
                    <span class="hint">Split the GIR into multiple lines where each line has this many subfields. Set to 0 for no GIR splitting.</span>
                 </li>
+              </ol>
+            </fieldset>
+
+            <fieldset class="rows">
+              <legend>Other INVOICE configurations</legend>
+              <ol>
                 <li>
                    <label for="set_bookseller_from_order_basket">Set the invoice vendor from the first invoiced item's basket: </label>
                    <input type="checkbox" name="set_bookseller_from_order_basket" id="set_bookseller_from_order_basket" value="1" [% IF set_bookseller_from_order_basket %]checked="checked"[% END %]>
@@ -332,12 +338,6 @@ LLO:
                        if this option is not enabled, all the invoices will show up under the first edi vendor account to download the invoices from the vendor's server.
                    </span>
                 </li>
-              </ol>
-            </fieldset>
-
-            <fieldset class="rows">
-              <legend>Other INVOICE configurations</legend>
-              <ol>
                 <li>
                    <label for="ignore_duplicate_reciepts">Ignore invoice lines for fully recieved items: </label>
                    <input type="checkbox" name="ignore_duplicate_reciepts" id="ignore_duplicate_reciepts" value="1" [% IF ignore_duplicate_reciepts %]checked="checked"[% END %]>
