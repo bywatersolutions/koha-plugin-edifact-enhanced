@@ -176,12 +176,23 @@ sub edifact_process_invoice {
 
             $logger->trace("Adding invoice:$invoicenumber");
 
+            my $lines = $msg->lineitems();
+
+            my $booksellerid = $invoice_message->vendor_id;
+            if ( $self->retrieve_data('set_bookseller_from_order_basket') ) {
+                my $line = $lines->[0];
+                my $ordernumber = $line->ordernumber;
+                my $order = $schema->resultset('Aqorder')->find($ordernumber);
+                my $basket = $order->basket;
+                $booksellerid = $basket->get_column('booksellerid');
+            }
+
             # If this EDI invoice is being reprocessed from the database,
             # we should re-use the exsting Koha invoice
             my $new_invoice = $schema->resultset('Aqinvoice')->search(
                 {
                     invoicenumber         => $invoicenumber,
-                    booksellerid          => $invoice_message->vendor_id,
+                    booksellerid          => $booksellerid,
                     message_id            => $invoice_message->id,
                 }
             )->next;
@@ -193,14 +204,14 @@ sub edifact_process_invoice {
             $new_invoice ||= $schema->resultset('Aqinvoice')->search(
                 {
                     invoicenumber         => $invoicenumber,
-                    booksellerid          => $invoice_message->vendor_id,
+                    booksellerid          => $booksellerid,
                 }
             )->next;
 
             $new_invoice ||= $schema->resultset('Aqinvoice')->create(
                 {
                     invoicenumber         => $invoicenumber,
-                    booksellerid          => $invoice_message->vendor_id,
+                    booksellerid          => $booksellerid,
                     shipmentdate          => $msg_date,
                     billingdate           => $tax_date,
                     shipmentcost          => $shipmentcharge,
@@ -211,7 +222,6 @@ sub edifact_process_invoice {
             my $invoiceid = $new_invoice->invoiceid;
             $logger->trace("Added as invoiceno :$invoiceid");
             warn("Added as invoice id: $invoiceid");
-            my $lines = $msg->lineitems();
 
             foreach my $line ( @{$lines} ) {
                 my $ordernumber = $line->ordernumber;
