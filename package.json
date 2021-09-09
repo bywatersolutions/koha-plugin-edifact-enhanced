@@ -1,7 +1,7 @@
 {
-  "name": "koha-plugin-edifact-enhanced",
+  "name": "koha-plugin-edifact-enhanced-blackstone",
+  "description": "Koha Edifact Enhanced Plugin - Blackstone",
   "version": "4.0.1",
-  "description": "Koha Edifact Enhanced Plugin",
   "devDependencies": {
     "gulp": "^4.0.2",
     "gulp-cli": "^3.0.0",

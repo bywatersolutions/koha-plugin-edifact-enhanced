@@ -15,7 +15,7 @@ const today = dt.format('Y-m-d');
 const package_json = JSON.parse(fs.readFileSync('./package.json'));
 const release_filename = `${package_json.name}-v${package_json.version}.kpz`;
 
-const pm_name = 'EdifactEnhanced';
+const pm_file = 'EdifactBlackstone.pm';
 const pm_file = pm_name+'.pm';
 const pm_file_path = path.join('Koha', 'Plugin', 'Com', 'ByWaterSolutions');
 const pm_file_path_full = path.join(pm_file_path, pm_file);
