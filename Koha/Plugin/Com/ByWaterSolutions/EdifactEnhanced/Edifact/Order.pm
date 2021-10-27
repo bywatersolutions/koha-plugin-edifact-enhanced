@@ -507,7 +507,6 @@ sub order_line {
 
     # PIA isbn or other id
     my $product_id_function_code = $id_string ? '1' : '5'; # If we have an id in LIN, these are just additional identifiers
-    $product_id_function_code = '5'; # Custom for Ingram, Ingram always wants PIA to be '5'. Will use LIN id instead of PIA if it exists anyway.
 
     if ( $id_string && $self->{plugin}->retrieve_data('pia_send_lin') && $pia_count < $pia_limit ) {
         $self->add_seg( additional_product_id( $id_string, $id_code, $product_id_function_code ) );
