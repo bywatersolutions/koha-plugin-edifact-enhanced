@@ -300,6 +300,9 @@ sub edifact_process_invoice {
                     my $basket = $order->basketno;
                     my $is_standing = $basket->is_standing;
 
+                    my $vendor = Koha::Acquisition::Booksellers->find( $basket_vendor_id );
+                    my $tax_multiplier = 1;
+
                     if ( $is_standing || $order->quantity > $line->quantity ) {
                         my $ordered = $order->quantity;
 
@@ -323,6 +326,19 @@ sub edifact_process_invoice {
                             }
                         );
                         #FIXME transfer_items( $schema, $line, $order, $received_order );
+
+                        if ( $self->retrieve_data('update_pricing_from_vendor_settings') ) {
+                            my $updated_order =
+                              C4::Acquisition::populate_order_with_prices(
+                                {
+                                    order        => GetOrder( $received_order->id ),
+                                    booksellerid => $basket_vendor_id,
+                                    receiving    => 1
+                                }
+                              );
+                            $received_order->update($updated_order);
+                        }
+
                         _receipt_items( $self, $schema, $line, $received_order->ordernumber );
                     }
                     else {    # simple receipt all copies on order
@@ -330,14 +346,30 @@ sub edifact_process_invoice {
                            next if $order->quantity eq $order->quantityreceived; 
                         }
 
-                        $order->quantityreceived( $line->quantity );
-                        $order->datereceived($msg_date);
-                        $order->invoiceid($invoiceid);
-                        $order->unitprice($price);
-                        $order->unitprice_tax_excluded($price);
-                        $order->unitprice_tax_included($price);
-                        $order->orderstatus('complete');
-                        $order->update;
+                        $order->update(
+                            {
+                                quantityreceived       => $line->quantity,
+                                datereceived           => $msg_date,
+                                invoiceid              => $invoiceid,
+                                unitprice              => $price,
+                                unitprice_tax_excluded => $price,
+                                unitprice_tax_included => $price,
+                                orderstatus            => 'complete',
+                            }
+                        );
+
+                        if ( $self->retrieve_data('update_pricing_from_vendor_settings') ) {
+                            my $updated_order =
+                              C4::Acquisition::populate_order_with_prices(
+                                {
+                                    order        => GetOrder( $order->id ),
+                                    booksellerid => $basket_vendor_id,
+                                    receiving    => 1
+                                }
+                              );
+                            $order->update($updated_order);
+                        }
+
                         _receipt_items( $self, $schema, $line, $ordernumber );
                     }
                 }
@@ -504,6 +536,7 @@ sub configure {
             branch_ean_in_nadby     => $self->retrieve_data('branch_ean_in_nadby'),
             set_bookseller_from_order_basket => $self->retrieve_data('set_bookseller_from_order_basket'),
             ignore_duplicate_reciepts => $self->retrieve_data('ignore_duplicate_reciepts'),
+            update_pricing_from_vendor_settings => $self->retrieve_data('update_pricing_from_vendor_settings'),
             ship_budget_from_orderline => $self->retrieve_data('ship_budget_from_orderline'),
             shipment_charges_alc_dl    => $self->retrieve_data('shipment_charges_alc_dl'),
             shipment_charges_moa_8     => $self->retrieve_data('shipment_charges_moa_8'),
@@ -560,6 +593,7 @@ sub configure {
                 branch_ean_in_nadby     => $cgi->param('branch_ean_in_nadby')  ? 1 : 0,
                 set_bookseller_from_order_basket => $cgi->param('set_bookseller_from_order_basket') ? 1 : 0,
                 ignore_duplicate_reciepts => $cgi->param('ignore_duplicate_reciepts') ? 1 : 0,
+                update_pricing_from_vendor_settings => $cgi->param('update_pricing_from_vendor_settings') ? 1 : 0,
                 ship_budget_from_orderline => $cgi->param('ship_budget_from_orderline') ? 1 : 0,
                 shipment_charges_alc_dl    => $cgi->param('shipment_charges_alc_dl') ? 1 : 0,
                 shipment_charges_moa_8     => $cgi->param('shipment_charges_moa_8') ? 1 : 0,

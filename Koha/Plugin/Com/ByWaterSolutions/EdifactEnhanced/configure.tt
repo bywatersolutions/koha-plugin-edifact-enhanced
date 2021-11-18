@@ -338,6 +338,7 @@ LLO:
                        if this option is not enabled, all the invoices will show up under the first edi vendor account to download the invoices from the vendor's server.
                    </span>
                 </li>
+
                 <li>
                    <label for="ignore_duplicate_reciepts">Ignore invoice lines for fully recieved items: </label>
                    <input type="checkbox" name="ignore_duplicate_reciepts" id="ignore_duplicate_reciepts" value="1" [% IF ignore_duplicate_reciepts %]checked="checked"[% END %]>
@@ -348,6 +349,15 @@ LLO:
                    <label for="ship_budget_from_orderline">Shipping budget from order line: </label>
                    <input type="checkbox" name="ship_budget_from_orderline" id="ship_budget_from_orderline" value="1" [% IF ship_budget_from_orderline %]checked="checked"[% END %]>
                    <span class="hint">Set the invoice shipping cost fund to the fund used for the last order line of an invoice.</span>
+                </li>
+
+                <li>
+                   <label for="update_pricing_from_vendor_settings">Update order pricing from vendor settings: </label>
+                   <input type="checkbox" name="update_pricing_from_vendor_settings" id="update_pricing_from_vendor_settings" value="1" [% IF update_pricing_from_vendor_settings %]checked="checked"[% END %]>
+                   <span class="hint">
+                       If <em>not</em> EDI invoices will update the order pricing with the value directly from the invoice.
+                       If enabled, Koha will recalculate all order pricing based on the tax settings of the vendor record.
+                   </span>
                 </li>
 
                 <!-- Doesn't seem to do anything in Koha, so let's not bother showing it
