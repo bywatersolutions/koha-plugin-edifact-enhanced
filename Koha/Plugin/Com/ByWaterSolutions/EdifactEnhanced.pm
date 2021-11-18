@@ -15,6 +15,7 @@ use C4::Context;
 use C4::Items;
 use C4::Members;
 use C4::Suggestions qw(ModSuggestion);
+use Koha::Acquisition::Booksellers;
 use Koha::DateUtils;
 use Koha::EDI;
 use Koha::Items;
@@ -207,6 +208,11 @@ sub edifact_process_invoice {
                     booksellerid          => $booksellerid,
                 }
             )->next;
+
+            if ( $self->retrieve_data('add_tax_to_shipping_costs') ) {
+                my $vendor = Koha::Acquisition::Booksellers->find( $booksellerid );
+                $shipmentcharge += $shipmentcharge * $vendor->tax_rate;
+            }
 
             $new_invoice ||= $schema->resultset('Aqinvoice')->create(
                 {
@@ -536,6 +542,7 @@ sub configure {
             branch_ean_in_nadby     => $self->retrieve_data('branch_ean_in_nadby'),
             set_bookseller_from_order_basket => $self->retrieve_data('set_bookseller_from_order_basket'),
             ignore_duplicate_reciepts => $self->retrieve_data('ignore_duplicate_reciepts'),
+            add_tax_to_shipping_costs => $self->retrieve_data('add_tax_to_shipping_costs'),
             update_pricing_from_vendor_settings => $self->retrieve_data('update_pricing_from_vendor_settings'),
             ship_budget_from_orderline => $self->retrieve_data('ship_budget_from_orderline'),
             shipment_charges_alc_dl    => $self->retrieve_data('shipment_charges_alc_dl'),
@@ -593,6 +600,7 @@ sub configure {
                 branch_ean_in_nadby     => $cgi->param('branch_ean_in_nadby')  ? 1 : 0,
                 set_bookseller_from_order_basket => $cgi->param('set_bookseller_from_order_basket') ? 1 : 0,
                 ignore_duplicate_reciepts => $cgi->param('ignore_duplicate_reciepts') ? 1 : 0,
+                add_tax_to_shipping_costs => $cgi->param('add_tax_to_shipping_costs') ? 1 : 0,
                 update_pricing_from_vendor_settings => $cgi->param('update_pricing_from_vendor_settings') ? 1 : 0,
                 ship_budget_from_orderline => $cgi->param('ship_budget_from_orderline') ? 1 : 0,
                 shipment_charges_alc_dl    => $cgi->param('shipment_charges_alc_dl') ? 1 : 0,

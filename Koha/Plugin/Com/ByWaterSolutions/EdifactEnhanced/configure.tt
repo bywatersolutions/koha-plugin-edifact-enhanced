@@ -352,6 +352,12 @@ LLO:
                 </li>
 
                 <li>
+                   <label for="add_tax_to_shipping_costs">Add tax to shipping: </label>
+                   <input type="checkbox" name="add_tax_to_shipping_costs" id="add_tax_to_shipping_costs" value="1" [% IF add_tax_to_shipping_costs %]checked="checked"[% END %]>
+                   <span class="hint">Add tax to the shipping costs at the rate defined in the vendor record.</span>
+                </li>
+
+                <li>
                    <label for="update_pricing_from_vendor_settings">Update order pricing from vendor settings: </label>
                    <input type="checkbox" name="update_pricing_from_vendor_settings" id="update_pricing_from_vendor_settings" value="1" [% IF update_pricing_from_vendor_settings %]checked="checked"[% END %]>
                    <span class="hint">
