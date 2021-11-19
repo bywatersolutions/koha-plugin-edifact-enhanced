@@ -9,6 +9,7 @@ use Carp;
 use base qw(Koha::Plugins::Base);
 
 ## We will also need to include any Koha libraries we want to access
+use C4::Acquisition;
 use C4::Auth;
 use C4::Biblio;
 use C4::Context;
@@ -214,17 +215,22 @@ sub edifact_process_invoice {
                 $shipmentcharge += $shipmentcharge * $vendor->tax_rate;
             }
 
-            $new_invoice ||= $schema->resultset('Aqinvoice')->create(
-                {
-                    invoicenumber         => $invoicenumber,
-                    booksellerid          => $booksellerid,
-                    shipmentdate          => $msg_date,
-                    billingdate           => $tax_date,
-                    shipmentcost          => $shipmentcharge,
-                    shipmentcost_budgetid => $vendor_acct->shipment_budget,
-                    message_id            => $invoice_message->id,
-                }
-            );
+            my $data = {
+                invoicenumber         => $invoicenumber,
+                booksellerid          => $booksellerid,
+                shipmentdate          => $msg_date,
+                billingdate           => $tax_date,
+                shipmentcost          => $shipmentcharge,
+                shipmentcost_budgetid => $vendor_acct->shipment_budget,
+                message_id            => $invoice_message->id,
+            };
+            if ($new_invoice) {
+                $new_invoice->update($data);
+            }
+            else {
+                $new_invoice = $schema->resultset('Aqinvoice')->create($data);
+            }
+
             my $invoiceid = $new_invoice->invoiceid;
             $logger->trace("Added as invoiceno :$invoiceid");
             warn("Added as invoice id: $invoiceid");
@@ -342,7 +348,11 @@ sub edifact_process_invoice {
                                     receiving    => 1
                                 }
                               );
-                            $received_order->update($updated_order);
+                            my $data;
+                            foreach my $c ( $received_order->result_source->columns ) {
+                                $data->{$c} = $updated_order->{$c} if exists $updated_order->{$c};
+                            }
+                            $received_order->update($data);
                         }
 
                         _receipt_items( $self, $schema, $line, $received_order->ordernumber );
@@ -373,7 +383,11 @@ sub edifact_process_invoice {
                                     receiving    => 1
                                 }
                               );
-                            $order->update($updated_order);
+                            my $data;
+                            foreach my $c ( $order->result_source->columns ) {
+                                $data->{$c} = $updated_order->{$c} if exists $updated_order->{$c};
+                            }
+                            $order->update($data);
                         }
 
                         _receipt_items( $self, $schema, $line, $ordernumber );
