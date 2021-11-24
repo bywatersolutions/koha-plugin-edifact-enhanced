@@ -221,7 +221,7 @@ sub edifact_process_invoice {
                 shipmentdate          => $msg_date,
                 billingdate           => $tax_date,
                 shipmentcost          => $shipmentcharge,
-                shipmentcost_budgetid => $vendor_acct->shipment_budget,
+                shipmentcost_budgetid => $self->retrieve_data('shipping_budget_id') || $vendor_acct->shipment_budget,
                 message_id            => $invoice_message->id,
             };
             if ($new_invoice) {
@@ -572,6 +572,7 @@ sub configure {
             lin_use_item_field_qualifier => $self->retrieve_data('lin_use_item_field_qualifier'),
             lin_use_item_field_clear_on_invoice => $self->retrieve_data('lin_use_item_field_clear_on_invoice'),
             skip_nonmatching_san_suffix         => $self->retrieve_data('skip_nonmatching_san_suffix'),
+            shipping_budget_id               => $self->retrieve_data('shipping_budget_id'),
         );
 
         print $cgi->header();
@@ -631,6 +632,7 @@ sub configure {
                 lin_use_item_field_qualifier => $cgi->param('lin_use_item_field_qualifier') || q{},
                 lin_use_item_field_clear_on_invoice => $cgi->param('lin_use_item_field_clear_on_invoice') ? 1 : 0,
                 skip_nonmatching_san_suffix         => $cgi->param('skip_nonmatching_san_suffix')   ? 1 : 0,
+                shipping_budget_id           => $cgi->param('shipping_budget_id') || q{},
             }
         );
         $self->go_home();

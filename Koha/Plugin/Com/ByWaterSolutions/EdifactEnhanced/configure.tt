@@ -358,6 +358,16 @@ LLO:
                 </li>
 
                 <li>
+                   <label for="shipping_budget_id">Shipping budget id: </label>
+                   <input type="text" name="shipping_budget_id" id="shipping_budget_id" size="20" value="[% shipping_budget_id %]">
+                   <span class="hint">
+                       This is <em>not</em> the fund <em>code</em>.
+                       The budget id is numeric only.
+                       The id can be found in the URL of the edit page for the fund, with the key being <em>budget_id</em>.
+                   </span>
+                </li>
+
+                <li>
                    <label for="update_pricing_from_vendor_settings">Update order pricing from vendor settings: </label>
                    <input type="checkbox" name="update_pricing_from_vendor_settings" id="update_pricing_from_vendor_settings" value="1" [% IF update_pricing_from_vendor_settings %]checked="checked"[% END %]>
                    <span class="hint">
