@@ -616,7 +616,7 @@ sub configure {
                 add_itemnote_on_receipt                    => $cgi->param('add_itemnote_on_receipt')             ? 1 : 0,
                 no_update_item_price                       => $cgi->param('no_update_item_price'),
                 set_nfl_on_receipt                         => $cgi->param('set_nfl_on_receipt') // q{},
-                pia_limit                                  => defined $cgi->param('pia_limit') ? $cgi->param('pia_limit') : undef,
+                pia_limit                                  => $cgi->param('pia_limit')          // undef,
                 lin_use_item_field                         => $cgi->param('lin_use_item_field')           || q{},
                 lin_use_item_field_qualifier               => $cgi->param('lin_use_item_field_qualifier') || q{},
                 lin_use_item_field_clear_on_invoice        => $cgi->param('lin_use_item_field_clear_on_invoice') ? 1 : 0,
