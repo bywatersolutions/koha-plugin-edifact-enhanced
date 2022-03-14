@@ -751,7 +751,8 @@ sub imd_segment {
         }
         $odd = !$odd;
     }
-    if ( @segs && $segs[-1] !~ m/$seg_terminator$/o ) {
+    # If segment doesn't end with a terminator, *or* it ends with a release character escapting the terminator, add a terminator
+    if ( @segs && ( $segs[-1] !~ m/$seg_terminator$/o || $segs[-1] =~ m/\?$seg_terminator$/o ) ) {
         $segs[-1] .= $seg_terminator;
     }
     return @segs;
