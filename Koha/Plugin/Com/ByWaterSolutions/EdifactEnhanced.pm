@@ -17,7 +17,7 @@ use C4::Items;
 use C4::Members;
 use C4::Suggestions qw(ModSuggestion);
 use Koha::Acquisition::Booksellers;
-use Koha::DateUtils;
+use Koha::DateUtils qw(dt_from_string);
 use Koha::EDI;
 use Koha::Items;
 
