@@ -9,7 +9,7 @@ use Carp;
 use base qw(Koha::Plugins::Base);
 
 ## We will also need to include any Koha libraries we want to access
-use C4::Acquisition qw(populate_order_with_prices GetOrder);
+use C4::Acquisition qw(GetOrder);
 use C4::Auth;
 use C4::Biblio qw(GetFrameworkCode GetMarcFromKohaField);
 use C4::Context;
