@@ -31,7 +31,7 @@ use Clone 'clone';
 use Koha::Database;
 use C4::Budgets qw( GetBudget );
 use C4::Acquisition qw( GetBasket );
-use C4::Biblio qw( GetMarcBiblio GetBiblioData ModBiblio );
+use C4::Biblio qw( GetBiblioData ModBiblio );
 
 Readonly::Scalar my $seg_terminator      => q{'};
 Readonly::Scalar my $separator           => q{+};
@@ -393,7 +393,13 @@ sub order_line {
     # LIN line-number in msg :: if we had a 13 digit ean we could add
     my ( $id_string, $id_code );
 
-    my $record = GetMarcBiblio( { biblionumber => $biblionumber } );
+    my $record;
+    try { # Koha <= 22.05
+        $record = C4::Biblio::GetMarcBiblio( { biblionumber => $biblionumber } );
+    } catch { # Koha >= 22.11
+        $record = Koha::Biblio->find($biblionumber)->metadata->record;
+    }
+
     my $upc = _get_upc( $record );
     my $product_id = _get_product_id( $record );
 
