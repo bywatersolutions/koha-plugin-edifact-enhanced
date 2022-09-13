@@ -136,12 +136,10 @@ sub sftp_download {
     my $msg_hash = $self->message_hash();
     my @downloaded_files;
     my $sftp = Net::SFTP::Foreign->new(
-        $self->{account}->host,
-        {
-            user     => $self->{account}->user,
-            password => $self->{account}->password,
-            timeout  => 10,
-        }
+        host     => $self->{account}->host,
+        user     => $self->{account}->username,
+        password => $self->{account}->password,
+        timeout  => 10,
     );
     if ( $sftp->error ) {
         return $self->_abort_download( undef,
@@ -153,7 +151,8 @@ sub sftp_download {
     my $file_list = $sftp->ls()
       or return $self->_abort_download( $sftp,
         "cannot get file list from server: $sftp->error" );
-    foreach my $filename ( @{$file_list} ) {
+    foreach my $file ( @{$file_list} ) {
+        my $filename = $file->{filename};
 
         if ( $filename =~ m/[.]$file_ext$/ ) {
             $sftp->get( $filename, "$self->{working_dir}/$filename" );
@@ -165,7 +164,15 @@ sub sftp_download {
             push @downloaded_files, $filename;
             my $processed_name = $filename;
             substr $processed_name, -3, 1, 'E';
-            $sftp->rename( $filename, $processed_name );
+
+            #$sftp->atomic_rename( $filename, $processed_name );
+            my $ret = $sftp->rename( $filename, $processed_name );
+            if ( !$ret ) {
+                $self->_abort_download( $sftp,
+                    "Error renaming $filename: $sftp->error" );
+                last;
+            }
+
         }
     }
     $sftp->disconnect;
