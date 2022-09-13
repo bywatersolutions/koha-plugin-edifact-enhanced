@@ -131,6 +131,7 @@ sub sftp_download {
     my $self = shift;
 
     my $file_ext = $self->_get_file_ext( $self->{message_type} );
+    print "FILE EXT: $file_ext";
 
     # C = ready to retrieve E = Edifact
     my $msg_hash = $self->message_hash();
@@ -153,8 +154,11 @@ sub sftp_download {
         "cannot get file list from server: $sftp->error" );
     foreach my $file ( @{$file_list} ) {
         my $filename = $file->{filename};
+        print "LOOKING AT FILE $filename\n";
 
         if ( $filename =~ m/[.]$file_ext$/ ) {
+            print "PROCESSING FILE $filename\n";
+
             $sftp->get( $filename, "$self->{working_dir}/$filename" );
             if ( $sftp->error ) {
                 $self->_abort_download( $sftp,
