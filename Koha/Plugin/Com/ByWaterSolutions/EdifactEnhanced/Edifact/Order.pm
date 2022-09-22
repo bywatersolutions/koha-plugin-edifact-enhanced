@@ -393,7 +393,7 @@ sub order_line {
     # LIN line-number in msg :: if we had a 13 digit ean we could add
     my ( $id_string, $id_code );
 
-    my $record = Koha::Biblio->find($biblionumber)->metadata->record;
+    my $record = Koha::Biblios->find($biblionumber)->metadata->record;
 
     my $upc = _get_upc( $record );
     my $product_id = _get_product_id( $record );
