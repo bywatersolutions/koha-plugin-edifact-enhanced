@@ -2,7 +2,7 @@
   "name": "koha-plugin-edifact-enhanced",
   "description": "Koha Edifact Enhanced Plugin",
   "devDependencies": {
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.2",
     "gulp-cli": "^1.2.2",
     "gulp-github-release": "^1.1.5",
     "gulp-run": "^1.7.1"
