@@ -182,10 +182,12 @@ sub edifact_process_invoice {
             my $booksellerid = $invoice_message->vendor_id;
             if ( $self->retrieve_data('set_bookseller_from_order_basket') ) {
                 my $line        = $lines->[0];
-                my $ordernumber = $line->ordernumber;
-                my $order       = $schema->resultset('Aqorder')->find($ordernumber);
-                my $basket      = $order->basket;
-                $booksellerid = $basket->get_column('booksellerid');
+                if ( $line ) {
+                    my $ordernumber = $line->ordernumber;
+                    my $order       = $schema->resultset('Aqorder')->find($ordernumber);
+                    my $basket      = $order->basket;
+                    $booksellerid = $basket->get_column('booksellerid');
+                }
             }
 
             # If this EDI invoice is being reprocessed from the database,
