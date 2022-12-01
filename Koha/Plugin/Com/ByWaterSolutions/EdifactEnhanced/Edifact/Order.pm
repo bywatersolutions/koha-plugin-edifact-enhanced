@@ -32,6 +32,7 @@ use Koha::Database;
 use C4::Budgets qw( GetBudget );
 use C4::Acquisition qw( GetBasket );
 use C4::Biblio qw( GetBiblioData ModBiblio );
+use Try::Tiny;
 
 Readonly::Scalar my $seg_terminator      => q{'};
 Readonly::Scalar my $separator           => q{+};
@@ -804,30 +805,81 @@ sub gir_segments {
 
                     my $string;
                     if ( $gir_mapping->{$tag} =~ m/^\\/ ) {
-                       # If value begins with an backslash, assume the value itself should be used
-                       $string = add_gir_identity_number( $tag, substr( $gir_mapping->{$tag}, 1 ), $map );
-                    } elsif ( $gir_mapping->{$tag} eq 'servicing_instruction' ) {
-                        $string = add_gir_identity_number( $tag, $orderfields->{servicing_instruction}, $map );
+
+                        # If value begins with an backslash, assume the value itself should be used
+                        try {
+                            $string = add_gir_identity_number( $tag,
+                                substr( $gir_mapping->{$tag}, 1 ), $map );
+                        }
+                        catch {
+                            warn "ERROR GENERATING GIR: $_";
+                        };
+                    }
+                    elsif ( $gir_mapping->{$tag} eq 'servicing_instruction' ) {
+                        try {
+                            $string = add_gir_identity_number( $tag,
+                                $orderfields->{servicing_instruction}, $map );
+                        }
+                        catch {
+                            warn "ERROR GENERATING GIR: $_";
+                        };
                     }
                     elsif ( $gir_mapping->{$tag} =~ /^aqorders/ ) {
-                        my ( undef, $column ) = split( /\./, $gir_mapping->{$tag} );
-                        $string = add_gir_identity_number( $tag, $orderline->get_column($column), $map );
+                        try {
+                            my ( undef, $column ) =
+                              split( /\./, $gir_mapping->{$tag} );
+                            $string = add_gir_identity_number( $tag,
+                                $orderline->get_column($column), $map );
+                        }
+                        catch {
+                            warn "ERROR GENERATING GIR: $_";
+                        };
                     }
                     elsif ( $gir_mapping->{$tag} eq 'budget_code' ) {
-                        $string = add_gir_identity_number( $tag, $budget_code, $map );
+                        try {
+                            $string =
+                              add_gir_identity_number( $tag, $budget_code,
+                                $map );
+                        }
+                        catch {
+                            warn "ERROR GENERATING GIR: $_";
+                        };
                     }
                     elsif ( index( $gir_mapping->{$tag}, '$' ) != -1 ) {
-                        my ( $field, $subfield ) = split( '\$', $gir_mapping->{$tag} );
-                        my $marc = GetMarcBiblio( { biblionumber => $orderline->biblionumber->id } );
-                        my $value = $subfield ? $marc->subfield( $field, $subfield ) : $marc->field( $field )->data();
-                        $string = add_gir_identity_number( $tag, $value, $map );
+                        try {
+                            my ( $field, $subfield ) =
+                              split( '\$', $gir_mapping->{$tag} );
+                            my $marc = GetMarcBiblio(
+                                {
+                                    biblionumber => $orderline->biblionumber->id
+                                }
+                            );
+                            my $value =
+                                $subfield
+                              ? $marc->subfield( $field, $subfield )
+                              : $marc->field($field)->data();
+                            $string =
+                              add_gir_identity_number( $tag, $value, $map );
+                        }
+                        catch {
+                            warn "ERROR GENERATING GIR: $_";
+                        };
                     }
                     else {
-                        $string = add_gir_identity_number( $tag, $item->get_column( $gir_mapping->{$tag} ), $map );
+                        try {
+                            $string =
+                              add_gir_identity_number( $tag,
+                                $item->get_column( $gir_mapping->{$tag} ),
+                                $map );
+                        }
+                        catch {
+                            warn "ERROR GENERATING GIR: $_";
+                        };
                     }
 
                     if ($string) {
-                        # tag is only added if it's not empty, don't increment i if it is
+
+               # tag is only added if it's not empty, don't increment i if it is
 
                         if ( $i % $split_gir == 0 )
                         {    # Every 5th tag, start a fresh GIR segment
@@ -835,9 +887,10 @@ sub gir_segments {
                             $seg = $start;
                         }
 
-                        $seg .= $string; # Add the field/value to the segment
+                        $seg .= $string;    # Add the field/value to the segment
 
-                        $i++; # Increment our counter of the number of GIR fields
+                        $i++
+                          ;  # Increment our counter of the number of GIR fields
                     }
                 }
             }
