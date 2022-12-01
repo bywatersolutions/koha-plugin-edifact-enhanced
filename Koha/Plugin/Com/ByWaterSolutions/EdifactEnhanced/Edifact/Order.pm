@@ -645,6 +645,7 @@ sub order_line {
                 orderline_fields => $ol_fields,
                 orderline        => $orderline,
                 items            => \@items,
+                basket           => $basket,
             }
         )
     ) unless $self->{plugin}->retrieve_data('gir_disable');
@@ -764,6 +765,7 @@ sub gir_segments {
     my $orderfields = $params->{orderline_fields};
     my @onorderitems = @{ $params->{items} };
     my $orderline = $params->{orderline};
+    my $basket = $params->{basket};
 
     return if $self->{plugin}->retrieve_data('gir_disable');
 
@@ -795,7 +797,7 @@ sub gir_segments {
     foreach my $item (@onorderitems) {
         my $start = sprintf 'GIR+%03d', $sequence_no;
         my $seg = $start;
-        if ( C4::Context->preference('AcqCreateItem') eq 'ordering' ) {
+        if ( $basket->effective_create_items eq 'ordering' ) {
             if ($gir_mapping) {
                 my $i = 1;
                 foreach my $tag ( sort keys %$gir_mapping ) {
