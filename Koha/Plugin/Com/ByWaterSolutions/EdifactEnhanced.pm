@@ -182,11 +182,15 @@ sub edifact_process_invoice {
             my $booksellerid = $invoice_message->vendor_id;
             if ( $self->retrieve_data('set_bookseller_from_order_basket') ) {
                 my $line        = $lines->[0];
-                if ( $line ) {
+                if ($line) {
                     my $ordernumber = $line->ordernumber;
-                    my $order       = $schema->resultset('Aqorder')->find($ordernumber);
-                    my $basket      = $order->basket;
+                    my $order = $schema->resultset('Aqorder')->find($ordernumber);
+                    my $basket = $order->basket;
                     $booksellerid = $basket->get_column('booksellerid');
+
+                    # Update the message vendor the correct booksellerid
+                    $invoice_message->vendor_id($booksellerid);
+                    $invoice_message->update;
                 }
             }
 
