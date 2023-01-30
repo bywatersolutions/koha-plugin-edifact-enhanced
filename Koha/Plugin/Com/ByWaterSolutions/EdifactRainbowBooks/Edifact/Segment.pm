@@ -1,4 +1,4 @@
-package Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Segment;
+package Koha::Plugin::Com::ByWaterSolutions::EdifactRainbowBooks::Edifact::Segment;
 
 # Copyright 2014 PTFS-Europe Ltd
 #
