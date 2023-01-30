@@ -1,4 +1,4 @@
-package Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact;
+package Koha::Plugin::Com::ByWaterSolutions::EdifactRainbowBooks::Edifact;
 
 # Copyright 2014 PTFS-Europe Ltd
 #
@@ -22,8 +22,8 @@ use warnings;
 use File::Slurp;
 use Carp;
 use Encode qw( from_to );
-use Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Segment;
-use Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Message;
+use Koha::Plugin::Com::ByWaterSolutions::EdifactRainbowBooks::Edifact::Segment;
+use Koha::Plugin::Com::ByWaterSolutions::EdifactRainbowBooks::Edifact::Message;
 
 my $separator = {
     component => q{\:},
@@ -174,7 +174,7 @@ sub message_array {
         elsif ( $seg->tag eq 'UNT' ) {
             $in_msg = 0;
             if ( @{$msg} ) {
-                push @{$msg_arr}, Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Message->new($msg);
+                push @{$msg_arr}, Koha::Plugin::Com::ByWaterSolutions::EdifactRainbowBooks::Edifact::Message->new($msg);
                 $msg = [];
             }
         }
@@ -226,7 +226,7 @@ sub segmentize {
 }x;
     my @segmented;
     while ( $raw =~ /($re)/g ) {
-        push @segmented, Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Segment->new( { seg_string => $1 } );
+        push @segmented, Koha::Plugin::Com::ByWaterSolutions::EdifactRainbowBooks::Edifact::Segment->new( { seg_string => $1 } );
     }
     return \@segmented;
 }
