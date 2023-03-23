@@ -270,6 +270,7 @@ sub edifact_process_invoice {
                 my $vendor_id        = $invoice_message->vendor_id();
                 my $basket_vendor_id = $order->basketno()->get_column('booksellerid');
                 if ( $basket_vendor_id ne $vendor_id ) {
+                    warn "The order found for order number $ordernumber is valid, but the vendor for that order does not match the vendor that sent the invoice.";
                     $logger->error(
                         "The order found for order number $ordernumber is valid, but the vendor for that order does not match the vendor that sent the invoice."
                     );
@@ -284,11 +285,23 @@ sub edifact_process_invoice {
             # Because of this, the first edi vendor instance will pick up all the invoices for all the different instances.
             # So as long as they share the same plugin, we should allow the item to be received
                     if ( $edi_vendor->plugin eq $basket_vendor->plugin ) {
-                        $logger->error( "The plugin used by the vendor is the same as that used by the basket, allow it. PLUGIN: "
-                                . $edi_vendor->plugin );
+                        warn "The plugin used by the vendor is the same as that used by the basket, allow it. PLUGIN: " . $edi_vendor->plugin;
+                        $logger->error(
+                                "The plugin used by the vendor is the same as that used by the basket, allow it. PLUGIN: " . $edi_vendor->plugin
+                        );
                     }
                     else {
-                        next;
+                        warn "The plugin used by the vendor is the same as that used by the basket, DO NOT allow it. PLUGIN: " . $edi_vendor->plugin;
+                        $logger->error(
+                                "The plugin used by the vendor is the same as that used by the basket, DO NOT allow it. PLUGIN: " . $edi_vendor->plugin
+                        );
+
+                        # Set the invoice back to 'new' so the correct plugin can pick it up, then exit
+                        $invoice_message->edi_acct( $basket_vendor->id );
+                        $invoice_message->vendor_id( $basket_vendor->vendor_id );
+                        $invoice_message->status('new');
+                        $invoice_message->update;
+                        return;
                     }
                 }
 
