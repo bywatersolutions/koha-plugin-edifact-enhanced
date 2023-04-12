@@ -162,21 +162,21 @@ sub sftp_download {
     foreach my $file ( @{$file_list} ) {
         my $filename = $file->{filename};
 
-        logaction(
-            "EDIFACT",
-            "INVOICE_DOWNLOAD_FTP",
-            undef,
-            $self->{json}->pretty->encode(
-                {
-                    VendorEdiAccount => $self->{account}->id,
-                    filename         => $filename
-                }
-            )
-        );
-
         print "LOOKING AT FILE $filename\n";
 
-        if ( $filename =~ m/[.]$file_ext$/ ) {
+        if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/ ) {
+            logaction(
+                "EDIFACT",
+                "INVOICE_DOWNLOAD_FTP",
+                undef,
+                $self->{json}->pretty->encode(
+                    {
+                        VendorEdiAccount => $self->{account}->id,
+                        filename         => $filename,
+                    }
+                )
+            );
+
             print "PROCESSING FILE $filename\n";
 
             $sftp->get( $filename, "$self->{working_dir}/$filename" );
@@ -248,19 +248,18 @@ sub ftp_download {
       return $self->_abort_download( $ftp, 'cannot get file list from server' );
 
     foreach my $filename ( @{$file_list} ) {
-        logaction(
-            "EDIFACT",
-            "INVOICE_DOWNLOAD_FTP",
-            undef,
-            $self->{json}->pretty->encode(
-                {
-                    VendorEdiAccount => $self->{account}->id,
-                    filename         => $filename
-                }
-            )
-        );
-
         if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/ ) {
+            logaction(
+                "EDIFACT",
+                "INVOICE_DOWNLOAD_FTP",
+                undef,
+                $self->{json}->pretty->encode(
+                    {
+                        VendorEdiAccount => $self->{account}->id,
+                        filename         => $filename
+                    }
+                )
+            );
 
             if ( !$ftp->get( $filename, "$self->{working_dir}/$filename" ) ) {
                 $self->_abort_download( $ftp,
