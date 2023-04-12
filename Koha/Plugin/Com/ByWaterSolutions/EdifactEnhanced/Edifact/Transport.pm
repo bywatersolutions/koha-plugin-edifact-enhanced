@@ -399,7 +399,6 @@ sub _abort_download {
             {
                 message          => $log_message,
                 VendorEdiAccount => $self->{account}->id,
-                filename         => $filename
             }
         )
     );
