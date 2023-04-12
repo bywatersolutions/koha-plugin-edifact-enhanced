@@ -167,7 +167,7 @@ sub sftp_download {
         if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/ ) {
             logaction(
                 "EDIFACT",
-                "INVOICE_DOWNLOAD_FTP",
+                "INVOICE_DOWNLOAD_SFTP",
                 undef,
                 $self->{json}->pretty->encode(
                     {
