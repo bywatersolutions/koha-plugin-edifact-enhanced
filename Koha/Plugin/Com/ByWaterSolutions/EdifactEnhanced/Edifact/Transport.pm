@@ -20,17 +20,21 @@ package Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Transport
 use strict;
 use warnings;
 use utf8;
-use DateTime;
+
 use Carp;
+use DateTime;
+use Encode qw( from_to );
 use English qw{ -no_match_vars };
+use File::Basename qw( fileparse );
+use File::Copy;
+use File::Slurp;
+use File::Spec;
 use Net::FTP;
 use Net::SFTP::Foreign;
-use File::Slurp;
-use File::Copy;
-use File::Basename qw( fileparse );
-use File::Spec;
+use JSON;
+
+use C4::Log qw( logaction );
 use Koha::Database;
-use Encode qw( from_to );
 
 sub new {
     my ( $class, $account_id, $plugin ) = @_;
@@ -43,6 +47,7 @@ sub new {
         working_dir   => File::Spec->tmpdir(),    #temporary work directory
         transfer_date => DateTime->now( time_zone => 'local' ),
         plugin        => $plugin,
+        json          => JSON->new->allow_nonref,
     };
 
     bless $self, $class;
@@ -206,7 +211,6 @@ sub ftp_download {
     my $self = shift;
 
     my $file_ext = $self->_get_file_ext( $self->{message_type} );
-
     # C = ready to retrieve E = Edifact
 
     my $msg_hash = $self->message_hash();
@@ -228,6 +232,17 @@ sub ftp_download {
       return $self->_abort_download( $ftp, 'cannot get file list from server' );
 
     foreach my $filename ( @{$file_list} ) {
+        logaction(
+            "EDIFACT",
+            "INVOICE_DOWNLOAD_FTP",
+            undef,
+            $self->{json}->pretty->encode(
+                {
+                    VendorEdiAccount => $self->{account}->id,
+                    filename         => $filename
+                }
+            )
+        );
 
         if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/ ) {
 
@@ -356,6 +371,19 @@ sub _abort_download {
     }
     $log_message .= ": $a";
     carp $log_message;
+
+    logaction(
+        "EDIFACT",
+        "INVOICE_DOWNLOAD_FAILED",
+        undef,
+        $self->{json}->pretty->encode(
+            {
+                message          => $log_message,
+                VendorEdiAccount => $self->{account}->id,
+                filename         => $filename
+            }
+        )
+    );
 
     #returns undef i.e. an empty array
     return;
