@@ -189,14 +189,13 @@ sub sftp_download {
             my $processed_name = $filename;
             substr $processed_name, -3, 1, 'E';
 
-            #$sftp->atomic_rename( $filename, $processed_name );
-            my $ret = $sftp->rename( $filename, $processed_name );
-            if ( !$ret ) {
-                $self->_abort_download( $sftp,
-                    "Error renaming $filename: $sftp->error" );
-                last;
+            if ($file_ext) {
+                my $ret = $sftp->rename( $filename, "$filename.dl" );
+                $self->_abort_download( $sftp,"Error renaming $filename: $sftp->error" ) unless $ret;
             }
-
+            else {
+                $sftp->delete($filename);
+            }
         }
     }
     $sftp->disconnect;
@@ -270,7 +269,11 @@ sub ftp_download {
             }
 
             push @downloaded_files, $filename;
-            $ftp->delete( $filename );
+            if ( $file_ext ) {
+                $ftp->rename( $filename, "$filename.dl" );
+            } else {
+                $ftp->delete( $filename );
+            }
         }
     }
     $ftp->quit;
