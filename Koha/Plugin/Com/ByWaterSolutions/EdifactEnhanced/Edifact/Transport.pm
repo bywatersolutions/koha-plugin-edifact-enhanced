@@ -135,6 +135,8 @@ sub file_download {
 sub sftp_download {
     my $self = shift;
 
+    next unless $self->{account}->password; # We never accept FTP sites with no password, skip to avoid errors
+
     my $file_ext = $self->_get_file_ext( $self->{message_type} );
     print "FILE EXT: $file_ext";
 
@@ -159,6 +161,19 @@ sub sftp_download {
         "cannot get file list from server: $sftp->error" );
     foreach my $file ( @{$file_list} ) {
         my $filename = $file->{filename};
+
+        logaction(
+            "EDIFACT",
+            "INVOICE_DOWNLOAD_FTP",
+            undef,
+            $self->{json}->pretty->encode(
+                {
+                    VendorEdiAccount => $self->{account}->id,
+                    filename         => $filename
+                }
+            )
+        );
+
         print "LOOKING AT FILE $filename\n";
 
         if ( $filename =~ m/[.]$file_ext$/ ) {
@@ -209,6 +224,8 @@ sub ingest {
 
 sub ftp_download {
     my $self = shift;
+
+    next unless $self->{account}->password; # We never accept FTP sites with no password, skip to avoid errors
 
     my $file_ext = $self->_get_file_ext( $self->{message_type} );
     # C = ready to retrieve E = Edifact
