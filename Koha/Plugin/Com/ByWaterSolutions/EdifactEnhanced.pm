@@ -486,7 +486,6 @@ sub _receipt_items {
             $item->itemnotes_nonpublic("Received via EDIFACT");
         }
 
-
         $item->update();
 
         my $biblionumber = $item->get_column('biblionumber');
