@@ -474,16 +474,18 @@ sub _receipt_items {
             $item->notforloan($set_nfl_on_receipt);
         }
 
-        # Note that this was received via EDI
-        if ( $self->retrieve_data('add_itemnote_on_receipt') ) {
-            $item->itemnotes_nonpublic("Received via EDIFACT");
-        }
-
+        # Unset the LIN id in the column we specified
         my $lin_use_item_field_clear_on_invoice = $self->retrieve_data('lin_use_item_field_clear_on_invoice');
         if ($lin_use_item_field_clear_on_invoice) {
             my $lin_use_item_field = $self->retrieve_data('lin_use_item_field');
             $item->set_column( $lin_use_item_field => q{} );
         }
+
+        # Note that this was received via EDI, do this after unsetting the LIN id in case the itemnotes_nonpublic was used for this
+        if ( $self->retrieve_data('add_itemnote_on_receipt') ) {
+            $item->itemnotes_nonpublic("Received via EDIFACT");
+        }
+
 
         $item->update();
 
