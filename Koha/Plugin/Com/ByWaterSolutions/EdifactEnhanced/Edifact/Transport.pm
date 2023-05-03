@@ -110,7 +110,7 @@ sub file_download {
         closedir $dh;
         foreach my $filename (@file_list) {
 
-            if ( $filename =~ m/[.]$file_ext$/ ) {
+            if ( $filename =~ m/[.]$file_ext$/i ) {
                 if ( copy( "$dir/$filename", $self->{working_dir} ) ) {
                 }
                 else {
@@ -164,7 +164,7 @@ sub sftp_download {
 
         print "LOOKING AT FILE $filename\n";
 
-        if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/ ) {
+        if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/i ) {
             logaction(
                 "EDIFACT",
                 "INVOICE_DOWNLOAD_SFTP",
@@ -248,7 +248,7 @@ sub ftp_download {
       return $self->_abort_download( $ftp, 'cannot get file list from server' );
 
     foreach my $filename ( @{$file_list} ) {
-        if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/ ) {
+        if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/i ) {
             logaction(
                 "EDIFACT",
                 "INVOICE_DOWNLOAD_FTP",
