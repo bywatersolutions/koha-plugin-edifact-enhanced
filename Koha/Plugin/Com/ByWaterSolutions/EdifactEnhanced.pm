@@ -17,6 +17,7 @@ use C4::Items;
 use C4::Members;
 use C4::Suggestions qw(ModSuggestion);
 use Koha::Acquisition::Booksellers;
+use Koha::Acquisition::Orders;
 use Koha::DateUtils qw(dt_from_string);
 use Koha::EDI;
 use Koha::Items;
@@ -31,7 +32,7 @@ our $metadata = {
     description     => 'Edifact Enhanced plugin',
     date_authored   => '2015-12-21',
     date_updated    => '1900-01-01',
-    minimum_version => undef,
+    minimum_version => '22.05.06',
     maximum_version => undef,
     version         => $VERSION,
 };
@@ -358,17 +359,11 @@ sub edifact_process_invoice {
                         #FIXME transfer_items( $schema, $line, $order, $received_order );
 
                         if ( $self->retrieve_data('update_pricing_from_vendor_settings') ) {
-                            my $updated_order = C4::Acquisition::populate_order_with_prices(
-                                {   order        => GetOrder( $received_order->id ),
-                                    booksellerid => $basket_vendor_id,
-                                    receiving    => 1
-                                }
-                            );
-                            my $data;
-                            foreach my $c ( $received_order->result_source->columns ) {
-                                $data->{$c} = $updated_order->{$c} if exists $updated_order->{$c};
-                            }
-                            $received_order->update($data);
+                            my $order_obj = Koha::Acquisition::Orders->find( $received_order->id );
+                            $order_obj->populate_with_prices_for_ordering();
+                            $order_obj->populate_with_prices_for_receiving();
+                            $order_obj->store();
+                            $received_order = $order_obj->_result;
                         }
 
                         _receipt_items( $self, $schema, $line, $received_order->ordernumber );
@@ -390,17 +385,11 @@ sub edifact_process_invoice {
                         );
 
                         if ( $self->retrieve_data('update_pricing_from_vendor_settings') ) {
-                            my $updated_order = C4::Acquisition::populate_order_with_prices(
-                                {   order        => GetOrder( $order->id ),
-                                    booksellerid => $basket_vendor_id,
-                                    receiving    => 1
-                                }
-                            );
-                            my $data;
-                            foreach my $c ( $order->result_source->columns ) {
-                                $data->{$c} = $updated_order->{$c} if exists $updated_order->{$c};
-                            }
-                            $order->update($data);
+                            my $order_obj = Koha::Acquisition::Orders->find( $order->id );
+                            $order_obj->populate_with_prices_for_ordering();
+                            $order_obj->populate_with_prices_for_receiving();
+                            $order_obj->store();
+                            $order = $order_obj->_result;
                         }
 
                         _receipt_items( $self, $schema, $line, $ordernumber );
