@@ -35,6 +35,7 @@ use JSON;
 
 use C4::Log qw( logaction );
 use Koha::Database;
+use Koha::Encryption;
 
 sub new {
     my ( $class, $account_id, $plugin ) = @_;
@@ -135,7 +136,7 @@ sub file_download {
 sub sftp_download {
     my $self = shift;
 
-    return unless $self->{account}->password; # We never accept FTP sites with no password, skip to avoid errors
+    return unless Koha::Encryption->new->decrypt_hex($self->{account}->password); # We never accept FTP sites with no password, skip to avoid errors
 
     my $file_ext = $self->_get_file_ext( $self->{message_type} );
     print "FILE EXT: $file_ext";
@@ -146,7 +147,7 @@ sub sftp_download {
     my $sftp = Net::SFTP::Foreign->new(
         host     => $self->{account}->host,
         user     => $self->{account}->username,
-        password => $self->{account}->password,
+        password => Koha::Encryption->new->decrypt_hex($self->{account}->password),
         timeout  => 10,
     );
     if ( $sftp->error ) {
@@ -224,7 +225,7 @@ sub ingest {
 sub ftp_download {
     my $self = shift;
 
-    return unless $self->{account}->password; # We never accept FTP sites with no password, skip to avoid errors
+    return unless Koha::Encryption->new->decrypt_hex($self->{account}->password); # We never accept FTP sites with no password, skip to avoid errors
 
     my $file_ext = $self->_get_file_ext( $self->{message_type} );
     # C = ready to retrieve E = Edifact
@@ -238,7 +239,7 @@ sub ftp_download {
       )
       or return $self->_abort_download( undef,
         "Cannot connect to $self->{account}->host: $EVAL_ERROR" );
-    $ftp->login( $self->{account}->username, $self->{account}->password )
+    $ftp->login( $self->{account}->username, Koha::Encryption->new->decrypt_hex($self->{account}->password) )
       or return $self->_abort_download( $ftp, "Cannot login: $ftp->message()" );
     $ftp->cwd( $self->{account}->download_directory )
       or return $self->_abort_download( $ftp,
@@ -291,7 +292,7 @@ sub ftp_upload {
       )
       or return $self->_abort_download( undef,
         "Cannot connect to $self->{account}->host: $EVAL_ERROR" );
-    $ftp->login( $self->{account}->username, $self->{account}->password )
+    $ftp->login( $self->{account}->username, Koha::Encryption->new->decrypt_hex($self->{account}->password) )
       or return $self->_abort_download( $ftp, "Cannot login: $ftp->message()" );
     $ftp->cwd( $self->{account}->upload_directory )
       or return $self->_abort_download( $ftp,
@@ -323,7 +324,7 @@ sub sftp_upload {
         $self->{account}->host,
         {
             user     => $self->{account}->user,
-            password => $self->{account}->password,
+            password => Koha::Encryption->new->decrypt_hex($self->{account}->password),
             timeout  => 10,
         }
     );
