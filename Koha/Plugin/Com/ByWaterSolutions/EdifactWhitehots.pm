@@ -1,4 +1,4 @@
-package Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced;
+package Koha::Plugin::Com::ByWaterSolutions::EdifactWhitehots;
 
 ## It's good practive to use Modern::Perl
 use Modern::Perl;
@@ -27,9 +27,9 @@ our $VERSION = "{VERSION}";
 
 ## Here is our metadata, some keys are required, some are optional
 our $metadata = {
-    name            => 'Edifact - Enhanced',
+    name            => 'Edifact - Whitehots',
     author          => 'Kyle M Hall',
-    description     => 'Edifact Enhanced plugin',
+    description     => 'Edifact plugin for Whitehots',
     date_authored   => '2015-12-21',
     date_updated    => '1900-01-01',
     minimum_version => '22.05.06',
@@ -59,31 +59,31 @@ sub new {
 sub edifact {
     my ( $self, $args ) = @_;
 
-    require Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact;
+    require Koha::Plugin::Com::ByWaterSolutions::EdifactWhitehots::Edifact;
 
-    my $edifact = Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact->new($args);
+    my $edifact = Koha::Plugin::Com::ByWaterSolutions::EdifactWhitehots::Edifact->new($args);
     return $edifact;
 }
 
 sub edifact_order {
     my ( $self, $args ) = @_;
 
-    require Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Order;
+    require Koha::Plugin::Com::ByWaterSolutions::EdifactWhitehots::Edifact::Order;
 
     $args->{params}->{plugin} = $self;
-    my $edifact_order = Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Order->new( $args->{params} );
+    my $edifact_order = Koha::Plugin::Com::ByWaterSolutions::EdifactWhitehots::Edifact::Order->new( $args->{params} );
     return $edifact_order;
 }
 
 sub edifact_transport {
     my ( $self, $args ) = @_;
 
-    require Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Transport;
+    require Koha::Plugin::Com::ByWaterSolutions::EdifactWhitehots::Edifact::Transport;
 
     $args->{params}->{plugin} = $self;
 
     my $edifact_transport
-        = Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Transport->new( $args->{vendor_edi_account_id}, $self );
+        = Koha::Plugin::Com::ByWaterSolutions::EdifactWhitehots::Edifact::Transport->new( $args->{vendor_edi_account_id}, $self );
 
     return $edifact_transport;
 }
