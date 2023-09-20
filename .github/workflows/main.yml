@@ -141,14 +141,14 @@ jobs:
       run: |
         IFS='/' read -r -a parts <<< "$GITHUB_REPOSITORY"
         GITHUB_REPO="${parts[1]}"
-        echo "{github_repo}={$GITHUB_REPO}" >> $GITHUB_OUTPUT
+        echo ::set-output name=github_repo::$GITHUB_REPO
         echo "GITHUB REPO: $GITHUB_REPO"
 
         TAG_VERSION="${GITHUB_REF##*/}"
         echo "TAG VERSION: $TAG_VERSION"
         TAG_VERSION="${TAG_VERSION:1}"
         echo "TAG VERSION 2: $TAG_VERSION"
-        echo "{tag_version}={$TAG_VERSION}" >> $GITHUB_OUTPUT
+        echo ::set-output name=tag_version::$TAG_VERSION
 
     - name: Get Koha Version Branch Name
       id: koha-version-oldstable
