@@ -165,6 +165,11 @@ jobs:
         GITHUB_CONTEXT: ${{ toJson(steps.myvars.outputs) }}
       run: echo "$GITHUB_CONTEXT"
 
+    - name: Print tag version and github repo
+      run: |
+        echo "tag_version: ${{ steps.myvars.outputs.tag_version }}"
+        echo "github_repo: ${{ steps.myvars.outputs.github_repo }}"
+
     - name: Build Koha Plugin kpz artifact
       id: kpz
       uses: "bywatersolutions/github-action-koha-plugin-create-kpz@master"
