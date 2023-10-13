@@ -273,7 +273,7 @@ sub edifact_process_invoice {
                 if ( $basket_vendor_id ne $vendor_id ) {
                     warn "The order found for order number $ordernumber is valid, but the vendor for that order ( $basket_vendor_id ) does not match the vendor that sent the invoice ( $vendor_id ).";
                     $logger->error(
-                        "The order found for order number $ordernumber is valid, but the vendor for that order ( $basket_vendor_id ) does not match the vendor that sent the invoice ( $vendor_id ).";
+                        "The order found for order number $ordernumber is valid, but the vendor for that order ( $basket_vendor_id ) does not match the vendor that sent the invoice ( $vendor_id )."
                     );
 
                     my $edi_vendor = $schema->resultset('VendorEdiAccount')->find( { vendor_id => $vendor_id } );
