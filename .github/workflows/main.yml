@@ -200,7 +200,7 @@ jobs:
       with:
         script: |
           const fs = require('fs');
-          const verRegex = /\/refs\/tags\/(v\d\.\d\.\d)-.*/gi;
+          const verRegex = /\/refs\/tags\/(v\d+\.\d+\.\d+)-.*/g;
           const tag = (context.ref.match(verRegex))[0];
           console.log(tag);
           // Get release for this tag
