@@ -200,7 +200,6 @@ jobs:
       with:
         script: |
           const fs = require('fs');
-          const tag = context.ref.replace("refs/tags/", "");
           const verRegex = /\/refs\/tags\/(v\d\.\d\.\d)-.*/gi;
           const tag = (context.ref.match(verRegex))[0];
           console.log(tag);
