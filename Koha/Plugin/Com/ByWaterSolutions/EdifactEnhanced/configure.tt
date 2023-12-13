@@ -391,6 +391,12 @@ LLO:
                 </li>
 
                 <li>
+                   <label for="shipment_charges_moa_79">Shipping - MOA+79: </label>
+                   <input type="checkbox" name="shipment_charges_moa_79" id="shipment_charges_moa_79" value="1" [% IF shipment_charges_moa_79 %]checked="checked"[% END %]>
+                   <span class="hint">Add MOA charges with a qualifier 79, Value Added ( Total line items amount. The sum of all the line item amounts. ) to the shipping cost for an invoice.</span>
+                </li>
+
+                <li>
                    <label for="shipment_charges_moa_124">Shipping - MOA+124: </label>
                    <input type="checkbox" name="shipment_charges_moa_124" id="shipment_charges_moa_124" value="1" [% IF shipment_charges_moa_124 %]checked="checked"[% END %]>
                    <span class="hint">Add MOA charges with a qualifier 124 to the shipping cost for an invoice.</span>
