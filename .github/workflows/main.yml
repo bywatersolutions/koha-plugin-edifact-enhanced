@@ -184,8 +184,7 @@ jobs:
         echo "FILENAME: ${{ steps.kpz.outputs.filename }}"
         ls -alh
 
-    - name: Create release
-      if: ${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}
+    - name: Release
       uses: softprops/action-gh-release@v1
       with:
         files: |
@@ -193,31 +192,6 @@ jobs:
           CHANGELOG.md
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Attach to existing release
-      if: ${{ startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-') }}
-      uses: actions/github-script@v4
-      with:
-        script: |
-          const fs = require('fs');
-          const verRegex = /\/refs\/tags\/(v\d+\.\d+\.\d+)-.*/g;
-          const tag = (context.ref.match(verRegex))[0];
-          console.log(tag);
-          // Get release for this tag
-          const release = await github.repos.getReleaseByTag({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            tag
-          });
-          console.log(release);
-          // Upload the release asset
-          await github.repos.uploadReleaseAsset({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            release_id: release.data.id,
-            name: steps.kpz.outputs.filename,
-            data: await fs.readFileSync(steps.kpz.outputs.filename)
-          });
 
   rebase:
     name: Rebase other branches
