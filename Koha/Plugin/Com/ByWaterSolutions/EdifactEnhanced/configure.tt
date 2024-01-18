@@ -92,8 +92,13 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                 </li>
                 <li>
                    <input type="checkbox" name="buyer_san_use_library_ean_split_first_part" id="buyer_san_use_library_ean_split_first_part" [% IF buyer_san_use_library_ean_split_first_part %]checked="checked"[% END %] />
-		   <span class="hint">Split the Library EAN on spaces and use the left-most part. Works for value in header only, not implemented for use in NAD+BY.</span>
+		           <span class="hint">Split the Library EAN on spaces and use the left-most part. Works for value in header only, not implemented for use in NAD+BY.</span>
                    <label for="buyer_san_use_library_ean_split_first_part">Use split Library EAN</span>
+                </li>
+                <li>
+                   <input type="checkbox" name="buyer_san_extract_from_library_ean_description" id="buyer_san_extract_from_library_ean_description" [% IF buyer_san_extract_from_library_ean_description %]checked="checked"[% END %] />
+		           <span class="hint">Extract the Buyer SAN from the Library EAN description in the form "SAN:{123456789}"</span>
+                   <label for="buyer_san_extract_from_library_ean_description">Extract from Library EAN</span>
                 </li>
 
                 <fieldset class="rows">
