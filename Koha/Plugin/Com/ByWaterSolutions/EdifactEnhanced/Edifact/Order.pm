@@ -1028,6 +1028,11 @@ sub _interchange_sr_identifier {
 sub encode_text {
     my $string = shift;
     if ($string) {
+        # Convert right single quotation marks ( U+2019 / https://www.fontspace.com/unicode/analyzer#e=4oCZ )
+        # to apostrophe's ( U+0027 / https://www.fontspace.com/unicode/analyzer#e=Jw )
+        # Some vendors treat U+2019 as an aposrophe, but it does not get escaped as one
+        $string =~ s/’/'/g;
+
         $string =~ s/[?]/??/g;
         $string =~ s/'/?'/g;
         $string =~ s/:/?:/g;
