@@ -687,7 +687,9 @@ sub configure {
             lin_use_item_field_clear_on_invoice            => $cgi->param('lin_use_item_field_clear_on_invoice') ? 1 : 0,
             skip_nonmatching_san_suffix                    => $cgi->param('skip_nonmatching_san_suffix')         ? 1 : 0,
             shipping_budget_id                             => $cgi->param('shipping_budget_id') || q{},
-        } logaction(
+        };
+
+        logaction(
             "EDIFACT",
             "SETTINGS_UPDATED",
             undef,
@@ -695,6 +697,7 @@ sub configure {
             undef,
             $old_settings,
         );
+
         $self->store_data($new_settings);
         $self->go_home();
     }
