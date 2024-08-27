@@ -14,6 +14,7 @@ use C4::Auth;
 use C4::Biblio qw(GetFrameworkCode GetMarcFromKohaField);
 use C4::Context;
 use C4::Items;
+use C4::Log qw( logaction );
 use C4::Members;
 use C4::Suggestions qw(ModSuggestion);
 use Koha::Acquisition::Booksellers;
@@ -580,7 +581,64 @@ sub configure {
         print $template->output();
     }
     else {
-        $self->store_data(
+        my $old_settings = {
+            lin_use_ean                                => $self->retrieve_data('lin_use_ean'),
+            lin_use_issn                               => $self->retrieve_data('lin_use_issn'),
+            lin_use_isbn                               => $self->retrieve_data('lin_use_isbn'),
+            lin_force_first_isbn                       => $self->retrieve_data('lin_force_first_isbn'),
+            lin_use_invalid_isbn13                     => $self->retrieve_data('lin_use_invalid_isbn13'),
+            lin_use_invalid_isbn_any                   => $self->retrieve_data('lin_use_invalid_isbn_any'),
+            lin_use_upc                                => $self->retrieve_data('lin_use_upc'),
+            lin_use_product_id                         => $self->retrieve_data('lin_use_product_id'),
+            pia_send_lin                               => $self->retrieve_data('pia_send_lin'),
+            pia_limit                                  => $self->retrieve_data('pia_limit') // 25,
+            pia_use_ean                                => $self->retrieve_data('pia_use_ean'),
+            pia_use_issn                               => $self->retrieve_data('pia_use_issn'),
+            pia_use_isbn10                             => $self->retrieve_data('pia_use_isbn10'),
+            pia_use_isbn13                             => $self->retrieve_data('pia_use_isbn13'),
+            pia_use_upc                                => $self->retrieve_data('pia_use_upc'),
+            pia_use_product_id                         => $self->retrieve_data('pia_use_product_id'),
+            order_file_suffix                          => $self->retrieve_data('order_file_suffix'),
+            invoice_file_suffix                        => $self->retrieve_data('invoice_file_suffix'),
+            buyer_san                                  => $self->retrieve_data('buyer_san'),
+            buyer_san_use_username                     => $self->retrieve_data('buyer_san_use_username'),
+            buyer_san_use_library_ean_split_first_part => $self->retrieve_data('buyer_san_use_library_ean_split_first_part'),
+            buyer_san_extract_from_library_ean_description => $self->retrieve_data('buyer_san_extract_from_library_ean_description'),
+            gir_mapping                                => $self->retrieve_data('gir_mapping'),
+            gir_value_replacements_map                 => $self->retrieve_data('gir_value_replacements_map'),
+            gir_disable                                => $self->retrieve_data('gir_disable'),
+            send_basketname                            => $self->retrieve_data('send_basketname'),
+            send_rff_bfn                               => $self->retrieve_data('send_rff_bfn'),
+            send_rff_bfn_biblionumber                  => $self->retrieve_data('send_rff_bfn_biblionumber'),
+            split_gir                                  => $self->retrieve_data('split_gir') // '4',
+            buyer_id_code_qualifier                    => $self->retrieve_data('buyer_id_code_qualifier'),
+            buyer_san_in_header                        => $self->retrieve_data('buyer_san_in_header'),
+            buyer_san_in_nadby                         => $self->retrieve_data('buyer_san_in_nadby'),
+            branch_ean_in_header                       => $self->retrieve_data('branch_ean_in_header'),
+            branch_ean_in_nadby                        => $self->retrieve_data('branch_ean_in_nadby'),
+            set_bookseller_from_order_basket           => $self->retrieve_data('set_bookseller_from_order_basket'),
+            ignore_duplicate_reciepts                  => $self->retrieve_data('ignore_duplicate_reciepts'),
+            add_tax_to_shipping_costs                  => $self->retrieve_data('add_tax_to_shipping_costs'),
+            update_pricing_from_vendor_settings        => $self->retrieve_data('update_pricing_from_vendor_settings'),
+            ship_budget_from_orderline                 => $self->retrieve_data('ship_budget_from_orderline'),
+            shipment_charges_alc_dl                    => $self->retrieve_data('shipment_charges_alc_dl'),
+            shipment_charges_moa_8                     => $self->retrieve_data('shipment_charges_moa_8'),
+            shipment_charges_moa_79                    => $self->retrieve_data('shipment_charges_moa_79'),
+            shipment_charges_moa_124                   => $self->retrieve_data('shipment_charges_moa_124'),
+            shipment_charges_moa_131                   => $self->retrieve_data('shipment_charges_moa_131'),
+            shipment_charges_moa_304                   => $self->retrieve_data('shipment_charges_moa_304'),
+            close_invoice_on_receipt                   => $self->retrieve_data('close_invoice_on_receipt'),
+            add_itemnote_on_receipt                    => $self->retrieve_data('add_itemnote_on_receipt'),
+            no_update_item_price                       => $self->retrieve_data('no_update_item_price'),
+            set_nfl_on_receipt                         => $self->retrieve_data('set_nfl_on_receipt') // q{},
+            lin_use_item_field                         => $self->retrieve_data('lin_use_item_field'),
+            lin_use_item_field_qualifier               => $self->retrieve_data('lin_use_item_field_qualifier'),
+            lin_use_item_field_clear_on_invoice        => $self->retrieve_data('lin_use_item_field_clear_on_invoice'),
+            skip_nonmatching_san_suffix                => $self->retrieve_data('skip_nonmatching_san_suffix'),
+            shipping_budget_id                         => $self->retrieve_data('shipping_budget_id'),
+        };
+
+        my $new_settings = 
             {   lin_use_ean                                => $cgi->param('lin_use_ean')               ? 1 : 0,
                 lin_use_issn                               => $cgi->param('lin_use_issn')              ? 1 : 0,
                 lin_use_isbn                               => $cgi->param('lin_use_isbn')              ? 1 : 0,
@@ -636,7 +694,15 @@ sub configure {
                 skip_nonmatching_san_suffix                => $cgi->param('skip_nonmatching_san_suffix')         ? 1 : 0,
                 shipping_budget_id                         => $cgi->param('shipping_budget_id') || q{},
             }
-        );
+            logaction(
+                "EDIFACT",
+                "SETTINGS_UPDATED",
+                undef,
+                $new_settings,
+                undef,
+                $old_settings,
+            );
+        $self->store_data($new_settings);
         $self->go_home();
     }
 }
