@@ -41,7 +41,7 @@ Readonly::Scalar my $release_character   => q{?};
 
 Readonly::Scalar my $NINES_12  => 999_999_999_999;
 Readonly::Scalar my $NINES_14  => 99_999_999_999_999;
-Readonly::Scalar my $CHUNKSIZE => 35;
+Readonly::Scalar my $CHUNKSIZE => 99;
 
 my $use_marc_based_description =
   0;    # A global configflag : not currently implemented
