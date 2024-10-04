@@ -202,6 +202,10 @@ sub supplier_ean {
         if ( $s->tag eq 'NAD' ) {
             my $qualifier = $s->elem(0);
             if ( $qualifier eq 'SU' ) {
+                #NOTE: Brodart sends two NAD+SU's ( sometimes )
+                #31B indicates the Supplier SAN in the NAD segment
+                #91 indicates any Supplier assigned value, or in this case the Brodart account number
+                next if $s->elem(1,2) ne '31B';
                 push( @nad_su, $s->elem( 1, 0 ) );
             }
         }
