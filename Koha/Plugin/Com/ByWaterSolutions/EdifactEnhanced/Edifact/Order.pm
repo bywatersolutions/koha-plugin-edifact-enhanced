@@ -648,6 +648,8 @@ sub order_line {
         $self->add_seg($rff_bfn);
     }
 
+    my $skip_gir = $self->{sender}->description =~ /NO_GIR:\{True\}/;
+    $skip_gir ||= $self->{plugin}->retrieve_data('gir_disable');
 
     $self->add_seg(
         $self->gir_segments(
@@ -658,7 +660,7 @@ sub order_line {
                 basket           => $basket,
             }
         )
-    ) unless $self->{plugin}->retrieve_data('gir_disable');
+    ) unless $skip_gir;
 
     # TBD what if #items exceeds quantity
 

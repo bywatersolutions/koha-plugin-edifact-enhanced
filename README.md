@@ -189,3 +189,7 @@ The use of the last order line is arbitrary. The feature basically assumes that 
 
 When an invoice is received, set it to closed automatically.
 This option is mildly dangerous but highly convenient. It assumes a vendor will always get your shipments to you correctly.
+
+## Tips and tricks
+
+* Add `NO_GIR:{True}` to a Library EAN description to prevent that account from sending enriched GIR data ( useful for B&T unprocessed accounts )
