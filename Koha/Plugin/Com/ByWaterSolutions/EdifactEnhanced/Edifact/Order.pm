@@ -144,7 +144,7 @@ sub interchange_header {
     # If plugin is set to send Buyer SAN in header *and* the vendor username as buyer SAN is set, send that
     # If plugin is set to send Buyer SAN in header *and* the buyer sand should come from the library ean description
     if ( $self->{plugin}->retrieve_data('buyer_san_in_header') && $self->{plugin}->retrieve_data('buyer_san_extract_from_library_ean_description') ) {
-        $self->{sender}->description =~ m/SAN:\{(.*)}/;
+        $self->{sender}->description =~ m/SAN:\{(.\S*)\}/;
         my $ean = $1;
         $hdr .= _interchange_sr_identifier(
 	    $ean,
