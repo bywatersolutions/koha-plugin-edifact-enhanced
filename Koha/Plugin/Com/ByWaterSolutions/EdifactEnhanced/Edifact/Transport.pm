@@ -1,4 +1,4 @@
-package Koha::Plugin::Com::ByWaterSolutions::EdifactLibraria::Edifact::Transport;
+package Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Transport;
 
 # Copyright 2014 PTFS-Europe Ltd
 #
