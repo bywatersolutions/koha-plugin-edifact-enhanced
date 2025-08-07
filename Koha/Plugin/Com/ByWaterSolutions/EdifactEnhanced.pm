@@ -206,6 +206,8 @@ sub edifact_process_invoice {
                         # No more lines to try? Give up!
                         $done = 1 unless $line;
                     }
+
+                    $idx++;
                 }
             }
 
