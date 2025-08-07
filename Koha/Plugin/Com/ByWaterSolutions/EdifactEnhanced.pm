@@ -211,6 +211,11 @@ sub edifact_process_invoice {
                 }
             }
 
+            unless ( $booksellerid ) {
+                warn "NO BOOKSELLER ID FOR INVOICE NUMBER $invoicenumber... SKIPPING INVOICE";
+                next;
+            }
+
             # If this EDI invoice is being reprocessed from the database,
             # we should re-use the exsting Koha invoice
             my $new_invoice = $schema->resultset('Aqinvoice')->search(
