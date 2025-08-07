@@ -192,19 +192,19 @@ sub edifact_process_invoice {
                     if ($line) {
                         my $ordernumber = $line->ordernumber;
                         my $order       = $schema->resultset('Aqorder')->find($ordernumber);
-                        next unless $order;
-                        my $basket = $order->basket;
-                        next unless $basket;
-                        $booksellerid = $basket->get_column('booksellerid');
+                        my $basket      = $order ? $order->basket : undef;
+                        $booksellerid = $basket ? $basket->get_column('booksellerid') : undef;
 
                         # Update the message vendor the correct booksellerid
-                        $invoice_message->vendor_id($booksellerid);
-                        $invoice_message->update;
-                        $done = 1;
+                        if ($booksellerid) {
+                            $invoice_message->vendor_id($booksellerid);
+                            $invoice_message->update;
+                            $done = 1;
+                        }
                     } else {
 
                         # No more lines to try? Give up!
-                        $done = 1 unless $line;
+                        $done = 1;
                     }
 
                     $idx++;
