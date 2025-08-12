@@ -202,8 +202,8 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - name: Run rebase_branches.sh
-      run: TAG=${GITHUB_REF##*/} ./rebase_branches.sh
+    - name: Run rebase_branches.pl
+      run: TAG=${GITHUB_REF##*/} ./rebase_branches.pl
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
