@@ -109,7 +109,7 @@ sub get_other_repos {
 
         unless ($res->{success}) {
             warn "Failed to fetch repos: $res->{status} $res->{reason}\n";
-            last;
+            exit 1;
         }
 
         my $repos = decode_json($res->{content});
