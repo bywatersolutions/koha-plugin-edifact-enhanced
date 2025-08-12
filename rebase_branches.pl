@@ -31,7 +31,7 @@ my @repos = get_other_repos(
 
 my $failures = 0;
 foreach my $repo (@repos) {
-    qx(git remote add $repo git\@github.com:bywatersolutions/$repo.git);
+    qx(git remote add $repo https://$GH_TOKEN:$GH_TOKEN\@github.com/bywatersolutions/$repo.git);
     warn "Failed to add remote for $repo\n" if $? != 0;
 
     warn "Fetching $repo";
@@ -61,7 +61,7 @@ foreach my $repo (@repos) {
     print "Rebased main\n";
 
     warn "Pushing new version";
-    qx(git push -f https://$GH_TOKEN:$GH_TOKEN\@github.com/bywatersolutions/$repo.git HEAD:main);
+    qx(git push -f $repo HEAD:main);
     if ( $? != 0 ) {
         warn "Push of main to $repo failed: $?\n";
         $failures++;
@@ -75,7 +75,7 @@ foreach my $repo (@repos) {
         qx(git tag $tagname);
         warn "Tagging $tagname failed: $?\n" if $? != 0;
 
-        qx(git push https://$GH_TOKEN:$GH_TOKEN\@github.com/bywatersolutions/$repo.git $tagname);
+        qx(git push $repo $tagname);
         if ( $? != 0 ) {
             warn "Push of $tagname failed: $?\n";
         } else {
