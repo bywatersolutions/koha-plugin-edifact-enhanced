@@ -71,7 +71,7 @@ foreach my $repo (@repos) {
     print "Pushed to main for $repo\n";
 
     if ( $TAG ne 'main' ) {
-        my $tagname = "$TAG-main";
+        my $tagname = "$TAG-$repo";
         qx(git tag $tagname);
         warn "Tagging $tagname failed: $?\n" if $? != 0;
 
