@@ -95,7 +95,6 @@ sub get_other_repos {
     my $http = HTTP::Tiny->new(
         default_headers => {
             'Accept' => 'application/vnd.github.v3+json',
-            $token ? ('Authorization' => "token $token") : (),
         }
     );
 
