@@ -2,13 +2,12 @@
 use strict;
 use warnings;
 
-use HTTP::Tiny;
 use JSON::PP;
 
 qx(git config --global user.email kyle\@bywatersolutions.com);
 warn "Failed to set git email\n" if $? != 0;
 
-qx(git config --global user.name "Kyle M Hall");
+qx(git config --global user.name \"Kyle M Hall\");
 warn "Failed to set git name\n" if $? != 0;
 
 my $TAG      = $ENV{TAG} // '';
@@ -90,31 +89,32 @@ sub get_other_repos {
     my (%args) = @_;
     my $org     = $args{org}     // die "org is required";
     my $pattern = $args{pattern} // die "pattern is required";
-    my $token   = $args{token}   // '';
-
-    my $http = HTTP::Tiny->new(
-        default_headers => {
-            'Accept' => 'application/vnd.github.v3+json',
-        }
-    );
 
     my @matches;
     my $page = 1;
 
-    my $url = "https://api.github.com/orgs/$org/repos?per_page=100&page=$page";
-    `curl $url`;
-
     while (1) {
-        warn "FETCHING $url";
-        my $res = $http->get($url);
+        my $url = "https://api.github.com/orgs/$org/repos?per_page=100&page=$page";
 
-        unless ($res->{success}) {
-            warn "Failed to fetch repos: $res->{status} $res->{reason}\n";
+        warn "FETCHING $url\n";
+
+        # Run curl and capture output
+        my $json = qx(curl -s "$url");
+
+        warn "FOUND JSON: $json";
+
+        unless ($json) {
+            warn "Failed to fetch repos: no response\n";
             exit 1;
         }
 
-        my $repos = decode_json($res->{content});
-        last unless @$repos; # no more results
+        my $repos = eval { decode_json($json) };
+        if ($@) {
+            warn "Failed to decode JSON: $@\n";
+            exit 1;
+        }
+
+        last unless @$repos;  # no more results
 
         foreach my $repo (@$repos) {
             push @matches, $repo->{name} if $repo->{name} =~ /$pattern/;
@@ -125,3 +125,4 @@ sub get_other_repos {
 
     return @matches;
 }
+
