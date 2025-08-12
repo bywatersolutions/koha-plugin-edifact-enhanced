@@ -101,8 +101,10 @@ sub get_other_repos {
     my @matches;
     my $page = 1;
 
+    my $url = "https://api.github.com/orgs/$org/repos?per_page=100&page=$page";
+    `curl $url`;
+
     while (1) {
-        my $url = "https://api.github.com/orgs/$org/repos?per_page=100&page=$page";
         warn "FETCHING $url";
         my $res = $http->get($url);
 
