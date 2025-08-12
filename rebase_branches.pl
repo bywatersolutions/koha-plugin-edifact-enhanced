@@ -104,6 +104,7 @@ sub get_other_repos {
 
     while (1) {
         my $url = "https://api.github.com/orgs/$org/repos?per_page=100&page=$page";
+        warn "FETCHING $url";
         my $res = $http->get($url);
 
         unless ($res->{success}) {
