@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use JSON::PP;
+use Data::Dumper;
 
 qx(git config --global user.email kyle\@bywatersolutions.com);
 warn "Failed to set git email\n" if $? != 0;
@@ -26,7 +27,6 @@ print "\nNot koha-plugin-edifact-enhanced, exiting\n" && exit 0 unless $repo eq 
 my @repos = get_other_repos(
     org     => 'bywatersolutions',
     pattern => '^koha-plugin-edifact',
-    token   => $GH_TOKEN,
 );
 
 my $failures = 0;
@@ -34,6 +34,7 @@ foreach my $repo (@repos) {
     qx(git remote add $repo git\@github.com:bywatersolutions/$repo.git);
     warn "Failed to add remote for $repo\n" if $? != 0;
 
+    warn "Fetching $repo";
     qx(git fetch $repo);
     if ( $? != 0 ) {
         warn "Fetch of $repo failed: $?\n";
@@ -41,6 +42,7 @@ foreach my $repo (@repos) {
         next;
     }
 
+    warn "Checking out main for $repo";
     qx(git checkout $repo/main);
     if ( $? != 0 ) {
         warn "Checkout of $repo/main failed: $?\n";
@@ -49,6 +51,7 @@ foreach my $repo (@repos) {
     }
     print "Checked out origin/main\n";
 
+    warn "Rebasing against origin/main";
     qx(git rebase origin/main);
     if ( $? != 0 ) {
         warn "Rebase of main failed: $?\n";
@@ -57,6 +60,7 @@ foreach my $repo (@repos) {
     }
     print "Rebased main\n";
 
+    warn "Pushing new version";
     qx(git push -f https://$GH_TOKEN:$GH_TOKEN\@github.com/bywatersolutions/$repo.git HEAD:main);
     if ( $? != 0 ) {
         warn "Push of main to $repo failed: $?\n";
@@ -123,6 +127,7 @@ sub get_other_repos {
         $page++;
     }
 
+    warn "Found repos: " . Data::Dumper::Dumper( \@matches );
+
     return @matches;
 }
-
