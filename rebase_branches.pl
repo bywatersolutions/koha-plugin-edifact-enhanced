@@ -10,13 +10,13 @@ warn "Failed to set git email\n" if $? != 0;
 qx(git config --global user.name \"Kyle M Hall\");
 warn "Failed to set git name\n" if $? != 0;
 
-my $TAG      = $ENV{TAG} // '';
+my $TAG      = $ENV{TAG}      // '';
 my $GH_TOKEN = $ENV{GH_TOKEN} // '';
 
 print "TAG: $TAG\n";
 
 my $full_repo = $ENV{GITHUB_REPOSITORY} // '';
-my ($org, $repo) = split m{/}, $full_repo, 2;
+my ( $org, $repo ) = split m{/}, $full_repo, 2;
 
 print "Org:  $org\n";
 print "Repo: $repo\n";
@@ -35,14 +35,14 @@ foreach my $repo (@repos) {
     warn "Failed to add remote for $repo\n" if $? != 0;
 
     qx(git fetch $repo);
-    if ($? != 0) {
+    if ( $? != 0 ) {
         warn "Fetch of $repo failed: $?\n";
         $failures++;
         next;
     }
 
     qx(git checkout $repo/main);
-    if ($? != 0) {
+    if ( $? != 0 ) {
         warn "Checkout of $repo/main failed: $?\n";
         $failures++;
         next;
@@ -50,7 +50,7 @@ foreach my $repo (@repos) {
     print "Checked out origin/main\n";
 
     qx(git rebase origin/main);
-    if ($? != 0) {
+    if ( $? != 0 ) {
         warn "Rebase of main failed: $?\n";
         $failures++;
         next;
@@ -58,7 +58,7 @@ foreach my $repo (@repos) {
     print "Rebased main\n";
 
     qx(git push -f https://$GH_TOKEN:$GH_TOKEN\@github.com/bywatersolutions/$repo.git HEAD:main);
-    if ($? != 0) {
+    if ( $? != 0 ) {
         warn "Push of main to $repo failed: $?\n";
         $failures++;
         next;
@@ -66,13 +66,13 @@ foreach my $repo (@repos) {
 
     print "Pushed to main for $repo\n";
 
-    if ($TAG ne 'main') {
+    if ( $TAG ne 'main' ) {
         my $tagname = "$TAG-main";
         qx(git tag $tagname);
         warn "Tagging $tagname failed: $?\n" if $? != 0;
 
         qx(git push https://$GH_TOKEN:$GH_TOKEN\@github.com/bywatersolutions/$repo.git $tagname);
-        if ($? != 0) {
+        if ( $? != 0 ) {
             warn "Push of $tagname failed: $?\n";
         } else {
             print "Pushed $tagname\n";
@@ -86,7 +86,7 @@ qx(git checkout origin/main);
 warn "Checkout of origin/main failed: $?\n" if $? != 0;
 
 sub get_other_repos {
-    my (%args) = @_;
+    my (%args)  = @_;
     my $org     = $args{org}     // die "org is required";
     my $pattern = $args{pattern} // die "pattern is required";
 
@@ -114,7 +114,7 @@ sub get_other_repos {
             exit 1;
         }
 
-        last unless @$repos;  # no more results
+        last unless @$repos;    # no more results
 
         foreach my $repo (@$repos) {
             push @matches, $repo->{name} if $repo->{name} =~ /$pattern/;
