@@ -1,100 +1,104 @@
 #!/usr/bin/env perl
-use strict;
-use warnings;
+use Modern::Perl;
+
+use feature 'say';
 
 use JSON::PP;
 use Data::Dumper;
 
 qx(git config --global user.email kyle\@bywatersolutions.com);
-warn "Failed to set git email\n" if $? != 0;
+say "Failed to set git email" if $? != 0;
 
 qx(git config --global user.name \"Kyle M Hall\");
-warn "Failed to set git name\n" if $? != 0;
+say "Failed to set git name" if $? != 0;
 
 my $TAG      = $ENV{TAG}      // '';
 my $GH_TOKEN = $ENV{GH_TOKEN} // '';
 
-print "TAG: $TAG\n";
+say "TAG: $TAG";
 
 my $full_repo = $ENV{GITHUB_REPOSITORY} // '';
 my ( $org, $repo ) = split m{/}, $full_repo, 2;
 
-print "Org:  $org\n";
-print "Repo: $repo\n";
+say "Org:  $org";
+say "Repo: $repo";
 
-print "\nNot koha-plugin-edifact-enhanced, exiting\n" && exit 0 unless $repo eq "koha-plugin-edifact-enhanced";
+say "\nNot koha-plugin-edifact-enhanced, exiting" && exit 0 unless $repo eq "koha-plugin-edifact-enhanced";
 
 my @repos = get_other_repos(
     org     => 'bywatersolutions',
     pattern => '^koha-plugin-edifact',
 );
 
-warn "FOUND REPOS " . Data::Dumper::Dumper( \@repos );
+say "FOUND REPOS " . Data::Dumper::Dumper( \@repos );
 
 my $failures = 0;
 foreach my $repo (@repos) {
-    warn "WORKING ON $repo";
+    next if $repo eq 'koha-plugin-edifact-enhanced';
+    next if $repo eq 'koha-plugin-edifact-enhanced-docs';
+
+    say "WORKING ON $repo";
 
     qx(git remote add $repo https://$GH_TOKEN:$GH_TOKEN\@github.com/bywatersolutions/$repo.git);
-    warn "Failed to add remote for $repo\n" if $? != 0;
+    say "Failed to add remote for $repo" if $? != 0;
 
-    warn "Fetching $repo";
+    say "Fetching $repo";
     qx(git fetch $repo);
     if ( $? != 0 ) {
-        warn "Fetch of $repo failed: $?\n";
+        say "Fetch of $repo failed: $?";
         $failures++;
         next;
     }
 
-    warn "Checking out main for $repo";
+    say "Checking out main for $repo";
     qx(git checkout $repo/main);
     if ( $? != 0 ) {
-        warn "Checkout of $repo/main failed: $?\n";
+        say "Checkout of $repo/main failed: $?";
         $failures++;
         next;
     }
 
-    warn "CURRENT DIR & FILES: " . qx{pwd; find . -type f};
+    say "CURRENT DIR & FILES: " . qx{pwd; find Koha -type f};
 
-    warn "Rebasing against origin/main";
+    say "Rebasing against origin/main";
     qx(git rebase origin/main);
     if ( $? != 0 ) {
-        warn "Rebase of main failed: $?\n";
+        say "Rebase of main failed: $?";
         $failures++;
         next;
     }
-    print "Rebased main\n";
+    say "Rebased main";
 
-    warn "CURRENT DIR & FILES: " . qx{pwd; find . -type f};
+    say "CURRENT DIR & FILES: " . qx{pwd; find Koha -type f};
 
-    warn "Pushing new version";
+    say "Pushing new version";
     qx(git push -f $repo HEAD:main);
     if ( $? != 0 ) {
-        warn "Push of main to $repo failed: $?\n";
+        say "Push of main to $repo failed: $?";
         $failures++;
         next;
     }
 
-    print "Pushed to main for $repo\n";
+    say "Pushed to main for $repo";
 
     if ( $TAG ne 'main' ) {
         my $tagname = "$TAG";
         qx(git tag $tagname);
-        warn "Tagging $tagname failed: $?\n" if $? != 0;
+        say "Tagging $tagname failed: $?" if $? != 0;
 
         qx(git push $repo $tagname);
         if ( $? != 0 ) {
-            warn "Push of $tagname failed: $?\n";
+            say "Push of tag $tagname failed for $repo: $?";
         } else {
-            print "Pushed $tagname\n";
+            say "Pushed tag $tagname for $repo";
         }
     } else {
-        print "Not a tag, not pushing new tags\n";
+        say "Not a tag, not pushing new tags";
     }
 }
 
 qx(git checkout origin/main);
-warn "Checkout of origin/main failed: $?\n" if $? != 0;
+say "Checkout of origin/main failed: $?" if $? != 0;
 
 sub get_other_repos {
     my (%args)  = @_;
@@ -107,19 +111,19 @@ sub get_other_repos {
     while (1) {
         my $url = "https://api.github.com/orgs/$org/repos?per_page=100&page=$page";
 
-        warn "FETCHING $url\n";
+        say "FETCHING $url";
 
         # Run curl and capture output
         my $json = qx(curl -s "$url");
 
         unless ($json) {
-            warn "Failed to fetch repos: no response\n";
+            say "Failed to fetch repos: no response";
             exit 1;
         }
 
         my $repos = eval { decode_json($json) };
         if ($@) {
-            warn "Failed to decode JSON: $@\n";
+            say "Failed to decode JSON: $@";
             exit 1;
         }
 
@@ -132,7 +136,7 @@ sub get_other_repos {
         $page++;
     }
 
-    warn "Found repos: " . Data::Dumper::Dumper( \@matches );
+    say "Found repos: " . Data::Dumper::Dumper( \@matches );
 
     return @matches;
 }
