@@ -83,7 +83,10 @@ foreach my $repo (@repos) {
     say "Pushed to main for $repo";
 
     if ( $TAG ne 'main' ) {
-        my $tagname = "$TAG-$repo";
+        my $postfix = $repo;
+        $postfix =~ s/koha-plugin-edifact-//;
+
+        my $tagname = "$TAG-$postfix";
         qx(git tag $tagname);
         say "Tagging $tagname failed: $?" if $? != 0;
 
