@@ -29,8 +29,12 @@ my @repos = get_other_repos(
     pattern => '^koha-plugin-edifact',
 );
 
+warn "FOUND REPOS " . Data::Dumper::Dumper( \@repos );
+
 my $failures = 0;
 foreach my $repo (@repos) {
+    warn "WORKING ON $repo";
+
     qx(git remote add $repo https://$GH_TOKEN:$GH_TOKEN\@github.com/bywatersolutions/$repo.git);
     warn "Failed to add remote for $repo\n" if $? != 0;
 
@@ -49,7 +53,8 @@ foreach my $repo (@repos) {
         $failures++;
         next;
     }
-    print "Checked out origin/main\n";
+
+    warn "CURRENT DIR & FILES: " . qx{pwd; find . -type f};
 
     warn "Rebasing against origin/main";
     qx(git rebase origin/main);
@@ -59,6 +64,8 @@ foreach my $repo (@repos) {
         next;
     }
     print "Rebased main\n";
+
+    warn "CURRENT DIR & FILES: " . qx{pwd; find . -type f};
 
     warn "Pushing new version";
     qx(git push -f $repo HEAD:main);
@@ -104,8 +111,6 @@ sub get_other_repos {
 
         # Run curl and capture output
         my $json = qx(curl -s "$url");
-
-        warn "FOUND JSON: $json";
 
         unless ($json) {
             warn "Failed to fetch repos: no response\n";
