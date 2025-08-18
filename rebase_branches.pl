@@ -83,7 +83,7 @@ foreach my $repo (@repos) {
     say "Pushed to main for $repo";
 
     if ( $TAG ne 'main' ) {
-        my $tagname = "$TAG";
+        my $tagname = "$TAG-$repo";
         qx(git tag $tagname);
         say "Tagging $tagname failed: $?" if $? != 0;
 
