@@ -40,7 +40,7 @@ foreach my $repo (@repos) {
 
     say "WORKING ON $repo";
 
-    qx(git remote add $repo https://$GH_TOKEN\@github.com/bywatersolutions/$repo.git);
+    qx(git remote add $repo https://$GH_USERNAME:$GH_TOKEN\@github.com/bywatersolutions/$repo.git);
     say "Failed to add remote for $repo" if $? != 0;
 
     say "Fetching $repo";
@@ -73,7 +73,7 @@ foreach my $repo (@repos) {
     say "CURRENT DIR & FILES: " . qx{pwd; find Koha -type f};
 
     say "Pushing new version";
-    qx(git push -f $repo HEAD:main);
+    qx(git push -f $repo HEAD:refs/heads/main);
     if ( $? != 0 ) {
         say "Push of main to $repo failed: $?";
         $failures++;
