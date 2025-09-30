@@ -40,7 +40,7 @@ foreach my $repo (@repos) {
 
     say "WORKING ON $repo";
 
-    qx(git remote add $repo https://$GH_TOKEN:$GH_TOKEN\@github.com/bywatersolutions/$repo.git);
+    qx(git remote add $repo https://$GH_TOKEN\@github.com/bywatersolutions/$repo.git);
     say "Failed to add remote for $repo" if $? != 0;
 
     say "Fetching $repo";
