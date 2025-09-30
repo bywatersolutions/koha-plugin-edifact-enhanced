@@ -195,7 +195,7 @@ sub sftp_download {
                 $self->_abort_download( $sftp,"Error renaming $filename: $sftp->error" ) unless $ret;
             }
             else {
-                $sftp->delete($filename);
+                $sftp->remove($filename);
             }
         }
     }
