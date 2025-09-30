@@ -15,6 +15,7 @@ say "Failed to set git name" if $? != 0;
 
 my $TAG      = $ENV{TAG}      // '';
 my $GH_TOKEN = $ENV{GH_TOKEN} // '';
+my $GH_USERNAME = $ENV{GH_USERNAME} // '';
 
 say "TAG: $TAG";
 
