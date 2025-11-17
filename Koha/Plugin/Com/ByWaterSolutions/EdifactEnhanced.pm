@@ -4,6 +4,7 @@ package Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced;
 use Modern::Perl;
 
 use Carp;
+use Try::Tiny;
 
 ## Required for all plugins
 use base qw(Koha::Plugins::Base);
@@ -190,24 +191,28 @@ sub edifact_process_invoice {
                     my $line = $lines->[$idx];
 
                     if ($line) {
-                        my $ordernumber = $line->ordernumber;
-                        my $order       = $schema->resultset('Aqorder')->find($ordernumber);
-                        my $basket      = $order ? $order->basket : undef;
-                        $booksellerid = $basket ? $basket->get_column('booksellerid') : undef;
+                        try {
+                            my $ordernumber = $line->ordernumber;
+                            my $order       = $schema->resultset('Aqorder')->find($ordernumber);
+                            die "NO ORDER FOR $ordernumber" unless $order;
+                            my $basket = $order->basket;
+                            die "NO BASKET FOR ORDER $ordernumber" unless $basket;
+                            $booksellerid = $basket->get_column('booksellerid');
 
-                        # Update the message vendor the correct booksellerid
-                        if ($booksellerid) {
+                            # Update the message vendor the correct booksellerid
                             $invoice_message->vendor_id($booksellerid);
                             $invoice_message->update;
                             $done = 1;
-                        }
+                        } catch {
+                                say "CATCH";
+                            $idx++;
+                            warn "IDX2: $idx";
+                        };
                     } else {
 
                         # No more lines to try? Give up!
                         $done = 1;
                     }
-
-                    $idx++;
                 }
             }
 
