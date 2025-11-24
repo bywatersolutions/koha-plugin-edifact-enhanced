@@ -69,6 +69,7 @@ jobs:
 
     - name: Install extra CPAN modules the plugin needs
       run: |
+        export KTD_HOME=$(pwd)/../koha-testing-docker
         ktd --name edifact --shell --run "cpanm Business::Barcode::EAN13"
 
     - name: Run plugin tests
