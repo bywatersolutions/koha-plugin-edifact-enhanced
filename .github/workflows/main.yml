@@ -69,7 +69,7 @@ jobs:
 
     - name: Install extra CPAN modules the plugin needs
       run: |
-        ktd --shell --run "cpanm Business::Barcode::EAN13"
+        ktd --name edifact --shell --run "cpanm Business::Barcode::EAN13"
 
     - name: Run plugin tests
       run: |
