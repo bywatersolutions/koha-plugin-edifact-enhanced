@@ -68,13 +68,13 @@ jobs:
       if: steps.check.outputs.needs_sync == 'true'
       run: |
         # Run the preversion script logic manually to update plugin file
-        sed -i -e "s/^our \$VERSION = .*/our \$VERSION = \"${{ steps.version.outputs.version }}\";/" Koha/Plugin/Com/ByWaterSolutions/KitchenSink.pm
-        rm -f Koha/Plugin/Com/ByWaterSolutions/KitchenSink.pm-e
+        sed -i -e "s/^our \$VERSION = .*/our \$VERSION = \"${{ steps.version.outputs.version }}\";/" Koha/Plugin/Com/ByWaterSolutions/EdifactEnhanced.pm
+        rm -f Koha/Plugin/Com/ByWaterSolutions/EdifactEnhanced.pm-e
 
     - name: Commit version updates
       if: steps.check.outputs.needs_sync == 'true'
       run: |
-        git add package.json package-lock.json Koha/Plugin/Com/ByWaterSolutions/KitchenSink.pm
+        git add package.json package-lock.json Koha/Plugin/Com/ByWaterSolutions/EdifactEnhanced.pm
         if git diff --staged --quiet; then
           echo "No changes to commit"
         else
