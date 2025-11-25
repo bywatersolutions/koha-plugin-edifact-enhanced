@@ -1,6 +1,6 @@
 {
   "name": "koha-plugin-edifact-enhanced",
-  "version": "2.6.3",
+  "version": "3.9.28",
   "description": "Koha Edifact Enhanced Plugin",
   "devDependencies": {
     "gulp": "^4.0.2",
