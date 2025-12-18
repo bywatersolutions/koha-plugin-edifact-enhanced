@@ -226,6 +226,7 @@ sub segmentize {
 }x;
     my @segmented;
     while ( $raw =~ /($re)/g ) {
+        next unless $1 =~ /[[:print:]]/; # Filter out empty segments
         push @segmented, Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Segment->new( { seg_string => $1 } );
     }
     return \@segmented;
