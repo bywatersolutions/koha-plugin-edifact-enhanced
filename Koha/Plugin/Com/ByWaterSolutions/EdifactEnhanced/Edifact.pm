@@ -226,8 +226,10 @@ sub segmentize {
 }x;
     my @segmented;
     while ( $raw =~ /($re)/g ) {
-        next unless $1 =~ /[[:print:]]/; # Filter out empty segments
-        push @segmented, Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Segment->new( { seg_string => $1 } );
+        my $cap = $1;
+        $cap =~ s/^\s*//; # Remove any newlines at start of string
+        next unless $cap =~ /[[:print:]]/; # Filter out empty segments
+        push @segmented, Koha::Plugin::Com::ByWaterSolutions::EdifactWhitehots::Edifact::Segment->new( { seg_string => $cap } );
     }
     return \@segmented;
 }
