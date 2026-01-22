@@ -347,7 +347,11 @@ sub edifact_process_invoice {
                         $quantity = $line->quantity;
                     }
 
-                    my $price = Koha::EDI::_get_invoiced_price( $line, $quantity );
+                    my ( $price, $price_excl_tax ) = Koha::EDI::_get_invoiced_price( $line, $quantity );
+                    my $tax_rate = $line->tax_rate;
+                    if ( $tax_rate && $tax_rate->{rate} != 0 ) {
+                        $tax_rate->{rate} /= 100;
+                    }
 
                     my $basket      = $order->basketno;
                     my $is_standing = $basket->is_standing;
@@ -357,28 +361,29 @@ sub edifact_process_invoice {
 
                     if ( $is_standing || $order->quantity > $line->quantity ) {
                         my $ordered = $order->quantity;
-
                         my $quantity_remaining = $is_standing ? 1 : $ordered - $line->quantity;
 
                         # part receipt
                         $order->orderstatus('partial');
-                        $order->quantity($quantity_remaining);
+                        $order->quantity( $ordered - $quantity );
                         $order->update;
                         my $received_order = $order->copy(
                             {
                                 ordernumber            => undef,
-                                quantity               => $line->quantity || 1,
-                                quantityreceived       => $line->quantity || 1,
+                                quantity               => $quantity,
+                                quantityreceived       => $quantity,
                                 orderstatus            => 'complete',
                                 unitprice              => $price,
+                                unitprice_tax_included => $price,
+                                unitprice_tax_excluded => $price_excl_tax,
                                 invoiceid              => $invoiceid,
                                 datereceived           => $msg_date,
-                                unitprice_tax_excluded => $price,
-                                unitprice_tax_included => $price,
+                                tax_rate_on_receiving  => $tax_rate ? $tax_rate->{rate} : 0,
+                                tax_value_on_receiving => $quantity *
+                                    $price_excl_tax *
+                                    ( $tax_rate ? $tax_rate->{rate} : 0 ),
                             }
                         );
-
-                        #FIXME transfer_items( $schema, $line, $order, $received_order );
 
                         if ( $self->retrieve_data('update_pricing_from_vendor_settings') ) {
                             my $order_obj = Koha::Acquisition::Orders->find( $received_order->id );
@@ -388,23 +393,28 @@ sub edifact_process_invoice {
                             $received_order = $order_obj->_result;
                         }
 
-                        _receipt_items( $self, $schema, $line, $received_order->ordernumber );
+                        #FIXME transfer_items( $schema, $line, $order, $received_order, $quantity );
+                        receipt_items(
+                            $schema, $line,
+                            $received_order->ordernumber, $quantity, $invoice_message
+                        );
+
                     } else {    # simple receipt all copies on order
                         if ( $self->retrieve_data('ignore_duplicate_reciepts') ) {
                             next if $order->quantity eq $order->quantityreceived;
                         }
 
-                        $order->update(
-                            {
-                                quantityreceived       => $line->quantity,
-                                datereceived           => $msg_date,
-                                invoiceid              => $invoiceid,
-                                unitprice              => $price,
-                                unitprice_tax_excluded => $price,
-                                unitprice_tax_included => $price,
-                                orderstatus            => 'complete',
-                            }
-                        );
+                        $order->quantityreceived($quantity);
+                        $order->datereceived($msg_date);
+                        $order->invoiceid($invoiceid);
+                        $order->unitprice($price);
+                        $order->unitprice_tax_excluded($price_excl_tax);
+                        $order->unitprice_tax_included($price);
+                        $order->tax_rate_on_receiving( $tax_rate ? $tax_rate->{rate} : 0 );
+                        $order->tax_value_on_receiving(
+                            $quantity * $price_excl_tax * ( $tax_rate ? $tax_rate->{rate} : 0 ) );
+                        $order->orderstatus('complete');
+                        $order->update;
 
                         if ( $self->retrieve_data('update_pricing_from_vendor_settings') ) {
                             my $order_obj = Koha::Acquisition::Orders->find( $order->id );
@@ -414,6 +424,8 @@ sub edifact_process_invoice {
                             $order = $order_obj->_result;
                         }
 
+                        # Using plugin internal _receipt_items instead
+                        # receipt_items( $schema, $line, $ordernumber, $quantity, $invoice_message );
                         _receipt_items( $self, $schema, $line, $ordernumber );
                     }
                 } else {
