@@ -65,7 +65,7 @@ jobs:
       run: |
         cd ../koha-testing-docker
         export KTD_HOME=$(pwd)
-        ktd --name edifact --wait-ready 120
+        ktd --name edifact --wait-ready 500
 
     - name: Install extra CPAN modules the plugin needs
       run: |
