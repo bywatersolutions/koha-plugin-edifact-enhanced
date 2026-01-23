@@ -139,7 +139,7 @@ sub sftp_download {
     return unless Koha::Encryption->new->decrypt_hex($self->{account}->password); # We never accept FTP sites with no password, skip to avoid errors
 
     my $file_ext = $self->_get_file_ext( $self->{message_type} );
-    print "FILE EXT: $file_ext";
+    warn "FILE EXT: $file_ext";
 
     # C = ready to retrieve E = Edifact
     my $msg_hash = $self->message_hash();
@@ -163,7 +163,7 @@ sub sftp_download {
     foreach my $file ( @{$file_list} ) {
         my $filename = $file->{filename};
 
-        print "LOOKING AT FILE $filename\n";
+        warn "LOOKING AT FILE $filename\n";
 
         if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/i ) {
             logaction(
@@ -178,7 +178,7 @@ sub sftp_download {
                 )
             );
 
-            print "PROCESSING FILE $filename\n";
+            warn "PROCESSING FILE $filename\n";
 
             $sftp->get( $filename, "$self->{working_dir}/$filename" );
             if ( $sftp->error ) {
