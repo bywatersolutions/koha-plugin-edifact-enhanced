@@ -34,7 +34,7 @@ our $metadata = {
     description     => 'Edifact Enhanced plugin',
     date_authored   => '2015-12-21',
     date_updated    => '1900-01-01',
-    minimum_version => '22.05.06',
+    minimum_version => '25.11.00',
     maximum_version => undef,
     version         => $VERSION,
 };

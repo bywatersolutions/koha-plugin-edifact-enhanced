@@ -1,6 +1,6 @@
-package Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Transport;
+package Koha::Edifact::Transport;
 
-# Copyright 2014 PTFS-Europe Ltd
+# Copyright 2014,2015 PTFS-Europe Ltd
 #
 # This file is part of Koha.
 #
@@ -15,40 +15,35 @@ package Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Transport
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Koha; if not, see <http://www.gnu.org/licenses>.
+# along with Koha; if not, see <https://www.gnu.org/licenses>.
 
-use strict;
-use warnings;
+use Modern::Perl;
+
 use utf8;
 
-use Carp;
-use DateTime;
-use Encode qw( from_to );
-use English qw{ -no_match_vars };
-use File::Basename qw( fileparse );
-use File::Copy;
-use File::Slurp;
-use File::Spec;
-use Net::FTP;
-use Net::SFTP::Foreign;
-use JSON;
+use Carp        qw( carp );
+use Encode      qw( from_to );
+use File::Slurp qw( read_file );
 
-use C4::Log qw( logaction );
 use Koha::Database;
-use Koha::Encryption;
+use Koha::DateUtils qw( dt_from_string );
+use Koha::File::Transports;
 
 sub new {
-    my ( $class, $account_id, $plugin ) = @_;
+    my ( $class, $account_id ) = @_;
     my $database = Koha::Database->new();
     my $schema   = $database->schema();
     my $acct     = $schema->resultset('VendorEdiAccount')->find($account_id);
-    my $self     = {
-        account       => $acct,
-        schema        => $schema,
-        working_dir   => File::Spec->tmpdir(),    #temporary work directory
-        transfer_date => DateTime->now( time_zone => 'local' ),
-        plugin        => $plugin,
-        json          => JSON->new->allow_nonref,
+
+    # Get the file transport if configured
+    my $file_transport = $acct->file_transport_id ? Koha::File::Transports->find( $acct->file_transport_id ) : undef;
+
+    my $self = {
+        account        => $acct,
+        schema         => $schema,
+        file_transport => $file_transport,
+        working_dir    => C4::Context::temporary_directory,    #temporary work directory
+        transfer_date  => dt_from_string(),
     };
 
     bless $self, $class;
@@ -58,159 +53,148 @@ sub new {
 sub working_directory {
     my ( $self, $new_value ) = @_;
     if ($new_value) {
-        $self->{working_directory} = $new_value;
+        $self->{working_dir} = $new_value;
     }
-    return $self->{working_directory};
+    return $self->{working_dir};
 }
 
 sub download_messages {
     my ( $self, $message_type ) = @_;
     $self->{message_type} = $message_type;
 
-    my @retrieved_files;
+    unless ( $self->{file_transport} ) {
+        carp "No file transport configured for EDI account " . $self->{account}->id;
+        return;
+    }
 
-    if ( $self->{account}->transport eq 'SFTP' ) {
-        @retrieved_files = $self->sftp_download();
+    my $file_ext = _get_file_ext( $self->{message_type} );
+    my $msg_hash = $self->message_hash();
+    my @downloaded_files;
+
+    # Connect to the transport
+    unless ( $self->{file_transport}->connect() ) {
+        carp "Failed to connect to file transport: " . $self->{file_transport}->id;
+        return;
     }
-    elsif ( $self->{account}->transport eq 'FILE' ) {
-        @retrieved_files = $self->file_download();
+
+    # Change to download directory
+    my $download_dir = $self->{file_transport}->download_directory;
+    if ( $download_dir && !$self->{file_transport}->change_directory($download_dir) ) {
+        carp "Failed to change to download directory: $download_dir";
+        return;
     }
-    else {    # assume FTP
-        @retrieved_files = $self->ftp_download();
+
+    # Get file list
+    my $file_list = $self->{file_transport}->list_files();
+    unless ($file_list) {
+        carp "Failed to get file list from transport";
+        return;
     }
-    return @retrieved_files;
+
+    # Process files matching our criteria
+    foreach my $file ( @{$file_list} ) {
+        my $filename = $file->{filename};
+
+        if ( $filename =~ m/[.]$file_ext$/ ) {
+            my $local_file = "$self->{working_dir}/$filename";
+
+            # Download the file
+            if ( $self->{file_transport}->download_file( $filename, $local_file ) ) {
+                push @downloaded_files, $filename;
+
+                # Rename file on server to mark as processed (EDI-specific behavior)
+                my $processed_name = $filename;
+                substr $processed_name, -3, 1, 'E';
+
+                # Mark file as processed using the transport's rename functionality
+                $self->{file_transport}->rename_file( $filename, $processed_name );
+            } else {
+                carp "Failed to download file: $filename";
+            }
+        }
+    }
+
+    # Ingest downloaded files
+    $self->ingest( $msg_hash, @downloaded_files );
+
+    # Clean up connection
+    $self->{file_transport}->disconnect();
+
+    return @downloaded_files;
 }
 
 sub upload_messages {
     my ( $self, @messages ) = @_;
-    if (@messages) {
-        if ( $self->{account}->transport eq 'SFTP' ) {
-            $self->sftp_upload(@messages);
-        }
-        elsif ( $self->{account}->transport eq 'FILE' ) {
-            $self->file_upload(@messages);
-        }
-        else {    # assume FTP
-            $self->ftp_upload(@messages);
-        }
-    }
-    return;
-}
 
-sub file_download {
-    my $self = shift;
-    my @downloaded_files;
-
-    my $file_ext = $self->_get_file_ext( $self->{message_type} );
-
-    my $dir = $self->{account}->download_directory;   # makes code more readable
-         # C = ready to retrieve E = Edifact
-    my $msg_hash = $self->message_hash();
-    if ( opendir my $dh, $dir ) {
-        my @file_list = readdir $dh;
-        closedir $dh;
-        foreach my $filename (@file_list) {
-
-            if ( $filename =~ m/[.]$file_ext$/i ) {
-                if ( copy( "$dir/$filename", $self->{working_dir} ) ) {
-                }
-                else {
-                    carp "copy of $filename failed";
-                    next;
-                }
-                push @downloaded_files, $filename;
-                my $processed_name = $filename;
-                substr $processed_name, -3, 1, 'E';
-                move( "$dir/$filename", "$dir/$processed_name" );
-            }
-        }
-        $self->ingest( $msg_hash, @downloaded_files );
-    }
-    else {
-        carp "Cannot open $dir";
+    unless (@messages) {
         return;
     }
-    return @downloaded_files;
-}
 
-sub sftp_download {
-    my $self = shift;
-
-    return unless Koha::Encryption->new->decrypt_hex($self->{account}->password); # We never accept FTP sites with no password, skip to avoid errors
-
-    my $file_ext = $self->_get_file_ext( $self->{message_type} );
-    warn "FILE EXT: $file_ext";
-
-    # C = ready to retrieve E = Edifact
-    my $msg_hash = $self->message_hash();
-    my @downloaded_files;
-    my $sftp = Net::SFTP::Foreign->new(
-        host     => $self->{account}->host,
-        user     => $self->{account}->username,
-        password => Koha::Encryption->new->decrypt_hex($self->{account}->password),
-        timeout  => 10,
-    );
-    if ( $sftp->error ) {
-        return $self->_abort_download( undef,
-            'Unable to connect to remote host: ' . $sftp->error );
+    unless ( $self->{file_transport} ) {
+        carp "No file transport configured for EDI account " . $self->{account}->id;
+        return;
     }
-    $sftp->setcwd( $self->{account}->download_directory )
-      or return $self->_abort_download( $sftp,
-        "Cannot change remote dir : $sftp->error" );
-    my $file_list = $sftp->ls()
-      or return $self->_abort_download( $sftp,
-        "cannot get file list from server: $sftp->error" );
-    foreach my $file ( @{$file_list} ) {
-        my $filename = $file->{filename};
 
-        warn "LOOKING AT FILE $filename\n";
+    # Connect to the transport
+    unless ( $self->{file_transport}->connect() ) {
+        carp "Failed to connect to file transport: " . $self->{file_transport}->id;
+        return;
+    }
 
-        if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/i ) {
-            logaction(
-                "EDIFACT",
-                "INVOICE_DOWNLOAD_SFTP",
-                undef,
-                $self->{json}->pretty->encode(
-                    {
-                        VendorEdiAccount => $self->{account}->id,
-                        filename         => $filename,
-                    }
-                )
-            );
+    # Change to upload directory
+    my $upload_dir = $self->{file_transport}->upload_directory;
+    if ( $upload_dir && !$self->{file_transport}->change_directory($upload_dir) ) {
+        carp "Failed to change to upload directory: $upload_dir";
+        return;
+    }
 
-            warn "PROCESSING FILE $filename\n";
+    foreach my $m (@messages) {
+        my $content = $m->raw_msg;
+        if ($content) {
 
-            $sftp->get( $filename, "$self->{working_dir}/$filename" );
-            if ( $sftp->error ) {
-                $self->_abort_download( $sftp,
-                    "Error retrieving $filename: $sftp->error" );
-                last;
-            }
-            push @downloaded_files, $filename;
-            my $processed_name = $filename;
-            substr $processed_name, -3, 1, 'E';
+            # Create temporary file for upload
+            my $temp_file = "$self->{working_dir}/" . $m->filename;
 
-            if ($file_ext) {
-                my $ret = $sftp->rename( $filename, "$filename.dl" );
-                $self->_abort_download( $sftp,"Error renaming $filename: $sftp->error" ) unless $ret;
-            }
-            else {
-                $sftp->remove($filename);
+            if ( open my $fh, '>', $temp_file ) {
+                print {$fh} $content;
+                close $fh;
+
+                # Upload the file
+                if ( $self->{file_transport}->upload_file( $temp_file, $m->filename ) ) {
+                    $m->transfer_date( $self->{transfer_date} );
+                    $m->status('sent');
+                    $m->update;
+                } else {
+                    carp "Failed to upload file: " . $m->filename;
+                }
+
+                # Clean up temp file
+                unlink $temp_file;
+            } else {
+                carp "Could not create temporary file for upload: " . $m->filename;
             }
         }
     }
-    $sftp->disconnect;
-    $self->ingest( $msg_hash, @downloaded_files );
 
-    return @downloaded_files;
+    # Clean up connection
+    $self->{file_transport}->disconnect();
+
+    return;
 }
 
 sub ingest {
     my ( $self, $msg_hash, @downloaded_files ) = @_;
     foreach my $f (@downloaded_files) {
+
+        # Check file has not been downloaded already
+        my $existing_file = $self->{schema}->resultset('EdifactMessage')->find( { filename => $f, } );
+        if ($existing_file) {
+            carp "skipping ingest of $f : filename exists";
+            next;
+        }
+
         $msg_hash->{filename} = $f;
-        my $file_content =
-          read_file( "$self->{working_dir}/$f", binmode => ':raw' );
+        my $file_content = read_file( "$self->{working_dir}/$f", binmode => ':raw' );
         if ( !defined $file_content ) {
             carp "Unable to read download file $f";
             next;
@@ -222,211 +206,23 @@ sub ingest {
     return;
 }
 
-sub ftp_download {
-    my $self = shift;
-
-    return unless Koha::Encryption->new->decrypt_hex($self->{account}->password); # We never accept FTP sites with no password, skip to avoid errors
-
-    my $file_ext = $self->_get_file_ext( $self->{message_type} );
-    # C = ready to retrieve E = Edifact
-
-    my $msg_hash = $self->message_hash();
-    my @downloaded_files;
-    my $ftp = Net::FTP->new(
-        $self->{account}->host,
-        Timeout => 10,
-        Passive => 1
-      )
-      or return $self->_abort_download( undef,
-        "Cannot connect to $self->{account}->host: $EVAL_ERROR" );
-    $ftp->login( $self->{account}->username, Koha::Encryption->new->decrypt_hex($self->{account}->password) )
-      or return $self->_abort_download( $ftp, "Cannot login: " . $ftp->message() );
-    $ftp->cwd( $self->{account}->download_directory )
-      or return $self->_abort_download( $ftp,
-        "Cannot change remote dir : " . $ftp->message() );
-    my $file_list = $ftp->ls()
-      or
-      return $self->_abort_download( $ftp, 'cannot get file list from server' );
-
-    foreach my $filename ( @{$file_list} ) {
-        if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/i ) {
-            logaction(
-                "EDIFACT",
-                "INVOICE_DOWNLOAD_FTP",
-                undef,
-                $self->{json}->pretty->encode(
-                    {
-                        VendorEdiAccount => $self->{account}->id,
-                        filename         => $filename
-                    }
-                )
-            );
-
-            if ( !$ftp->get( $filename, "$self->{working_dir}/$filename" ) ) {
-                $self->_abort_download( $ftp,
-                    "Error retrieving $filename: $ftp->message" );
-                last;
-            }
-
-            push @downloaded_files, $filename;
-            if ( $file_ext ) {
-                $ftp->rename( $filename, "$filename.dl" );
-            } else {
-                $ftp->delete( $filename );
-            }
-        }
-    }
-    $ftp->quit;
-
-    $self->ingest( $msg_hash, @downloaded_files );
-
-    return @downloaded_files;
-}
-
-sub ftp_upload {
-    my ( $self, @messages ) = @_;
-    my $ftp = Net::FTP->new(
-        $self->{account}->host,
-        Timeout => 10,
-        Passive => 1
-      )
-      or return $self->_abort_download( undef,
-        "Cannot connect to $self->{account}->host: $EVAL_ERROR" );
-    $ftp->login( $self->{account}->username, Koha::Encryption->new->decrypt_hex($self->{account}->password) )
-      or return $self->_abort_download( $ftp, "Cannot login: " . $ftp->message() );
-    $ftp->cwd( $self->{account}->upload_directory )
-      or return $self->_abort_download( $ftp,
-        "Cannot change remote dir : " . $ftp->message() );
-    foreach my $m (@messages) {
-        my $content = $m->raw_msg;
-        if ($content) {
-            open my $fh, '<', \$content;
-            if ( $ftp->put( $fh, $m->filename ) ) {
-                close $fh;
-                $m->transfer_date( $self->{transfer_date} );
-                $m->status('sent');
-                $m->update;
-            }
-            else {
-                # error in transfer
-
-            }
-        }
-    }
-
-    $ftp->quit;
-    return;
-}
-
-sub sftp_upload {
-    my ( $self, @messages ) = @_;
-    my $sftp = Net::SFTP::Foreign->new(
-        $self->{account}->host,
-        {
-            user     => $self->{account}->user,
-            password => Koha::Encryption->new->decrypt_hex($self->{account}->password),
-            timeout  => 10,
-        }
-    );
-    $sftp->die_on_error("Cannot ssh to $self->{account}->host");
-    $sftp->cwd( $self->{account}->upload_directory );
-    $sftp->die_on_error('Cannot change to remote dir');
-    foreach my $m (@messages) {
-        my $content = $m->raw_msg;
-        if ($content) {
-            open my $fh, '<', \$content;
-            if ( $sftp->put( $fh, $m->filename ) ) {
-                close $fh;
-                $m->transfer_date( $self->{transfer_date} );
-                $m->status('sent');
-                $m->update;
-            }
-            else {
-                # error in transfer
-
-            }
-        }
-    }
-
-    # sftp will be closed on object destructor
-    return;
-}
-
-sub file_upload {
-    my ( $self, @messages ) = @_;
-    my $dir = $self->{account}->upload_directory;
-    if ( -d $dir ) {
-        foreach my $m (@messages) {
-            my $content = $m->raw_msg;
-            if ($content) {
-                my $filename     = $m->filename;
-                my $new_filename = "$dir/$filename";
-                if ( open my $fh, '>', $new_filename ) {
-                    print {$fh} $content;
-                    close $fh;
-                    $m->transfer_date( $self->{transfer_date} );
-                    $m->status('sent');
-                    $m->update;
-                }
-                else {
-                    carp "Could not transfer $m->filename : $ERRNO";
-                    next;
-                }
-            }
-        }
-    }
-    else {
-        carp "Upload directory $dir does not exist";
-    }
-    return;
-}
-
-sub _abort_download {
-    my ( $self, $handle, $log_message ) = @_;
-
-    my $a = $self->{account}->description;
-
-    if ($handle) {
-        $handle->abort();
-    }
-    $log_message .= ": $a";
-    carp $log_message;
-
-    logaction(
-        "EDIFACT",
-        "INVOICE_DOWNLOAD_FAILED",
-        undef,
-        $self->{json}->pretty->encode(
-            {
-                message          => $log_message,
-                VendorEdiAccount => $self->{account}->id,
-            }
-        )
-    );
-
-    #returns undef i.e. an empty array
-    return;
-}
-
 sub _get_file_ext {
-    my ( $self, $type ) = @_;
+    my $type = shift;
 
-    # Extension format for Europe
+    # Extension format
     # 1st char Status C = Ready For pickup A = Completed E = Extracted
     # 2nd Char Standard E = Edifact
     # 3rd Char Type of message
-    # Examples: CEP, CEI, CEQ
-
     my %file_types = (
-        QUOTE   => 'XXX',
-        INVOICE => $self->{plugin}->retrieve_data('invoice_file_suffix') || q{},
+        QUOTE   => 'CEQ',
+        INVOICE => 'CEI',
+        ORDRSP  => 'CEA',
+        ALL     => 'CE.',
     );
-
     if ( exists $file_types{$type} ) {
         return $file_types{$type};
     }
-
-    return q{};    # non matching type
+    return 'XXXX';    # non matching type
 }
 
 sub message_hash {
@@ -453,22 +249,22 @@ Koha::Edifact::Transport
 =head1 SYNOPSIS
 
 my $download = Koha::Edifact::Transport->new( $vendor_edi_account_id );
-$downlod->download_messages('QUOTE');
+$downlowd->download_messages('QUOTE');
 
 
 =head1 DESCRIPTION
 
-Module that handles Edifact download and upload transport
-currently can use sftp or ftp
-Or FILE to access a local directory (useful for testing)
-
+Module that handles Edifact download and upload transport using the modern
+Koha::File::Transport system. Supports SFTP, FTP, and local directory
+operations through a unified interface.
 
 =head1 METHODS
 
 =head2 new
 
     Creates an object of Edifact::Transport requires to be passed the id
-    identifying the relevant edi vendor account
+    identifying the relevant edi vendor account. The account must have a
+    file_transport_id configured to use the modern transport system.
 
 =head2 working_directory
 
@@ -477,45 +273,26 @@ Or FILE to access a local directory (useful for testing)
 =head2 download_messages
 
     called with the message type to download will perform the download
-    using the appropriate transport method
+    using the configured file transport
 
 =head2 upload_messages
 
    passed an array of messages will upload them to the supplier site
+   using the configured file transport
 
-=head2 sftp_download
-
-   called by download_messages to perform the download using SFTP
 
 =head2 ingest
 
    loads downloaded files into the database
-
-=head2 ftp_download
-
-   called by download_messages to perform the download using FTP
-
-=head2 ftp_upload
-
-  called by upload_messages to perform the upload using ftp
-
-=head2 sftp_upload
-
-  called by upload_messages to perform the upload using sftp
-
-=head2 _abort_download
-
-   internal routine to halt operation on error and supply a stacktrace
 
 =head2 _get_file_ext
 
    internal method returning standard suffix for file names
    according to message type
 
-=head2 set_transport_direct
+=head2 message_hash
 
-  sets the direct ingest flag so that the object reads files from
-  the local file system useful in debugging
+   creates the message hash structure for storing in the database
 
 =head1 AUTHOR
 
@@ -524,7 +301,7 @@ Or FILE to access a local directory (useful for testing)
 
 =head1 COPYRIGHT
 
-   Copyright 2014, PTFS-Europe Ltd
+   Copyright 2014,2015 PTFS-Europe Ltd
    This program is free software, You may redistribute it under
    under the terms of the GNU General Public License
 
