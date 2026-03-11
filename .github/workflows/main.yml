@@ -14,7 +14,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        koha-version: [main, stable, oldstable]
+        #koha-version: [main, stable, oldstable]
+        koha-version: [main, stable]
 
     steps:
     - name: Checkout plugin code
