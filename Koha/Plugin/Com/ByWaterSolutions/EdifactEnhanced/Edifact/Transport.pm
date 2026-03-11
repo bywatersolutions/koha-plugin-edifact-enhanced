@@ -1,4 +1,4 @@
-package Koha::Edifact::Transport;
+package Koha::Plugin::Com::ByWaterSolutions::EdifactEnhanced::Edifact::Transport;
 
 # Copyright 2014,2015 PTFS-Europe Ltd
 #
@@ -30,7 +30,7 @@ use Koha::DateUtils qw( dt_from_string );
 use Koha::File::Transports;
 
 sub new {
-    my ( $class, $account_id ) = @_;
+    my ( $class, $account_id, $plugin ) = @_;
     my $database = Koha::Database->new();
     my $schema   = $database->schema();
     my $acct     = $schema->resultset('VendorEdiAccount')->find($account_id);
@@ -44,6 +44,7 @@ sub new {
         file_transport => $file_transport,
         working_dir    => C4::Context::temporary_directory,    #temporary work directory
         transfer_date  => dt_from_string(),
+        plugin         => $plugin,
     };
 
     bless $self, $class;
@@ -67,7 +68,7 @@ sub download_messages {
         return;
     }
 
-    my $file_ext = _get_file_ext( $self->{message_type} );
+    my $file_ext = $self->_get_file_ext( $self->{message_type} );
     my $msg_hash = $self->message_hash();
     my @downloaded_files;
 
@@ -207,6 +208,7 @@ sub ingest {
 }
 
 sub _get_file_ext {
+    my $self = shift;
     my $type = shift;
 
     # Extension format
@@ -215,7 +217,7 @@ sub _get_file_ext {
     # 3rd Char Type of message
     my %file_types = (
         QUOTE   => 'CEQ',
-        INVOICE => 'CEI',
+        INVOICE => $self->{plugin}->retrieve_data('invoice_file_suffix') || q{},
         ORDRSP  => 'CEA',
         ALL     => 'CE.',
     );
