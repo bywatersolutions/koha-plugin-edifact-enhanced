@@ -76,6 +76,8 @@ foreach my $repo (@repos) {
 
         if (@unexpected) {
             say "Unexpected conflicts in: @unexpected";
+            qx(git status);
+            qx(git diff);
             qx(git rebase --abort);
             $failures++;
             next;
