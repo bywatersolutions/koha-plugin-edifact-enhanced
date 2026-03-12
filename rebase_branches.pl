@@ -27,6 +27,9 @@ say "Repo: $repo";
 
 say "\nNot koha-plugin-edifact-enhanced, exiting" && exit 0 unless $repo eq "koha-plugin-edifact-enhanced";
 
+qx(git remote);
+qx(git fetch origin);
+
 my @repos = get_other_repos(
     org     => 'bywatersolutions',
     pattern => '^koha-plugin-edifact',
