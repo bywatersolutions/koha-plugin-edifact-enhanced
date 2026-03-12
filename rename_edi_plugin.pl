@@ -7,10 +7,11 @@ use File::Slurp qw(read_file write_file);
 
 my $vendor = shift @ARGV or die "Usage: $0 <VendorNameInCamelCase>\n";
 
-# Split CamelCase into separate words (e.g., MyLibraryVendor -> "My Library Vendor")
+# Split CamelCase into separate words, keeping acronyms together
+# e.g., MyLibraryVendor -> "My Library Vendor", Enhanced -> "Enhanced", MyEnhancedVendor -> "My Enhanced Vendor"
 my $vendor_name = $vendor;
-$vendor_name =~ s/([A-Z])/ $1/g;
-$vendor_name =~ s/^ //;
+$vendor_name =~ s/([a-z])([A-Z])/$1 $2/g;
+$vendor_name =~ s/([A-Z]+)([A-Z][a-z])/$1 $2/g;
 
 my $vendor_lower_dashed = lc(join('-', split(' ', $vendor_name)));
 
@@ -61,7 +62,7 @@ find(
             return unless -f $_;
             return if $File::Find::name =~ m{/\.git/};
             return if $File::Find::name =~ m{/node_modules/};
-            return if $_ eq 'rename_edi_plugin.pl';
+            return if $File::Find::name =~ /rename_edi_plugin.pl/;
 
             my $content = read_file($_);
             if ( $content =~ /enhanced/i ) {
