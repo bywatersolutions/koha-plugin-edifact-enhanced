@@ -8,7 +8,7 @@ jobs:
   sync-version:
     name: Sync Release Version
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && github.repository != 'bywatersolutions/koha-plugin-edifact-enhanced' }}
     
     steps:
     - name: Checkout code
