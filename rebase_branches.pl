@@ -68,9 +68,32 @@ foreach my $repo (@repos) {
     say "Rebasing against origin/main";
     qx(git rebase origin/main);
     if ( $? != 0 ) {
-        say "Rebase of main failed: $?";
-        $failures++;
-        next;
+        say "Rebase conflict detected, attempting auto-resolution";
+
+        # Check if the only conflicted files are package.json and package-lock.json
+        my @conflicted = split /\n/, qx(git diff --name-only --diff-filter=U);
+        my @unexpected = grep { $_ ne 'package.json' && $_ ne 'package-lock.json' } @conflicted;
+
+        if (@unexpected) {
+            say "Unexpected conflicts in: @unexpected";
+            qx(git rebase --abort);
+            $failures++;
+            next;
+        }
+
+        # Resolve by accepting theirs (vendor branch) for these files
+        foreach my $file (@conflicted) {
+            qx(git checkout --theirs "$file");
+            qx(git add "$file");
+        }
+
+        qx(git rebase --continue);
+        if ( $? != 0 ) {
+            say "Rebase --continue failed: $?";
+            qx(git rebase --abort);
+            $failures++;
+            next;
+        }
     }
     say "Rebased main";
 
