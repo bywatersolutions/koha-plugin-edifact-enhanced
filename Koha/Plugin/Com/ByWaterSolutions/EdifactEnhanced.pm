@@ -25,7 +25,7 @@ use Koha::EDI;
 use Koha::Items;
 
 ## Here we set our plugin version
-our $VERSION = "4.0.6";
+our $VERSION = "4.0.7";
 
 ## Here is our metadata, some keys are required, some are optional
 our $metadata = {
