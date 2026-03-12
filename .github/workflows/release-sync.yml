@@ -1,14 +1,15 @@
 name: Sync GitHub Release with npm version
 
 on:
-  release:
-    types: [published]
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
 
 jobs:
   sync-version:
     name: Sync Release Version
     runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref, 'refs/tags/v') && github.repository != 'bywatersolutions/koha-plugin-edifact-enhanced' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'v') && github.repository != 'bywatersolutions/koha-plugin-edifact-enhanced' }}
     
     steps:
     - name: Checkout code
@@ -37,8 +38,8 @@ jobs:
       id: version
       run: |
         # Extract version from tag (remove 'v' prefix if present)
-        VERSION=${GITHUB_REF#refs/tags/}
-        VERSION=${VERSION#v}
+        TAG="${{ github.event.workflow_run.head_branch }}"
+        VERSION=${TAG#v}
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Extracted version: $VERSION"
 
@@ -89,4 +90,4 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: ./koha-plugin-edifact-enhanced-v${{ steps.version.outputs.version }}.kpz
-        tag_name: ${{ github.ref_name }}
+        tag_name: ${{ github.event.workflow_run.head_branch }}
