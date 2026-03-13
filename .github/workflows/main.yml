@@ -9,7 +9,6 @@ on:
 
 jobs:
   unit_tests:
-    if: false
     name: Run unit tests
     runs-on: ubuntu-latest
     strategy:
@@ -20,15 +19,18 @@ jobs:
 
     steps:
     - name: Checkout plugin code
+      if: ${{ github.repository == 'bywatersolutions/koha-plugin-edifact-enhanced' }}
       uses: actions/checkout@v4
 
     - name: Get Koha Version Branch Name
+      if: ${{ github.repository == 'bywatersolutions/koha-plugin-edifact-enhanced' }}
       id: koha-version
       uses: "bywatersolutions/github-action-koha-get-version-by-label@v2"
       with:
         version-label: "${{ matrix.koha-version }}"
 
     - name: Set up environment variables
+      if: ${{ github.repository == 'bywatersolutions/koha-plugin-edifact-enhanced' }}
       run: |
         IFS='/' read -r -a parts <<< "$GITHUB_REPOSITORY"
         GITHUB_REPO="${parts[1]}"
@@ -38,11 +40,13 @@ jobs:
         echo "SYNC_REPO=$(pwd)/../kohaclone" >> $GITHUB_ENV
 
     - name: Check out Koha
+      if: ${{ github.repository == 'bywatersolutions/koha-plugin-edifact-enhanced' }}
       run: |
         cd ..
         git clone --branch ${{ env.KOHA_BRANCH }} --single-branch --depth 1 https://github.com/Koha-Community/Koha.git kohaclone
 
     - name: Install koha-testing-docker
+      if: ${{ github.repository == 'bywatersolutions/koha-plugin-edifact-enhanced' }}
       run: |
         cd ..
         git clone https://gitlab.com/koha-community/koha-testing-docker.git
@@ -51,6 +55,7 @@ jobs:
         echo "$(pwd)/bin" >> $GITHUB_PATH
 
     - name: Launch KTD instance with plugins support
+      if: ${{ github.repository == 'bywatersolutions/koha-plugin-edifact-enhanced' }}
       run: |
         cd ../koha-testing-docker
         export LOCAL_USER_ID=$(id -u)
@@ -64,17 +69,20 @@ jobs:
         ktd --name edifact --plugins up -d
 
     - name: Wait for KTD to be ready
+      if: ${{ github.repository == 'bywatersolutions/koha-plugin-edifact-enhanced' }}
       run: |
         cd ../koha-testing-docker
         export KTD_HOME=$(pwd)
         ktd --name edifact --wait-ready 500
 
     - name: Install extra CPAN modules the plugin needs
+      if: ${{ github.repository == 'bywatersolutions/koha-plugin-edifact-enhanced' }}
       run: |
         export KTD_HOME=$(pwd)/../koha-testing-docker
         ktd --name edifact --shell --run "sudo cpanm Business::Barcode::EAN13"
 
     - name: Run plugin tests
+      if: ${{ github.repository == 'bywatersolutions/koha-plugin-edifact-enhanced' }}
       run: |
         export KTD_HOME=$(pwd)/../koha-testing-docker
         ktd --name edifact --shell --run "
@@ -84,7 +92,7 @@ jobs:
         "
 
     - name: Show logs on failure
-      if: failure()
+      if: ${{ failure() && github.repository == 'bywatersolutions/koha-plugin-edifact-enhanced' }}
       run: |
         export KTD_HOME=$(pwd)/../koha-testing-docker
         echo "=== KTD instance status ==="
@@ -95,7 +103,7 @@ jobs:
         docker logs edifact-koha-1 --tail 50 || true
 
     - name: Cleanup KTD instance
-      if: always()
+      if: ${{ always() && github.repository == 'bywatersolutions/koha-plugin-edifact-enhanced' }}
       run: |
         export KTD_HOME=$(pwd)/../koha-testing-docker
         ktd --name edifact down || true
@@ -104,7 +112,7 @@ jobs:
     name: Rebase other branches
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     runs-on: ubuntu-latest
-    #needs: unit_tests
+    needs: unit_tests
     strategy:
       fail-fast: false
     steps:
@@ -123,8 +131,7 @@ jobs:
     name: Build & Release
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
-    #needs: [rebase, unit_tests]
-    needs: rebase
+    needs: [rebase, unit_tests]
     strategy:
       fail-fast: false
     steps:
