@@ -63,20 +63,16 @@ foreach my $repo (@repos) {
         next;
     }
 
-    say "CURRENT DIR & FILES: " . qx{pwd; find Koha -type f};
-
     say "Rebasing against origin/main";
-    qx(git rebase -X theirs origin/main);
+    qx(git rebase origin/main);
     if ( $? != 0 ) {
         say "Rebase of main failed: $?";
         $failures++;
         next;
     }
-    say "Rebased main";
+    say "Rebased $repo/main against origin/main";
 
-    say "CURRENT DIR & FILES: " . qx{pwd; find Koha -type f};
-
-    say "Pushing new version";
+    say "Pushing new version to main for $repo";
     qx(git push -f $repo HEAD:refs/heads/main);
     if ( $? != 0 ) {
         say "Push of main to $repo failed: $?";
@@ -143,8 +139,6 @@ sub get_other_repos {
 
         $page++;
     }
-
-    say "Found repos: " . Data::Dumper::Dumper( \@matches );
 
     return @matches;
 }
