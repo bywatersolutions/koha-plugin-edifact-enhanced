@@ -63,6 +63,7 @@ find(
             return if $File::Find::name =~ m{/\.git/};
             return if $File::Find::name =~ m{/node_modules/};
             return if $File::Find::name =~ /rename_edi_plugin.pl/;
+            return if $File::Find::name =~ /rebase_branches.pl/;
 
             my $content = read_file($_);
             if ( $content =~ /enhanced/i ) {
