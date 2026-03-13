@@ -62,6 +62,7 @@ find(
             return unless -f $_;
             return if $File::Find::name =~ m{/\.git/};
             return if $File::Find::name =~ m{/node_modules/};
+            return if $File::Find::name =~ m{/release-sync.yml/};
             return if $File::Find::name =~ /rename_edi_plugin.pl/;
 
             my $content = read_file($_);
