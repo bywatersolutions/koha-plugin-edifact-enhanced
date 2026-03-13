@@ -134,6 +134,7 @@ sub get_other_repos {
         last unless @$repos;    # no more results
 
         foreach my $repo (@$repos) {
+            next if $repo->{archived};
             push @matches, $repo->{name} if $repo->{name} =~ /$pattern/;
         }
 
