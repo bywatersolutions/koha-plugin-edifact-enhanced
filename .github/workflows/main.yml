@@ -191,14 +191,17 @@ jobs:
 
     - name: Update plugin file version
       run: |
-        # Run the preversion script logic manually to update plugin file
-        sed -i -e "s/^our \$VERSION = .*/our \$VERSION = \"${{ steps.version.outputs.version }}\";/" Koha/Plugin/Com/ByWaterSolutions/EdifactEnhanced.pm
-        rm -f Koha/Plugin/Com/ByWaterSolutions/EdifactEnhanced.pm-e
+        # Find the plugin .pm file dynamically
+        PLUGIN_FILE=$(ls Koha/Plugin/Com/ByWaterSolutions/Edifact*.pm)
+        echo "Found plugin file: $PLUGIN_FILE"
+        sed -i -e "s/^our \$VERSION = .*/our \$VERSION = \"${{ steps.version.outputs.version }}\";/" "$PLUGIN_FILE"
+        rm -f "${PLUGIN_FILE}-e"
 
     - name: Commit version updates
       if: false
       run: |
-        git add package.json package-lock.json Koha/Plugin/Com/ByWaterSolutions/EdifactEnhanced.pm
+        PLUGIN_FILE=$(ls Koha/Plugin/Com/ByWaterSolutions/Edifact*.pm)
+        git add package.json package-lock.json "$PLUGIN_FILE"
         if git diff --staged --quiet; then
           echo "No changes to commit"
         else
