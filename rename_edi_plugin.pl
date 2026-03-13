@@ -35,7 +35,7 @@ if ( -f $old_pm ) {
 
 # Commit the renames
 system( 'git', 'add', '-A' ) == 0 or die "Failed to git add\n";
-system( 'git', 'commit', '-m', "$vendor_name - Rename files" ) == 0
+system( 'git', 'commit', '-m', "$vendor_name - Rename files [Vendor]" ) == 0
     or die "Failed to commit renames\n";
 
 # Update description in package.json
@@ -85,7 +85,7 @@ for my $file (@files) {
 
 # Commit the content updates
 system( 'git', 'add', '-A' ) == 0 or die "Failed to git add\n";
-system( 'git', 'commit', '-m', "$vendor_name - Update files" ) == 0
+system( 'git', 'commit', '-m', "$vendor_name - Update files [Vendor]" ) == 0
     or die "Failed to commit content updates\n";
 
 print "Renamed plugin to Edifact$vendor\n";
