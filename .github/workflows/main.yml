@@ -192,13 +192,13 @@ jobs:
     - name: Update plugin file version
       run: |
         # Run the preversion script logic manually to update plugin file
-        sed -i -e "s/^our \$VERSION = .*/our \$VERSION = \"${{ steps.version.outputs.version }}\";/" Koha/Plugin/Com/ByWaterSolutions/EdifactBrodart.pm
-        rm -f Koha/Plugin/Com/ByWaterSolutions/EdifactBrodart.pm-e
+        sed -i -e "s/^our \$VERSION = .*/our \$VERSION = \"${{ steps.version.outputs.version }}\";/" Koha/Plugin/Com/ByWaterSolutions/EdifactEnhanced.pm
+        rm -f Koha/Plugin/Com/ByWaterSolutions/EdifactEnhanced.pm-e
 
     - name: Commit version updates
       if: false
       run: |
-        git add package.json package-lock.json Koha/Plugin/Com/ByWaterSolutions/EdifactBrodart.pm
+        git add package.json package-lock.json Koha/Plugin/Com/ByWaterSolutions/EdifactEnhanced.pm
         if git diff --staged --quiet; then
           echo "No changes to commit"
         else
@@ -212,7 +212,7 @@ jobs:
     - name: Upload kpz to release
       uses: softprops/action-gh-release@v2
       with:
-        files: ./koha-plugin-edifact-brodart-v${{ steps.version.outputs.version }}.kpz
+        files: ./koha-plugin-edifact-enhanced-v${{ steps.version.outputs.version }}.kpz
         tag_name: ${{ github.ref_name }}
 
   keepalive:
