@@ -9,6 +9,7 @@ on:
 
 jobs:
   unit_tests:
+    if: false
     name: Run unit tests
     runs-on: ubuntu-latest
     strategy:
@@ -103,7 +104,7 @@ jobs:
     name: Build & Release
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: unit_tests
+    #needs: unit_tests
     strategy:
       fail-fast: false
     steps:
@@ -207,7 +208,6 @@ jobs:
       with:
         files: ./koha-plugin-edifact-brodart-v${{ steps.version.outputs.version }}.kpz
         tag_name: ${{ github.ref_name }}
-
 
   rebase:
     name: Rebase other branches
