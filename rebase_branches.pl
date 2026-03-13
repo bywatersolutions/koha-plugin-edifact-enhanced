@@ -15,7 +15,6 @@ say "Failed to set git name" if $? != 0;
 
 my $TAG      = $ENV{TAG}      // '';
 my $GH_TOKEN = $ENV{GH_TOKEN} // '';
-my $GH_USERNAME = $ENV{GH_USERNAME} // '';
 
 say "TAG: $TAG";
 
@@ -44,7 +43,7 @@ foreach my $repo (@repos) {
 
     say "WORKING ON $repo";
 
-    qx(git remote add $repo https://$GH_USERNAME:$GH_TOKEN\@github.com/bywatersolutions/$repo.git);
+    qx(git remote add $repo https://x-access-token:$GH_TOKEN\@github.com/bywatersolutions/$repo.git);
     say "Failed to add remote for $repo" if $? != 0;
 
     say "Fetching $repo";
