@@ -148,3 +148,5 @@ sub get_other_repos {
 
     return @matches;
 }
+
+exit $failures > 0 ? 1 : 0;
