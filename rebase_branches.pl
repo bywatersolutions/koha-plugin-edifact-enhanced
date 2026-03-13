@@ -67,7 +67,7 @@ foreach my $repo (@repos) {
     if ( $? != 0 ) {
         say "Rebase of main failed: $?";
         qx(git rebase --abort);
-        $failures++;
+        push( @failures, $repo );
         next;
     }
     say "Rebased $repo/main against origin/main";
@@ -76,7 +76,7 @@ foreach my $repo (@repos) {
     qx(git push -f $repo HEAD:refs/heads/main);
     if ( $? != 0 ) {
         say "Push of main to $repo failed: $?";
-        $failures++;
+        push( @failures, $repo );
         next;
     }
 
