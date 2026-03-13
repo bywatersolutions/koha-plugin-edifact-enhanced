@@ -36,7 +36,7 @@ my @repos = get_other_repos(
 
 say "FOUND REPOS " . Data::Dumper::Dumper( \@repos );
 
-my $failures = 0;
+my @failures;
 foreach my $repo (@repos) {
     next if $repo eq 'koha-plugin-edifact-enhanced';
     next if $repo eq 'koha-plugin-edifact-enhanced-docs';
@@ -50,7 +50,7 @@ foreach my $repo (@repos) {
     qx(git fetch $repo);
     if ( $? != 0 ) {
         say "Fetch of $repo failed: $?";
-        $failures++;
+        push( @failures, $repo );
         next;
     }
 
@@ -58,7 +58,7 @@ foreach my $repo (@repos) {
     qx(git checkout $repo/main);
     if ( $? != 0 ) {
         say "Checkout of $repo/main failed: $?";
-        $failures++;
+        push( @failures, $repo );
         next;
     }
 
@@ -104,6 +104,16 @@ foreach my $repo (@repos) {
 qx(git checkout origin/main);
 say "Checkout of origin/main failed: $?" if $? != 0;
 
+if (@failures) {
+    say "*" x 40;
+    say "Failures: " . Data::Dumper::Dumper( \@failures );
+    say "*" x 40;
+} else {
+    say "All operations completed successfully.";
+}
+
+exit scalar @failures > 0 ? 1 : 0;
+
 sub get_other_repos {
     my (%args)  = @_;
     my $org     = $args{org}     // die "org is required";
@@ -143,5 +153,3 @@ sub get_other_repos {
 
     return @matches;
 }
-
-exit $failures > 0 ? 1 : 0;
