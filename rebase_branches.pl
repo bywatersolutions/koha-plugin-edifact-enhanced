@@ -66,6 +66,7 @@ foreach my $repo (@repos) {
     qx(git rebase origin/main);
     if ( $? != 0 ) {
         say "Rebase of main failed: $?";
+        qx(git rebase --abort);
         $failures++;
         next;
     }
