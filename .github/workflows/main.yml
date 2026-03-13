@@ -128,7 +128,8 @@ jobs:
     steps:
 
     - uses: actions/checkout@v4
-      ref: main
+      with:
+        ref: main
 
     - name: Parse out and store the GitHub repository name
       id: myvars
