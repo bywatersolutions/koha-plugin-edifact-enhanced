@@ -111,6 +111,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
+        fetch-depth: 0
 
     - name: Run rebase_branches.pl
       run: TAG=${GITHUB_REF##*/} ./rebase_branches.pl
