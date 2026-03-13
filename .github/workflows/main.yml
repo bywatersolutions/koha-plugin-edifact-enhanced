@@ -100,6 +100,24 @@ jobs:
         export KTD_HOME=$(pwd)/../koha-testing-docker
         ktd --name edifact down || true
 
+  rebase:
+    name: Rebase other branches
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}
+    runs-on: ubuntu-latest
+    #needs: unit_tests
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: Run rebase_branches.pl
+      run: TAG=${GITHUB_REF##*/} ./rebase_branches.pl
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        GH_USERNAME: ${{ secrets.GH_USERNAME }}
+
   release:
     name: Build & Release
     runs-on: ubuntu-latest
@@ -208,24 +226,6 @@ jobs:
       with:
         files: ./koha-plugin-edifact-brodart-v${{ steps.version.outputs.version }}.kpz
         tag_name: ${{ github.ref_name }}
-
-  rebase:
-    name: Rebase other branches
-    if: ${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}
-    runs-on: ubuntu-latest
-    #needs: unit_tests
-    strategy:
-      fail-fast: false
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        persist-credentials: false
-
-    - name: Run rebase_branches.pl
-      run: TAG=${GITHUB_REF##*/} ./rebase_branches.pl
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        GH_USERNAME: ${{ secrets.GH_USERNAME }}
 
   keepalive:
     name: Keep Alive
