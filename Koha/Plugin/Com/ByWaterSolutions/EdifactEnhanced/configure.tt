@@ -538,6 +538,15 @@ LLO:
                    </span>
                 </li>
 
+                <li>
+                   <label for="skip_previously_downloaded_files">Skip previously downloaded files: </label>
+                   <input type="checkbox" name="skip_previously_downloaded_files" id="skip_previously_downloaded_files" value="1" [% IF skip_previously_downloaded_files %]checked="checked"[% END %]>
+                   <span class="hint">
+                       Skip downloading files from the vendor's server if a file with the same filename already exists in the edifact_messages table.
+                       This prevents re-downloading and re-processing files that have already been ingested.
+                   </span>
+                </li>
+
               </ol>
             </fieldset>
 

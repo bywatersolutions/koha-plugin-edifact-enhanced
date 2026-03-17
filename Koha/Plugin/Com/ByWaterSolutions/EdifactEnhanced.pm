@@ -638,6 +638,7 @@ sub configure {
             lin_use_item_field_qualifier                   => $self->retrieve_data('lin_use_item_field_qualifier'),
             lin_use_item_field_clear_on_invoice            => $self->retrieve_data('lin_use_item_field_clear_on_invoice'),
             skip_nonmatching_san_suffix                    => $self->retrieve_data('skip_nonmatching_san_suffix'),
+            skip_previously_downloaded_files                    => $self->retrieve_data('skip_previously_downloaded_files') // 1,
             shipping_budget_id                             => $self->retrieve_data('shipping_budget_id'),
             invoice_adjustment_rules                       => $self->retrieve_data('invoice_adjustment_rules') // '[]',
         );
@@ -699,6 +700,7 @@ sub configure {
             lin_use_item_field_qualifier                   => $self->retrieve_data('lin_use_item_field_qualifier'),
             lin_use_item_field_clear_on_invoice            => $self->retrieve_data('lin_use_item_field_clear_on_invoice'),
             skip_nonmatching_san_suffix                    => $self->retrieve_data('skip_nonmatching_san_suffix'),
+            skip_previously_downloaded_files                    => $self->retrieve_data('skip_previously_downloaded_files') // 1,
             shipping_budget_id                             => $self->retrieve_data('shipping_budget_id'),
             invoice_adjustment_rules                       => $self->retrieve_data('invoice_adjustment_rules') // '[]',
         };
@@ -757,6 +759,7 @@ sub configure {
             lin_use_item_field_qualifier                   => $cgi->param('lin_use_item_field_qualifier') || q{},
             lin_use_item_field_clear_on_invoice            => $cgi->param('lin_use_item_field_clear_on_invoice') ? "1" : "0",
             skip_nonmatching_san_suffix                    => $cgi->param('skip_nonmatching_san_suffix')         ? "1" : "0",
+            skip_previously_downloaded_files                    => $cgi->param('skip_previously_downloaded_files')         ? "1" : "0",
             shipping_budget_id                             => $cgi->param('shipping_budget_id') || q{},
             invoice_adjustment_rules                       => $cgi->param('invoice_adjustment_rules') || '[]',
         };
