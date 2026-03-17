@@ -18,7 +18,7 @@ use C4::Items;
 use C4::Log qw( logaction );
 use C4::Members;
 use C4::Suggestions qw(ModSuggestion);
-use JSON qw(decode_json);
+use JSON            qw(decode_json);
 use Koha::Acquisition::Booksellers;
 use Koha::Acquisition::Invoice::Adjustment;
 use Koha::Acquisition::Orders;
@@ -206,7 +206,7 @@ sub edifact_process_invoice {
                             $invoice_message->update;
                             $done = 1;
                         } catch {
-                                say "CATCH";
+                            say "CATCH";
                             $idx++;
                             warn "IDX2: $idx";
                         };
@@ -218,7 +218,7 @@ sub edifact_process_invoice {
                 }
             }
 
-            unless ( $booksellerid ) {
+            unless ($booksellerid) {
                 warn "NO BOOKSELLER ID FOR INVOICE NUMBER $invoicenumber... SKIPPING INVOICE";
                 next;
             }
@@ -362,7 +362,7 @@ sub edifact_process_invoice {
                     my $tax_multiplier = 1;
 
                     if ( $is_standing || $order->quantity > $line->quantity ) {
-                        my $ordered = $order->quantity;
+                        my $ordered            = $order->quantity;
                         my $quantity_remaining = $is_standing ? 1 : $ordered - $line->quantity;
 
                         # part receipt
@@ -381,9 +381,7 @@ sub edifact_process_invoice {
                                 invoiceid              => $invoiceid,
                                 datereceived           => $msg_date,
                                 tax_rate_on_receiving  => $tax_rate ? $tax_rate->{rate} : 0,
-                                tax_value_on_receiving => $quantity *
-                                    $price_excl_tax *
-                                    ( $tax_rate ? $tax_rate->{rate} : 0 ),
+                                tax_value_on_receiving => $quantity * $price_excl_tax * ( $tax_rate ? $tax_rate->{rate} : 0 ),
                             }
                         );
 
@@ -413,8 +411,7 @@ sub edifact_process_invoice {
                         $order->unitprice_tax_excluded($price_excl_tax);
                         $order->unitprice_tax_included($price);
                         $order->tax_rate_on_receiving( $tax_rate ? $tax_rate->{rate} : 0 );
-                        $order->tax_value_on_receiving(
-                            $quantity * $price_excl_tax * ( $tax_rate ? $tax_rate->{rate} : 0 ) );
+                        $order->tax_value_on_receiving( $quantity * $price_excl_tax * ( $tax_rate ? $tax_rate->{rate} : 0 ) );
                         $order->orderstatus('complete');
                         $order->update;
 
@@ -444,17 +441,17 @@ sub edifact_process_invoice {
                 if ( $adj_rules && ref $adj_rules eq 'ARRAY' && @$adj_rules ) {
                     my $moa_amounts = $msg->moa_amounts();
 
-                    foreach my $rule ( @$adj_rules ) {
+                    foreach my $rule (@$adj_rules) {
                         next unless defined $rule->{moa_qualifier} && $rule->{moa_qualifier} ne '';
 
-                        foreach my $moa ( @$moa_amounts ) {
+                        foreach my $moa (@$moa_amounts) {
                             if ( $moa->{qualifier} eq $rule->{moa_qualifier} ) {
                                 Koha::Acquisition::Invoice::Adjustment->new(
                                     {
                                         invoiceid     => $invoiceid,
                                         adjustment    => $moa->{amount},
-                                        reason        => $rule->{reason} || undef,
-                                        note          => $rule->{note} || undef,
+                                        reason        => $rule->{reason}    || undef,
+                                        note          => $rule->{note}      || undef,
                                         budget_id     => $rule->{budget_id} || undef,
                                         encumber_open => $rule->{encumber_open} ? 1 : 0,
                                     }
@@ -638,7 +635,7 @@ sub configure {
             lin_use_item_field_qualifier                   => $self->retrieve_data('lin_use_item_field_qualifier'),
             lin_use_item_field_clear_on_invoice            => $self->retrieve_data('lin_use_item_field_clear_on_invoice'),
             skip_nonmatching_san_suffix                    => $self->retrieve_data('skip_nonmatching_san_suffix'),
-            skip_previously_downloaded_files                    => $self->retrieve_data('skip_previously_downloaded_files') // 1,
+            skip_previously_downloaded_files               => $self->retrieve_data('skip_previously_downloaded_files') // 1,
             shipping_budget_id                             => $self->retrieve_data('shipping_budget_id'),
             invoice_adjustment_rules                       => $self->retrieve_data('invoice_adjustment_rules') // '[]',
         );
@@ -700,7 +697,7 @@ sub configure {
             lin_use_item_field_qualifier                   => $self->retrieve_data('lin_use_item_field_qualifier'),
             lin_use_item_field_clear_on_invoice            => $self->retrieve_data('lin_use_item_field_clear_on_invoice'),
             skip_nonmatching_san_suffix                    => $self->retrieve_data('skip_nonmatching_san_suffix'),
-            skip_previously_downloaded_files                    => $self->retrieve_data('skip_previously_downloaded_files') // 1,
+            skip_previously_downloaded_files               => $self->retrieve_data('skip_previously_downloaded_files') // 1,
             shipping_budget_id                             => $self->retrieve_data('shipping_budget_id'),
             invoice_adjustment_rules                       => $self->retrieve_data('invoice_adjustment_rules') // '[]',
         };
@@ -759,8 +756,8 @@ sub configure {
             lin_use_item_field_qualifier                   => $cgi->param('lin_use_item_field_qualifier') || q{},
             lin_use_item_field_clear_on_invoice            => $cgi->param('lin_use_item_field_clear_on_invoice') ? "1" : "0",
             skip_nonmatching_san_suffix                    => $cgi->param('skip_nonmatching_san_suffix')         ? "1" : "0",
-            skip_previously_downloaded_files                    => $cgi->param('skip_previously_downloaded_files')         ? "1" : "0",
-            shipping_budget_id                             => $cgi->param('shipping_budget_id') || q{},
+            skip_previously_downloaded_files               => $cgi->param('skip_previously_downloaded_files')    ? "1" : "0",
+            shipping_budget_id                             => $cgi->param('shipping_budget_id')       || q{},
             invoice_adjustment_rules                       => $cgi->param('invoice_adjustment_rules') || '[]',
         };
 
