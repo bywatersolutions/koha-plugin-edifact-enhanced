@@ -92,13 +92,15 @@ sub download_messages {
         return;
     }
 
+    my $skip_previously_downloaded_files = $self->{plugin}->retrieve_data('skip_previously_downloaded_files')
+
     # Process files matching our criteria
     foreach my $file ( @{$file_list} ) {
         my $filename = $file->{filename};
 
         if ( $filename =~ m/[.]$file_ext$/ ) {
             # Skip files whose filename already exists in edifact_messages
-            if ( ( $self->{plugin}->retrieve_data('skip_previously_downloaded_files') // 1 ) ) {
+            if ( ( $skip_previously_downloaded_files // 1 ) ) {
                 my $existing = $self->{schema}->resultset('EdifactMessage')->find( { filename => $filename } );
                 if ($existing) {
                     warn "Skipping download of $filename: already exists in edifact_messages";
