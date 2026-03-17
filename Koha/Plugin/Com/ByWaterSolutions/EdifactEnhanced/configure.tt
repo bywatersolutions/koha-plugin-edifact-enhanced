@@ -6,7 +6,7 @@
 <script type="text/javascript">
 $( document ).ready(function() {
     $('.in-header').on('change', function() {
-        $('.in-header').not(this).prop('checked', !$(this).prop('checked') );  
+        $('.in-header').not(this).prop('checked', !$(this).prop('checked') );
     });
 
     check_if_buyer_san_use_username();
@@ -14,6 +14,76 @@ $( document ).ready(function() {
 
     check_if_buyer_san_use_library_ean_split_first_part();
     $('#buyer_san_use_library_ean_split_first_part').on('change', check_if_buyer_san_use_library_ean_split_first_part );
+
+    // Invoice adjustment rules from MOA segments
+    var adj_reasons_options = '<option value="">-- None --</option>';
+    [% SET adj_reasons = AuthorisedValues.GetAuthValueDropbox('ADJ_REASON') %]
+    [% FOR av IN adj_reasons %]
+    adj_reasons_options += '<option value="[% av.authorised_value | html %]">[% av.lib | html %]</option>';
+    [% END %]
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return $('<span>').text(text).html();
+    }
+
+    function addAdjRule(rule) {
+        rule = rule || {};
+        var row = $('<tr>');
+        row.append('<td><input type="text" class="adj_moa_qualifier" size="6" value="' + escapeHtml(rule.moa_qualifier) + '" /></td>');
+        row.append('<td><select class="adj_reason">' + adj_reasons_options + '</select></td>');
+        row.append('<td><input type="text" class="adj_note" size="30" value="' + escapeHtml(rule.note) + '" /></td>');
+        row.append('<td><input type="text" class="adj_budget_id" size="8" value="' + escapeHtml(rule.budget_id) + '" /></td>');
+        row.append('<td style="text-align:center;"><input type="checkbox" class="adj_encumber_open" ' + (rule.encumber_open ? 'checked="checked"' : '') + ' /></td>');
+        row.append('<td><button type="button" class="btn btn-default btn-xs remove_adj_rule_btn">Remove</button></td>');
+        $('#invoice_adj_rules_tbody').append(row);
+        if (rule.reason) {
+            row.find('.adj_reason').val(rule.reason);
+        }
+    }
+
+    function updateAdjRulesJson() {
+        var rules = [];
+        $('#invoice_adj_rules_tbody tr').each(function() {
+            var qualifier = $(this).find('.adj_moa_qualifier').val();
+            if (qualifier !== '') {
+                rules.push({
+                    moa_qualifier: qualifier,
+                    reason: $(this).find('.adj_reason').val(),
+                    note: $(this).find('.adj_note').val(),
+                    budget_id: $(this).find('.adj_budget_id').val(),
+                    encumber_open: $(this).find('.adj_encumber_open').is(':checked') ? 1 : 0
+                });
+            }
+        });
+        $('#invoice_adjustment_rules').val(JSON.stringify(rules));
+    }
+
+    // Initialize from saved data
+    try {
+        var rawVal = $('#invoice_adjustment_rules').val();
+        if (rawVal) {
+            var savedRules = JSON.parse(rawVal);
+            $.each(savedRules, function(i, rule) {
+                addAdjRule(rule);
+            });
+        }
+    } catch(e) {}
+
+    $('#add_adj_rule_btn').on('click', function() {
+        addAdjRule();
+    });
+
+    $(document).on('click', '.remove_adj_rule_btn', function() {
+        $(this).closest('tr').remove();
+        updateAdjRulesJson();
+    });
+
+    $('#invoice_adj_rules_table').on('change input', updateAdjRulesJson);
+
+    $('form').on('submit', function() {
+        updateAdjRulesJson();
+    });
 });
 
 function check_if_buyer_san_use_username() {
@@ -469,6 +539,34 @@ LLO:
                 </li>
 
               </ol>
+            </fieldset>
+
+            <fieldset class="rows">
+              <legend>Invoice Adjustments from MOA Segments</legend>
+              <p>Create invoice adjustments automatically from MOA segments in EDIFACT invoices. Each rule matches a specific MOA qualifier and creates an adjustment with the specified settings. These are independent of the shipment charge MOA settings above.</p>
+
+              <table id="invoice_adj_rules_table" style="width: 100%;">
+                  <thead>
+                      <tr>
+                          <th>MOA Qualifier</th>
+                          <th>Reason (ADJ_REASON)</th>
+                          <th>Note</th>
+                          <th>Budget ID</th>
+                          <th>Encumber while open</th>
+                          <th>&nbsp;</th>
+                      </tr>
+                  </thead>
+                  <tbody id="invoice_adj_rules_tbody">
+                  </tbody>
+              </table>
+
+              <button type="button" id="add_adj_rule_btn" class="btn btn-default btn-xs">Add rule</button>
+              <input type="hidden" name="invoice_adjustment_rules" id="invoice_adjustment_rules" value="[% invoice_adjustment_rules | html %]" />
+
+              <span class="hint" style="display: block; margin-top: 5px;">
+                  The budget ID is <em>not</em> the fund <em>code</em>.
+                  It is numeric only and can be found in the URL of the edit page for the fund, with the key being <em>budget_id</em>.
+              </span>
             </fieldset>
 
             <p>

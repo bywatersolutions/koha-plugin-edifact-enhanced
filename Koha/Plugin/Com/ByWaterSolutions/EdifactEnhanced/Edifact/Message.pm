@@ -243,6 +243,24 @@ sub lineitems {
     }
 }
 
+sub moa_amounts {
+    my $self = shift;
+
+    my @amounts;
+    if ( $self->message_type eq 'INVOIC' ) {
+        foreach my $s ( @{ $self->{datasegs} } ) {
+            if ( $s->tag eq 'MOA' ) {
+                push @amounts,
+                    {
+                    qualifier => $s->elem( 0, 0 ),
+                    amount    => $s->elem( 0, 1 ),
+                    };
+            }
+        }
+    }
+    return \@amounts;
+}
+
 1;
 __END__
 

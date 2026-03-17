@@ -18,7 +18,9 @@ use C4::Items;
 use C4::Log qw( logaction );
 use C4::Members;
 use C4::Suggestions qw(ModSuggestion);
+use JSON qw(decode_json);
 use Koha::Acquisition::Booksellers;
+use Koha::Acquisition::Invoice::Adjustment;
 use Koha::Acquisition::Orders;
 use Koha::DateUtils qw(dt_from_string);
 use Koha::EDI;
@@ -423,6 +425,36 @@ sub edifact_process_invoice {
 
             }
 
+            # Create invoice adjustments from MOA segments
+            my $adj_rules_json = $self->retrieve_data('invoice_adjustment_rules');
+            if ( $adj_rules_json && $adj_rules_json ne '[]' && $adj_rules_json ne '' ) {
+                my $adj_rules = eval { decode_json($adj_rules_json) };
+                if ( $adj_rules && ref $adj_rules eq 'ARRAY' && @$adj_rules ) {
+                    my $moa_amounts = $msg->moa_amounts();
+
+                    foreach my $rule ( @$adj_rules ) {
+                        next unless defined $rule->{moa_qualifier} && $rule->{moa_qualifier} ne '';
+
+                        foreach my $moa ( @$moa_amounts ) {
+                            if ( $moa->{qualifier} eq $rule->{moa_qualifier} ) {
+                                Koha::Acquisition::Invoice::Adjustment->new(
+                                    {
+                                        invoiceid     => $invoiceid,
+                                        adjustment    => $moa->{amount},
+                                        reason        => $rule->{reason} || undef,
+                                        note          => $rule->{note} || undef,
+                                        budget_id     => $rule->{budget_id} || undef,
+                                        encumber_open => $rule->{encumber_open} ? 1 : 0,
+                                    }
+                                )->store;
+
+                                warn "Created invoice adjustment for MOA+$moa->{qualifier}: $moa->{amount}";
+                            }
+                        }
+                    }
+                }
+            }
+
             my $now = dt_from_string();
             $new_invoice->closedate( $now->ymd() ) if $self->retrieve_data('close_invoice_on_receipt');
             $new_invoice->update();    # shipment budgetid may have been updated
@@ -595,6 +627,7 @@ sub configure {
             lin_use_item_field_clear_on_invoice            => $self->retrieve_data('lin_use_item_field_clear_on_invoice'),
             skip_nonmatching_san_suffix                    => $self->retrieve_data('skip_nonmatching_san_suffix'),
             shipping_budget_id                             => $self->retrieve_data('shipping_budget_id'),
+            invoice_adjustment_rules                       => $self->retrieve_data('invoice_adjustment_rules') // '[]',
         );
 
         print $cgi->header();
@@ -655,6 +688,7 @@ sub configure {
             lin_use_item_field_clear_on_invoice            => $self->retrieve_data('lin_use_item_field_clear_on_invoice'),
             skip_nonmatching_san_suffix                    => $self->retrieve_data('skip_nonmatching_san_suffix'),
             shipping_budget_id                             => $self->retrieve_data('shipping_budget_id'),
+            invoice_adjustment_rules                       => $self->retrieve_data('invoice_adjustment_rules') // '[]',
         };
 
         my $new_settings = {
@@ -712,6 +746,7 @@ sub configure {
             lin_use_item_field_clear_on_invoice            => $cgi->param('lin_use_item_field_clear_on_invoice') ? "1" : "0",
             skip_nonmatching_san_suffix                    => $cgi->param('skip_nonmatching_san_suffix')         ? "1" : "0",
             shipping_budget_id                             => $cgi->param('shipping_budget_id') || q{},
+            invoice_adjustment_rules                       => $cgi->param('invoice_adjustment_rules') || '[]',
         };
 
         logaction(
