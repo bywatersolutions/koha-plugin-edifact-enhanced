@@ -92,11 +92,12 @@ sub download_messages {
         return;
     }
 
-    my $skip_previously_downloaded_files = $self->{plugin}->retrieve_data('skip_previously_downloaded_files')
+    my $skip_previously_downloaded_files = $self->{plugin}->retrieve_data('skip_previously_downloaded_files');
 
     # Process files matching our criteria
     foreach my $file ( @{$file_list} ) {
         my $filename = $file->{filename};
+        $filename = (split /\s+/, $filename)[-1]; # Fix for bug in Koha/File/Transport/FTP.pm where filename has more than just the filename
 
         if ( $filename =~ m/[.]$file_ext$/ ) {
             # Skip files whose filename already exists in edifact_messages
