@@ -24,6 +24,7 @@ use utf8;
 use Carp        qw( carp );
 use Encode      qw( from_to );
 use File::Slurp qw( read_file );
+use JSON;
 
 use C4::Log qw( logaction );
 
@@ -47,6 +48,7 @@ sub new {
         working_dir    => C4::Context::temporary_directory,    #temporary work directory
         transfer_date  => dt_from_string(),
         plugin         => $plugin,
+        json           => JSON->new->allow_nonref,
     };
 
     bless $self, $class;
@@ -104,7 +106,7 @@ sub download_messages {
         if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/i ) {
             logaction(
                 "EDIFACT",
-                "INVOICE_DOWNLOAD_FTP",
+                "INVOICE_DOWNLOAD",
                 undef,
                 $self->{json}->pretty->encode(
                     {
@@ -194,6 +196,18 @@ sub upload_messages {
                 } else {
                     carp "Failed to upload file: " . $m->filename;
                 }
+
+                logaction(
+                    "EDIFACT",
+                    "INVOICE_UPLOAD",
+                    undef,
+                    $self->{json}->pretty->encode(
+                        {
+                            VendorEdiAccount => $self->{account}->id,
+                            filename         => $m->filename,
+                        }
+                    )
+                );
 
                 # Clean up temp file
                 unlink $temp_file;
