@@ -25,6 +25,8 @@ use Carp        qw( carp );
 use Encode      qw( from_to );
 use File::Slurp qw( read_file );
 
+use C4::Log qw( logaction );
+
 use Koha::Database;
 use Koha::DateUtils qw( dt_from_string );
 use Koha::File::Transports;
@@ -99,7 +101,19 @@ sub download_messages {
         my $filename = $file->{filename};
         $filename = (split /\s+/, $filename)[-1]; # Fix for bug in Koha/File/Transport/FTP.pm where filename has more than just the filename
 
-        if ( $filename =~ m/[.]$file_ext$/ ) {
+        if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/i ) {
+            logaction(
+                "EDIFACT",
+                "INVOICE_DOWNLOAD_FTP",
+                undef,
+                $self->{json}->pretty->encode(
+                    {
+                        VendorEdiAccount => $self->{account}->id,
+                        filename         => $filename
+                    }
+                )
+            );
+
             # Skip files whose filename already exists in edifact_messages
             if ( ( $skip_previously_downloaded_files // 1 ) ) {
                 my $existing = $self->{schema}->resultset('EdifactMessage')->find( { filename => $filename } );
