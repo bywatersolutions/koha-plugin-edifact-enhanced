@@ -101,7 +101,7 @@ sub download_messages {
     # Process files matching our criteria
     foreach my $file ( @{$file_list} ) {
         my $filename = $file->{filename};
-        $filename = (split /\s+/, $filename)[-1]; # Fix for bug in Koha/File/Transport/FTP.pm where filename has more than just the filename
+        $filename = ( split /\s+/, $filename )[-1];    # Fix for bug in Koha/File/Transport/FTP.pm where filename has more than just the filename
 
         if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/i ) {
             logaction(
@@ -203,11 +203,11 @@ sub upload_messages {
                     undef,
                     $self->{json}->pretty->encode(
                         {
-                            id => $m->id,
+                            id               => $m->id,
                             VendorEdiAccount => $self->{account}->id,
-                            basketno => $m->basketno,
+                            basketno         => $m->basketno,
                             filename         => $m->filename,
-                            message_type => $m->message_type,
+                            message_type     => $m->message_type,
                         }
                     )
                 );
