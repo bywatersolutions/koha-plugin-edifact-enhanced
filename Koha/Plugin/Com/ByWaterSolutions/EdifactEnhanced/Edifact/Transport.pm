@@ -188,18 +188,9 @@ sub upload_messages {
                 print {$fh} $content;
                 close $fh;
 
-                # Upload the file
-                if ( $self->{file_transport}->upload_file( $temp_file, $m->filename ) ) {
-                    $m->transfer_date( $self->{transfer_date} );
-                    $m->status('sent');
-                    $m->update;
-                } else {
-                    carp "Failed to upload file: " . $m->filename;
-                }
-
                 logaction(
                     "EDIFACT",
-                    "MESSAGE_UPLOAD",
+                    "MESSAGE_UPLOAD_ATTEMPT",
                     undef,
                     $self->{json}->pretty->encode(
                         {
@@ -211,6 +202,45 @@ sub upload_messages {
                         }
                     )
                 );
+
+                # Upload the file
+                if ( $self->{file_transport}->upload_file( $temp_file, $m->filename ) ) {
+                    $m->transfer_date( $self->{transfer_date} );
+                    $m->status('sent');
+                    $m->update;
+
+                    logaction(
+                        "EDIFACT",
+                        "MESSAGE_UPLOAD_COMPLETE",
+                        undef,
+                        $self->{json}->pretty->encode(
+                            {
+                                id               => $m->id,
+                                VendorEdiAccount => $self->{account}->id,
+                                basketno         => $m->basketno,
+                                filename         => $m->filename,
+                                message_type     => $m->message_type,
+                            }
+                        )
+                    );
+                } else {
+                    logaction(
+                        "EDIFACT",
+                        "MESSAGE_UPLOAD_FAILED",
+                        undef,
+                        $self->{json}->pretty->encode(
+                            {
+                                id               => $m->id,
+                                VendorEdiAccount => $self->{account}->id,
+                                basketno         => $m->basketno,
+                                filename         => $m->filename,
+                                message_type     => $m->message_type,
+                            }
+                        )
+                    );
+
+                    carp "Failed to upload file: " . $m->filename;
+                }
 
                 # Clean up temp file
                 unlink $temp_file;
