@@ -106,7 +106,7 @@ sub download_messages {
         if ( $file_ext eq q{} || $filename =~ m/[.]$file_ext$/i ) {
             logaction(
                 "EDIFACT",
-                "INVOICE_DOWNLOAD",
+                "MESSAGE_DOWNLOAD",
                 undef,
                 $self->{json}->pretty->encode(
                     {
@@ -199,12 +199,15 @@ sub upload_messages {
 
                 logaction(
                     "EDIFACT",
-                    "INVOICE_UPLOAD",
+                    "MESSAGE_UPLOAD",
                     undef,
                     $self->{json}->pretty->encode(
                         {
+                            id => $m->id,
                             VendorEdiAccount => $self->{account}->id,
+                            basketno => $m->basketno,
                             filename         => $m->filename,
+                            message_type => $m->message_type,
                         }
                     )
                 );
