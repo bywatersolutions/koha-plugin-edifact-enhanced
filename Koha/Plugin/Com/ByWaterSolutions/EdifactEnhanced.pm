@@ -394,10 +394,7 @@ sub edifact_process_invoice {
                         }
 
                         #FIXME transfer_items( $schema, $line, $order, $received_order, $quantity );
-                        receipt_items(
-                            $schema, $line,
-                            $received_order->ordernumber, $quantity, $invoice_message
-                        );
+                        _receipt_items( $self, $schema, $line, $received_order->ordernumber );
 
                     } else {    # simple receipt all copies on order
                         if ( $self->retrieve_data('ignore_duplicate_reciepts') ) {
