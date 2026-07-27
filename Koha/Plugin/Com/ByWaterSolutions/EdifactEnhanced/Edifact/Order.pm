@@ -335,12 +335,46 @@ sub order_msg_header {
 	        );
     }
 
+    # CTA-COM contact for the buyer, some vendors ( e.g. Amazon Business ) require
+    # the email address for the account the order is being placed under
+    my $contact_name  = $self->{plugin}->retrieve_data('order_contact_name');
+    my $contact_email = $self->{plugin}->retrieve_data('order_contact_email');
+    if ( $contact_name || $contact_email ) {
+        push @header, order_contact($contact_name);
+        push @header, order_contact_email($contact_email) if $contact_email;
+    }
+
     push @header,
       name_and_address(
         'SUPPLIER',
         $self->{recipient}->san,
         $self->{recipient}->id_code_qualifier
       );
+
+    # 'branchcode' on the library EAN is a relation, so it returns the branch itself
+    if ( $self->{plugin}->retrieve_data('send_shipto_address') ) {
+        my $library =
+            $self->{basket}->deliveryplace
+          ? $self->{schema}->resultset('Branch')->find( $self->{basket}->deliveryplace )
+          : $self->{sender}->branchcode;
+        push @header,
+          name_and_address_from_library(
+            $self->{plugin}->retrieve_data('shipto_address_qualifier') || 'DP',
+            $library
+          ) if $library;
+    }
+
+    if ( $self->{plugin}->retrieve_data('send_billto_address') ) {
+        my $library =
+            $self->{basket}->billingplace
+          ? $self->{schema}->resultset('Branch')->find( $self->{basket}->billingplace )
+          : $self->{sender}->branchcode;
+        push @header,
+          name_and_address_from_library(
+            $self->{plugin}->retrieve_data('billto_address_qualifier') || 'IV',
+            $library
+          ) if $library;
+    }
 
     # repeat for for other relevant parties
 
@@ -392,6 +426,44 @@ sub name_and_address {
     }
 
     return "NAD+$qualifier_code{$party}+${id_code}::$id_agency$seg_terminator";
+}
+
+sub name_and_address_from_library {
+    my ( $qualifier, $library ) = @_;
+
+    my $street = join( $component_separator,
+        grep { $_ } map { encode_text($_) }
+            $library->branchaddress1, $library->branchaddress2, $library->branchaddress3 );
+
+    # NAD components: party id and unstructured name/address are not sent,
+    # then party name, street, city, state, zip and country
+    my @components = (
+        q{},
+        q{},
+        encode_text( $library->branchname ) // q{},
+        $street,
+        encode_text( $library->branchcity ) // q{},
+        encode_text( $library->branchstate ) // q{},
+        encode_text( $library->branchzip ) // q{},
+        encode_text( $library->branchcountry ) // q{},
+    );
+    pop @components while @components && !length $components[-1];
+
+    return join( $separator, "NAD+$qualifier", @components ) . $seg_terminator;
+}
+
+sub order_contact {
+    my ($name) = @_;
+
+    my $seg = 'CTA+OC';
+    $seg .= q{+:} . encode_text($name) if $name;
+    return $seg . $seg_terminator;
+}
+
+sub order_contact_email {
+    my ($email) = @_;
+
+    return 'COM+' . encode_text($email) . ':EM' . $seg_terminator;
 }
 
 sub order_line {
@@ -1189,6 +1261,21 @@ Make handling of GIR segments more customizable
     Returns a NAD segment containg the id and agency for for the Function
     value. Handles the fact that NAD segments encode the value for 'EAN' differently
     to elsewhere.
+
+=head2 name_and_address_from_library
+
+    Parameters: NAD party qualifier ( DP, ST, IV, BT )
+                Branch schema row
+
+    Returns a NAD segment containing the library's name and address
+
+=head2 order_contact
+
+    Returns a CTA segment for the configured order contact name
+
+=head2 order_contact_email
+
+    Returns a COM segment for the configured order contact email
 
 =head2 order_line
 

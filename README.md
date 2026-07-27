@@ -172,6 +172,16 @@ The value is the name of any column in the Koha items table ( e.g. homebranch, i
 
 This setting completely replaces the GIR segements sent by default. The values are not additional.
 
+### Order contact and addresses
+
+#### Contact name and email
+
+Some vendors require a contact for the account the order is being placed under. If set, the contact name is sent in a CTA+OC segment and the email in a COM segment, directly after the buyer NAD segments in the order header. For Amazon Business, the email must be the email address used to log in and order on Amazon Business, which may differ from any email stored in Koha.
+
+#### Ship-to and bill-to addresses
+
+Some vendors require the full ship-to and bill-to name and address in the order rather than just the buyer identifier. These options send NAD segments containing the library name, street address, city, state, zip and country. The ship-to address comes from the basket's delivery library and the bill-to address from the basket's billing library, falling back to the library EAN's branch if the basket doesn't specify one. The NAD party qualifiers are selectable ( DP or ST for ship-to, IV or BT for bill-to ), your vendor's EDI specification should say which ones they expect. The address data comes straight from the library's record in Koha administration, so make sure those addresses are filled in, and note that some vendors require a two letter state code and a two letter country code.
+
 ### Other ORDER configurations
 
 #### Send basket name

@@ -373,6 +373,48 @@ LLO:
             </fieldset>
 
             <fieldset class="rows">
+              <legend>Order contact and addresses</legend>
+              <ol>
+                <li>
+                   <label for="order_contact_name">Contact name: </label>
+                   <input type="text" name="order_contact_name" id="order_contact_name" size="40" maxlength="90" value="[% order_contact_name %]">
+                   <span class="hint">Send this name in a CTA+OC segment in the order header.</span>
+                </li>
+                <li>
+                   <label for="order_contact_email">Contact email: </label>
+                   <input type="text" name="order_contact_email" id="order_contact_email" size="40" maxlength="90" value="[% order_contact_email %]">
+                   <span class="hint">Send this email in a COM segment in the order header. For Amazon Business this must be the email used to log in and order on Amazon Business, which may differ from any email stored in Koha.</span>
+                </li>
+                <li>
+                   <label for="send_shipto_address">Send ship-to address: </label>
+                   <input type="checkbox" name="send_shipto_address" id="send_shipto_address" value="1" [% IF send_shipto_address %]checked="checked"[% END %]>
+                   <span class="hint">Send the name and address of the basket's delivery library in a NAD segment. If the basket has no delivery library, the library EAN's branch is used instead.</span>
+                </li>
+                <li>
+                   <label for="shipto_address_qualifier">Ship-to qualifier: </label>
+                   <select name="shipto_address_qualifier" id="shipto_address_qualifier">
+                       <option value="DP" [% IF shipto_address_qualifier != 'ST' %]selected="selected"[% END %]>DP (Delivery party)</option>
+                       <option value="ST" [% IF shipto_address_qualifier == 'ST' %]selected="selected"[% END %]>ST (Ship to)</option>
+                   </select>
+                   <span class="hint">NAD party qualifier to use for the ship-to address. Your vendor's EDI specification should say which one they expect.</span>
+                </li>
+                <li>
+                   <label for="send_billto_address">Send bill-to address: </label>
+                   <input type="checkbox" name="send_billto_address" id="send_billto_address" value="1" [% IF send_billto_address %]checked="checked"[% END %]>
+                   <span class="hint">Send the name and address of the basket's billing library in a NAD segment. If the basket has no billing library, the library EAN's branch is used instead.</span>
+                </li>
+                <li>
+                   <label for="billto_address_qualifier">Bill-to qualifier: </label>
+                   <select name="billto_address_qualifier" id="billto_address_qualifier">
+                       <option value="IV" [% IF billto_address_qualifier != 'BT' %]selected="selected"[% END %]>IV (Invoicee)</option>
+                       <option value="BT" [% IF billto_address_qualifier == 'BT' %]selected="selected"[% END %]>BT (Bill to)</option>
+                   </select>
+                   <span class="hint">NAD party qualifier to use for the bill-to address. Your vendor's EDI specification should say which one they expect.</span>
+                </li>
+              </ol>
+            </fieldset>
+
+            <fieldset class="rows">
               <legend>Other ORDER configurations</legend>
               <ol>
                 <li>

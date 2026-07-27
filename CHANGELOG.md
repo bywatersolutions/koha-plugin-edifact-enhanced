@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New "Order contact and addresses" options: send an order contact name and
+  email (`CTA+OC` / `COM`) and full ship-to / bill-to name and address NAD
+  segments built from the basket's delivery and billing libraries, with
+  selectable party qualifiers (DP/ST and IV/BT).
+
 ## [4.3.x] - 2026-06
 
 ### Fixed
