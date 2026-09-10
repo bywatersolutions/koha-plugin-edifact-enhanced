@@ -28,6 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   email (`CTA+OC` / `COM`) and full ship-to / bill-to name and address NAD
   segments built from the basket's delivery and billing libraries, with
   selectable party qualifiers (DP/ST and IV/BT).
+- Product identifiers from MARC fields. "LIN from MARC field" sends a
+  configured field and subfield ( e.g. `037$a` ) with the qualifier the vendor
+  expects as the `LIN` identifier, and "PIA from MARC fields" takes a YAML list
+  of field and qualifier pairs to send as additional `PIA` identifiers. Values
+  are escaped for EDIFACT. Added for Amazon Business, which wants the ASIN and
+  the Amazon Offer ID on each order line.
 
 ### Fixed
 

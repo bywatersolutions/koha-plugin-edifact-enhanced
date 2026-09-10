@@ -547,9 +547,20 @@ sub order_line {
 
     my @eans = grep( _valid_ean13($_), @isbns );
 
+    # A configured MARC field may hold the vendor's own product identifier, e.g. an ASIN in 037$a
+    my $lin_use_marc_field           = $self->{plugin}->retrieve_data('lin_use_marc_field');
+    my $lin_use_marc_field_qualifier = $self->{plugin}->retrieve_data('lin_use_marc_field_qualifier');
+    my $lin_marc_field_value;
+    if ( $lin_use_marc_field && $lin_use_marc_field_qualifier ) {
+        ($lin_marc_field_value) = _get_marc_values( $record, $lin_use_marc_field );
+    }
+
     if ( $line_item_field_value ) {
         $id_string = $line_item_field_value;
         $id_code = $lin_use_item_field_qualifier;
+    } elsif ( $lin_marc_field_value ) {
+        $id_string = encode_text($lin_marc_field_value);
+        $id_code = $lin_use_marc_field_qualifier;
     } elsif ( $orderline->line_item_id ) {
         $id_string = $orderline->line_item_id;
         $id_code = 'EN';
@@ -613,6 +624,19 @@ sub order_line {
     if ( $id_string && $self->{plugin}->retrieve_data('pia_send_lin') && $pia_count < $pia_limit ) {
         $self->add_seg( additional_product_id( $id_string, $id_code, $product_id_function_code ) );
         $pia_count++;
+    }
+
+    # PIA identifiers from configured MARC fields. These are sent before the
+    # standard identifiers so an explicitly configured field isn't starved by pia_limit
+    foreach my $entry ( _parse_pia_marc_fields( $self->{plugin}->retrieve_data('pia_marc_fields') ) ) {
+        foreach my $value ( _get_marc_values( $record, $entry->{field} ) ) {
+            last if $pia_count >= $pia_limit;
+            my $encoded_value = encode_text($value);
+            next if defined $id_string && $encoded_value eq $id_string; # Already sent in the LIN
+            $self->add_seg( additional_product_id( $encoded_value, $entry->{qualifier}, $product_id_function_code ) );
+            $product_id_function_code = '1'; # Any further PIAs are just additional
+            $pia_count++;
+        }
     }
 
     if ( $biblioitem->ean && $self->{plugin}->retrieve_data('pia_use_ean') && $biblioitem->ean ne $id_string && $pia_count < $pia_limit ) {
@@ -1148,6 +1172,59 @@ sub _get_product_id {
     my $id = $record->subfield('028', 'a');
 
     return $id;
+}
+
+# Returns every non-empty value the record holds for a MARC field spec of the
+# form NNN$x ( a subfield ) or NNN ( a control field ), in record order
+sub _get_marc_values {
+    my ( $record, $spec ) = @_;
+    return unless $record && $spec;
+
+    $spec =~ s/^\s+|\s+$//g;
+    my ( $tag, $subfield ) = split( /\$/, $spec, 2 );
+    return unless $tag && $tag =~ /^\w{3}$/;
+
+    my @values;
+    foreach my $field ( $record->field($tag) ) {
+        if ($subfield) {
+            push @values, $field->subfield($subfield);
+        } elsif ( $field->is_control_field ) {
+            push @values, $field->data;
+        } else {
+            push @values, $field->as_string;
+        }
+    }
+
+    my %seen;
+    return grep { length && !$seen{$_}++ }
+        map { my $value = $_ // q{}; $value =~ s/^\s+|\s+$//g; $value } @values;
+}
+
+# Parses the pia_marc_fields setting, a YAML list of field and qualifier pairs
+sub _parse_pia_marc_fields {
+    my ($yaml) = @_;
+    return unless $yaml && $yaml =~ /\S/;
+
+    $yaml .= "\n\n";    # YAML insists on newlines at the end
+    my $entries = eval { YAML::Load($yaml) };
+    if ( $@ || !$entries ) {
+        warn "ERROR PARSING pia_marc_fields: $@";
+        return;
+    }
+    unless ( ref $entries eq 'ARRAY' ) {
+        warn "ERROR PARSING pia_marc_fields: expected a YAML list of field and qualifier entries";
+        return;
+    }
+
+    my @valid_entries;
+    foreach my $entry (@$entries) {
+        unless ( ref $entry eq 'HASH' && $entry->{field} && $entry->{qualifier} ) {
+            warn "SKIPPING pia_marc_fields entry without both a field and a qualifier";
+            next;
+        }
+        push @valid_entries, $entry;
+    }
+    return @valid_entries;
 }
 
 sub _valid_ean13 {

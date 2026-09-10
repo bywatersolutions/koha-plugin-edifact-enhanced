@@ -377,6 +377,24 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                   </ol>
               </fieldset>
 
+              <fieldset class="rows">
+                  <legend>LIN from MARC field</legend>
+
+                  <ol>
+                    <li>
+                       <label for="lin_use_marc_field">MARC field: </label>
+                       <input type="text" name="lin_use_marc_field" id="lin_use_marc_field" value="[% lin_use_marc_field %]">
+                       <span class="hint">Field and subfield of the bibliographic record holding the vendor's product identifier, e.g. 037$a. The first occurrence of the field is used.</span>
+                    </li>
+                    <li>
+                       <label for="lin_use_marc_field_qualifier">Qualifier: </label>
+                       <input type="text" name="lin_use_marc_field_qualifier" id="lin_use_marc_field_qualifier" value="[% lin_use_marc_field_qualifier %]">
+                       <span class="hint">Item number type code the vendor expects for this identifier, e.g. SA. Required.</span>
+                    </li>
+                  </ol>
+                  Used when the item field above has no value for the order line, and in preference to the identifiers below.
+              </fieldset>
+
               <ol>
                 <li>
                    <label for="lin_use_ean">EAN: </label>
@@ -451,6 +469,25 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                 </li>
                 PIA fields will be generated for each identifier selected if that identifier exists for the given order line.
               </ol>
+
+              <fieldset class="rows">
+                <legend>PIA from MARC fields</legend>
+
+                <ol>
+                  <li>
+                     <label for="pia_marc_fields">MARC fields: </label>
+                     <textarea name="pia_marc_fields" id="pia_marc_fields" rows="6" cols="50">[% pia_marc_fields %]</textarea>
+                  </li>
+                </ol>
+                List the MARC fields to send as additional product identifiers, in the order they should be sent. Each entry needs the field and subfield and the item number type code the vendor expects, e.g.
+                <pre>
+- field: 037$a
+  qualifier: SA
+- field: 949$o
+  qualifier: IN
+                </pre>
+                One PIA segment is sent per occurrence of each field. A value already sent in the LIN segment is not repeated.
+              </fieldset>
 
               <fieldset class="rows">
                 <legend>PIA options</legend>

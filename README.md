@@ -96,10 +96,22 @@ You may check all that apply.
 The first valid identifier will be used and the rest ignored.
 If you have specified a line item id for an order, it will be used in preference to the identifiers specified here.
 The order of precedence is:
-1. Line item id
-2. EAN
-3. ISSN
-4. ISBN
+1. Item field
+2. MARC field
+3. Line item id
+4. EAN
+5. ISSN
+6. ISBN
+7. UPC
+8. Product ID
+
+#### MARC field
+
+Send a value from the bibliographic record as the LIN identifier.
+Enter the field and subfield holding the identifier ( e.g. 037$a ) and the item number type qualifier the vendor expects for it ( e.g. SA ). Both are required.
+The first occurrence of the field is used, and the value is escaped for EDIFACT.
+This is for vendors whose own product identifier is catalogued in the record, such as Amazon Business ASINs in 037$a.
+Anything found in the configured field is sent, so make sure it only ever holds that vendor's identifier.
 
 #### EAN
 
@@ -171,6 +183,23 @@ The UPC must be stored in the MARC record in field 024$a.
 
 Send the Product ID as a PIA identifier.
 The Product ID must be stored in the MARC record in field 028$a.
+
+#### MARC fields
+
+Send values from the bibliographic record as additional PIA identifiers.
+The setting is a YAML list, sent in the order written, where each entry has the field and subfield and the item number type qualifier the vendor expects:
+
+```yaml
+- field: 037$a
+  qualifier: SA
+- field: 949$o
+  qualifier: IN
+```
+
+One PIA segment is sent per occurrence of each field and the value is escaped for EDIFACT.
+A value already sent in the LIN segment is skipped.
+These are sent before the identifiers above, so the PIA limit doesn't leave them out.
+Amazon Business, for example, wants the ASIN ( 037$a ) and the Amazon Offer ID, which has no standard MARC field so a local 9xx field is used.
 
 ### GIR values
 
