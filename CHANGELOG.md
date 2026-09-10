@@ -49,6 +49,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that parameter was missing from a configuration save. `CGI::param` returns an
   empty list rather than undef for an absent parameter, which shifted every
   later key/value pair in the hash by one.
+- GIR mappings that read a MARC field ( e.g. `LSM: 037$a` ) produced nothing.
+  That branch still called `GetMarcBiblio`, which Koha has removed, so every
+  such mapping died inside its try block and left only an "ERROR GENERATING
+  GIR" warning in the log. The record is now loaded through `Koha::Biblios`,
+  once per order line and only when a mapping needs it.
 
 ### Changed
 

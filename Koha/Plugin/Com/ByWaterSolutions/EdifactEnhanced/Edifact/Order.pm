@@ -921,6 +921,9 @@ sub gir_segments {
     my $split_gir = $self->{plugin}->retrieve_data('split_gir') || '999999'; # 0 = false = unlimited
     $split_gir++;
 
+    # The MARC record, loaded on demand by mappings that read a MARC field
+    my $record;
+
     foreach my $item (@onorderitems) {
         my $start = sprintf 'GIR+%03d', $sequence_no;
         my $seg = $start;
@@ -973,17 +976,8 @@ sub gir_segments {
                     }
                     elsif ( index( $gir_mapping->{$tag}, '$' ) != -1 ) {
                         try {
-                            my ( $field, $subfield ) =
-                              split( '\$', $gir_mapping->{$tag} );
-                            my $marc = GetMarcBiblio(
-                                {
-                                    biblionumber => $orderline->biblionumber->id
-                                }
-                            );
-                            my $value =
-                                $subfield
-                              ? $marc->subfield( $field, $subfield )
-                              : $marc->field($field)->data();
+                            $record //= Koha::Biblios->find( $orderline->biblionumber->id )->metadata->record;
+                            my ($value) = _get_marc_values( $record, $gir_mapping->{$tag} );
                             $string =
                               add_gir_identity_number( $tag, $value, $map );
                         }
