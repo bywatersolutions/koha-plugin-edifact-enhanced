@@ -46,16 +46,11 @@ The Library EAN is the identifier that is selected by the librarian at the time 
 
 The Library EAN may be sent in different parts of the Order message.
 
-##### Header
-
-If this option is selected, the Library EAN will sent in the Order header.
-This is the default Koha Edifact behavior and this option is mutually exclusive with the Buyer SAN in the Header option.
+The Library EAN is always sent in the Order header, unless the Buyer SAN "Header" option above is selected to replace it there.
 
 ##### NAD+BY
 
-If this option is selected, the Library EAN will appear as an additional NAD+BY segment in the Order.
-This option is independent of the Header option. 
-If both are checked, the Library EAN will be sent in the header *and* in a NAD+BY segment.
+If this option is selected, the Library EAN will also appear as an additional NAD+BY segment in the Order.
 
 ### File suffixes
 

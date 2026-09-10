@@ -77,6 +77,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `shipment_charges_alc_dl` handling. It noted an `ALC+C` carrying a `DL`
   delivery charge, set a flag, and never looked at the flag again. Its
   configuration checkbox was already commented out as having no effect.
+- The Library EAN "Header" checkbox ( `branch_ean_in_header` ). It was stored
+  but never read: the Library EAN is what goes in the UNB header whenever no
+  Buyer SAN option claims it, so the box could not change anything.
 
 ## [4.3.x] - 2026-06
 

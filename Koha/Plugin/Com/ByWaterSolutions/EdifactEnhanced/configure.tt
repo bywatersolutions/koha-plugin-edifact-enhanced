@@ -5,10 +5,6 @@
 
 <script type="text/javascript">
 $( document ).ready(function() {
-    $('.in-header').on('change', function() {
-        $('.in-header').not(this).prop('checked', !$(this).prop('checked') );
-    });
-
     check_if_buyer_san_use_username();
     $('#buyer_san_use_username').on('change', check_if_buyer_san_use_username );
 
@@ -292,7 +288,7 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                    	<ol>
                 		<li>
                    			<label for="buyer_san_in_header">Header: </label>
-                     		<input type="checkbox" class="in-header" name="buyer_san_in_header" id="buyer_san_in_header" value="1" [% IF buyer_san_in_header %]checked="checked"[% END %]>
+                     		<input type="checkbox" name="buyer_san_in_header" id="buyer_san_in_header" value="1" [% IF buyer_san_in_header %]checked="checked"[% END %]>
 							<span class="hint">If this box is checked, it will replace the Library EAN in the header.</span>
                 		</li>
                 		<li>
@@ -310,11 +306,6 @@ function check_if_buyer_san_use_library_ean_split_first_part() {
                 <fieldset class="rows">
                     <legend>Fields to send in</legend>
                    	<ol>
-                		<li>
-                   			<label for="branch_ean_in_header">Header: </label>
-                     		<input type="checkbox" class="in-header" name="branch_ean_in_header" id="branch_ean_in_header" value="1" [% IF branch_ean_in_header %]checked="checked"[% END %]>
-							<span class="hint">If this box is checked, it will replace the Library EAN in the header. This is the default non-plugin behavior.</span>
-                		</li>
                 		<li>
                    			<label for="branch_ean_in_nadby">NAD+BY: </label>
                      		<input type="checkbox" name="branch_ean_in_nadby" id="branch_ean_in_nadby" value="1" [% IF branch_ean_in_nadby %]checked="checked"[% END %]>
