@@ -54,6 +54,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   such mapping died inside its try block and left only an "ERROR GENERATING
   GIR" warning in the log. The record is now loaded through `Koha::Biblios`,
   once per order line and only when a mapping needs it.
+- The PIA "ISBN-13" checkbox had no effect. The ISBN-13 branch tested the
+  ISBN-10 setting, so ISBN-13s were sent whenever ISBN-10s were and never
+  otherwise. Each checkbox now controls its own identifier type, so an
+  install that relied on "ISBN-10" alone to also send ISBN-13s needs to tick
+  "ISBN-13".
 
 ### Changed
 

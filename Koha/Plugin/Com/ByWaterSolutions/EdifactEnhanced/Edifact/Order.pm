@@ -668,7 +668,7 @@ sub order_line {
                 $product_id_function_code = '1'; # Any further PIAs are just additional
                 $pia_count++;
             }
-            if ( $self->{plugin}->retrieve_data('pia_use_isbn10') && $isbn->type() eq 'ISBN13' && $isbn->as_string([]) ne $id_string && $pia_count < $pia_limit ) {
+            if ( $self->{plugin}->retrieve_data('pia_use_isbn13') && $isbn->type() eq 'ISBN13' && $isbn->as_string([]) ne $id_string && $pia_count < $pia_limit ) {
                 $self->add_seg( additional_product_id( $isbn->as_string([]), 'EN', $product_id_function_code ) );
                 $product_id_function_code = '1'; # Any further PIAs are just additional
                 $pia_count++;
