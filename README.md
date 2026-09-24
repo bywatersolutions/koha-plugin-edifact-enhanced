@@ -216,7 +216,7 @@ This setting completely replaces the GIR segements sent by default. The values a
 
 #### Contact name and email
 
-Some vendors require a contact for the account the order is being placed under. If set, the contact name is sent in a CTA+OC segment and the email in a COM segment, directly after the buyer NAD segments in the order header. For Amazon Business, the email must be the email address used to log in and order on Amazon Business, which may differ from any email stored in Koha.
+Some vendors require a contact for the account the order is being placed under. If set, the contact name is sent in a CTA+OC segment and the email in a COM segment. EDIFACT D96A only allows these segments inside a NAD group, so they are sent after each ship-to and bill-to NAD segment, or after the buyer NAD segments if neither address is sent. For Amazon Business, the email must be the email address used to log in and order on Amazon Business, which may differ from any email stored in Koha.
 
 #### Ship-to and bill-to addresses
 

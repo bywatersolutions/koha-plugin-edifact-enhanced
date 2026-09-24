@@ -537,12 +537,12 @@ LLO:
                 <li>
                    <label for="order_contact_name">Contact name: </label>
                    <input type="text" name="order_contact_name" id="order_contact_name" size="40" maxlength="90" value="[% order_contact_name %]">
-                   <span class="hint">Send this name in a CTA+OC segment in the order header.</span>
+                   <span class="hint">Send this name in a CTA+OC segment after each ship-to and bill-to NAD segment in the order header, or after the buyer NAD segments if neither address is sent.</span>
                 </li>
                 <li>
                    <label for="order_contact_email">Contact email: </label>
                    <input type="text" name="order_contact_email" id="order_contact_email" size="40" maxlength="90" value="[% order_contact_email %]">
-                   <span class="hint">Send this email in a COM segment in the order header. For Amazon Business this must be the email used to log in and order on Amazon Business, which may differ from any email stored in Koha.</span>
+                   <span class="hint">Send this email in a COM segment after the CTA+OC segment. For Amazon Business this must be the email used to log in and order on Amazon Business, which may differ from any email stored in Koha.</span>
                 </li>
                 <li>
                    <label for="send_shipto_address">Send ship-to address: </label>

@@ -335,13 +335,35 @@ sub order_msg_header {
     }
 
     # CTA-COM contact for the buyer, some vendors ( e.g. Amazon Business ) require
-    # the email address for the account the order is being placed under
+    # the email address for the account the order is being placed under. D96A only
+    # allows CTA and COM inside a NAD group, so they follow each ship-to and bill-to
+    # NAD, or the buyer NADs if no addresses are sent
+    my @contact;
     my $contact_name  = $self->{plugin}->retrieve_data('order_contact_name');
     my $contact_email = $self->{plugin}->retrieve_data('order_contact_email');
     if ( $contact_name || $contact_email ) {
-        push @header, order_contact($contact_name);
-        push @header, order_contact_email($contact_email) if $contact_email;
+        push @contact, order_contact($contact_name);
+        push @contact, order_contact_email($contact_email) if $contact_email;
     }
+
+    # 'branchcode' on the library EAN is a relation, so it returns the branch itself
+    my $shipto_library;
+    if ( $self->{plugin}->retrieve_data('send_shipto_address') ) {
+        $shipto_library =
+            $self->{basket}->deliveryplace
+          ? $self->{schema}->resultset('Branch')->find( $self->{basket}->deliveryplace )
+          : $self->{sender}->branchcode;
+    }
+
+    my $billto_library;
+    if ( $self->{plugin}->retrieve_data('send_billto_address') ) {
+        $billto_library =
+            $self->{basket}->billingplace
+          ? $self->{schema}->resultset('Branch')->find( $self->{basket}->billingplace )
+          : $self->{sender}->branchcode;
+    }
+
+    push @header, @contact unless $shipto_library || $billto_library;
 
     push @header,
       name_and_address(
@@ -350,29 +372,22 @@ sub order_msg_header {
         $self->{recipient}->id_code_qualifier
       );
 
-    # 'branchcode' on the library EAN is a relation, so it returns the branch itself
-    if ( $self->{plugin}->retrieve_data('send_shipto_address') ) {
-        my $library =
-            $self->{basket}->deliveryplace
-          ? $self->{schema}->resultset('Branch')->find( $self->{basket}->deliveryplace )
-          : $self->{sender}->branchcode;
+    if ($shipto_library) {
         push @header,
           name_and_address_from_library(
             $self->{plugin}->retrieve_data('shipto_address_qualifier') || 'DP',
-            $library
-          ) if $library;
+            $shipto_library
+          ),
+          @contact;
     }
 
-    if ( $self->{plugin}->retrieve_data('send_billto_address') ) {
-        my $library =
-            $self->{basket}->billingplace
-          ? $self->{schema}->resultset('Branch')->find( $self->{basket}->billingplace )
-          : $self->{sender}->branchcode;
+    if ($billto_library) {
         push @header,
           name_and_address_from_library(
             $self->{plugin}->retrieve_data('billto_address_qualifier') || 'IV',
-            $library
-          ) if $library;
+            $billto_library
+          ),
+          @contact;
     }
 
     # repeat for for other relevant parties

@@ -18,7 +18,7 @@
 use Modern::Perl;
 
 use CGI;
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 use t::lib::TestBuilder;
 
@@ -279,6 +279,60 @@ subtest 'trailing empty address components are trimmed' => sub {
         "NAD+DP+++Northside+1 Oak Ave+Mediapolis++52637'",
         'empty middle components are kept, trailing empty components are trimmed'
     );
+
+    $schema->storage->txn_rollback;
+};
+
+subtest 'contact segments follow the ship-to and bill-to NAD segments' => sub {
+    plan tests => 3;
+    $schema->storage->txn_begin;
+
+    my $library = _build_library(
+        branchname     => 'East Branch',
+        branchaddress1 => '2 Book Lane',
+        branchaddress2 => undef,
+        branchaddress3 => undef,
+        branchcity     => 'Nantucket',
+        branchstate    => 'MA',
+        branchzip      => '02554',
+        branchcountry  => 'US',
+    );
+
+    my ( $vendor, $sender, $orderline ) = _build_header_fixture(
+        deliveryplace => $library->branchcode,
+        billingplace  => $library->branchcode,
+    );
+
+    my $plugin = _new_plugin(
+        order_contact_name  => 'EDI Team',
+        order_contact_email => 'orders@example.com',
+        send_shipto_address => '1',
+        send_billto_address => '1',
+    );
+    my @segs = _header_segs( $plugin, $vendor, $sender, $orderline );
+
+    my ($su_index) = grep { $segs[$_] =~ /^NAD\+SU/ } 0 .. $#segs;
+    is_deeply(
+        [ @segs[ $su_index + 1 .. $#segs ] ],
+        [
+            "NAD+DP+++East Branch+2 Book Lane+Nantucket+MA+02554+US'",
+            "CTA+OC+:EDI Team'",
+            "COM+orders\@example.com:EM'",
+            "NAD+IV+++East Branch+2 Book Lane+Nantucket+MA+02554+US'",
+            "CTA+OC+:EDI Team'",
+            "COM+orders\@example.com:EM'",
+        ],
+        'CTA and COM are repeated after the ship-to and bill-to NAD segments'
+    );
+    ok( !( grep { /^(CTA|COM)/ } @segs[ 0 .. $su_index ] ), 'no contact segments before the supplier NAD' );
+
+    $plugin = _new_plugin(
+        order_contact_name  => 'EDI Team',
+        order_contact_email => 'orders@example.com',
+        send_shipto_address => '1',
+    );
+    @segs = _header_segs( $plugin, $vendor, $sender, $orderline );
+    is( scalar( grep { /^CTA/ } @segs ), 1, 'contact is sent once when only the ship-to address is sent' );
 
     $schema->storage->txn_rollback;
 };
