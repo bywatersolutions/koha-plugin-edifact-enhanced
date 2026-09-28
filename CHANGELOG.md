@@ -37,6 +37,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The Buyer SAN was only sent in the `NAD+BY` segment when it was typed into
+  the Buyer SAN setting. When it came from the Library EAN description, the
+  file transport user name, or the first part of the Library EAN it appeared in
+  the `UNB` header but the `NAD+BY` segment was left out, so vendors such as
+  Follett rejected the order. The `NAD+BY` segment now uses the same Buyer SAN
+  as the header, whichever source it comes from.
 - Interchanges using EDIFACT syntax version 4 were thrown away in their
   entirety. `service_string_advice` compared the UNA against the version 3
   default separators, where the fifth character is reserved and has to be a

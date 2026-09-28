@@ -85,6 +85,34 @@ sub new {
     return $self;
 }
 
+sub buyer_san {
+    my $self = shift;
+
+    my $plugin = $self->{plugin};
+
+    if ( $plugin->retrieve_data('buyer_san_extract_from_library_ean_description') ) {
+        my ($san) = $self->{sender}->description =~ m/SAN:\{(.\S*)\}/;
+        return $san;
+    }
+
+    if ( $plugin->retrieve_data('buyer_san_use_username') ) {
+        my $ft       = $self->{recipient}->file_transport;
+        my $username = $ft ? $ft->user_name : undef;
+        carp 'buyer_san_use_username is enabled but vendor EDI account '
+            . $self->{recipient}->id
+            . ' has no file transport with a user name; no buyer SAN will be sent'
+            unless $username;
+        return $username;
+    }
+
+    if ( $plugin->retrieve_data('buyer_san_use_library_ean_split_first_part') ) {
+        my ($san) = split( / /, $self->{sender}->ean );
+        return $san;
+    }
+
+    return $plugin->retrieve_data('buyer_san');
+}
+
 sub filename {
     my $self = shift;
     if ( !$self->{orderlines} ) {
@@ -144,38 +172,10 @@ sub interchange_header {
       'UNB+UNOC:3';    # controling agency character set syntax version number
                        # Interchange Sender
     
-    # If plugin is set to send Buyer SAN in header *and* the vendor username as buyer SAN is set, send that
-    # If plugin is set to send Buyer SAN in header *and* the buyer sand should come from the library ean description
-    if ( $self->{plugin}->retrieve_data('buyer_san_in_header') && $self->{plugin}->retrieve_data('buyer_san_extract_from_library_ean_description') ) {
-        $self->{sender}->description =~ m/SAN:\{(.\S*)\}/;
-        my $ean = $1;
+    # If plugin is set to send Buyer SAN in header, send it, otherwise use the default of the branch EAN
+    if ( $self->{plugin}->retrieve_data('buyer_san_in_header') && ( my $buyer_san = $self->buyer_san ) ) {
         $hdr .= _interchange_sr_identifier(
-	    $ean,
-            $self->{plugin}->retrieve_data('buyer_id_code_qualifier')
-        );    # interchange sender
-    # If plugin is set to send Buyer SAN in header *and* the vendor username as buyer SAN is set, send that
-    } elsif ( $self->{plugin}->retrieve_data('buyer_san_in_header') && $self->{plugin}->retrieve_data('buyer_san_use_username') ) {
-        my $ft = $self->{recipient}->file_transport;
-        my $username = $ft ? $ft->user_name : undef;
-        carp 'buyer_san_use_username is enabled but vendor EDI account '
-            . $self->{recipient}->id
-            . ' has no file transport with a user name; falling back to RANDOM identifier'
-            unless $username;
-        $hdr .= _interchange_sr_identifier(
-            $username,
-            $self->{plugin}->retrieve_data('buyer_id_code_qualifier')
-        );
-    # If plugin is set to send Buyer SAN in header *and* the vendor username as buyer SAN is set, send that
-    } elsif ( $self->{plugin}->retrieve_data('buyer_san_in_header') && $self->{plugin}->retrieve_data('buyer_san_use_library_ean_split_first_part') ) {
-        my ( $ean ) = split(/ /, $self->{sender}->ean );
-        $hdr .= _interchange_sr_identifier(
-	    $ean,
-            $self->{plugin}->retrieve_data('buyer_id_code_qualifier')
-        );    # interchange sender
-    # If plugin is set to send Buyer SAN in header *and* the buyer SAN is set, send it, otheruse use the defautl of the branch EAN
-    } elsif ( $self->{plugin}->retrieve_data('buyer_san_in_header') && $self->{plugin}->retrieve_data('buyer_san') ) {
-        $hdr .= _interchange_sr_identifier(
-            $self->{plugin}->retrieve_data('buyer_san'),
+            $buyer_san,
             $self->{plugin}->retrieve_data('buyer_id_code_qualifier')
         );    # interchange sender
     } else {
@@ -314,15 +314,13 @@ sub order_msg_header {
     push @header, message_date_segment( $self->{message_date} );
 
     # NAD-RFF buyer supplier ids
-    if ( $self->{plugin}->retrieve_data('buyer_san_in_nadby') ) {
-		if ( $self->{plugin}->retrieve_data('buyer_san') ) {
-			push @header,
-			  name_and_address(
-				'BUYER',
-				$self->{plugin}->retrieve_data('buyer_san'),
-				$self->{plugin}->retrieve_data('buyer_id_code_qualifier'),
-			  );
-		}
+    if ( $self->{plugin}->retrieve_data('buyer_san_in_nadby') && ( my $buyer_san = $self->buyer_san ) ) {
+        push @header,
+          name_and_address(
+            'BUYER',
+            $buyer_san,
+            $self->{plugin}->retrieve_data('buyer_id_code_qualifier'),
+          );
     }
 
     if ( $self->{plugin}->retrieve_data('branch_ean_in_nadby') ) {
@@ -1293,6 +1291,14 @@ Make handling of GIR segments more customizable
 
   instantiate the Edifact::Order object, all parameters are Schema::Resultset objects
   Called in Koha::Edifact create_edi_order
+
+=head2 buyer_san
+
+   my $buyer_san = $edi_order->buyer_san()
+
+   returns the Buyer SAN from whichever source the plugin is configured to
+   use: the library EAN description, the file transport user name, the first
+   part of the library EAN, or the Buyer SAN setting itself
 
 =head2 filename
 
