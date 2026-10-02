@@ -37,6 +37,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Copies received through a part receipt on an invoice with no GIR segments,
+  which is every Brodart invoice, were left with no items linked to them.
+  The item links were moved to the new completed order with
+  `Koha::EDI::transfer_items`, which only moves an item whose homebranch
+  matches a GIR branch on the invoice line, so nothing moved and the received
+  items never got their receipt updates ( `dateaccessioned`, `booksellerid`,
+  prices, not for loan status ). Copies with no GIR branch now get the
+  homebranch of an item still on the order before the line is handed to
+  `Koha::EDI::transfer_items`.
 - The Buyer SAN was only sent in the `NAD+BY` segment when it was typed into
   the Buyer SAN setting. When it came from the Library EAN description, the
   file transport user name, or the first part of the Library EAN it appeared in

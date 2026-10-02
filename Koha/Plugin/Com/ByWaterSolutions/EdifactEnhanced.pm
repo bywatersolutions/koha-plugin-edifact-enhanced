@@ -400,12 +400,14 @@ sub edifact_process_invoice {
 # Koha::EDI::transfer_items() uses the GIR branch information from the
 # invoice line to move the correct number of item links, by homebranch,
 # from the outstanding order to the newly created completed order.
+# _add_missing_gir_branches() fills that in for vendors that send none.
 #
 # This must happen before _receipt_items(), because _receipt_items()
 # looks up items by the received ordernumber. Without the transfer, the
 # completed partial order has no linked items and receipt-time item
 # updates such as dateaccessioned and notforloan are never applied.
 
+                        _add_missing_gir_branches( $self, $line, $order, $quantity );
                         Koha::EDI::transfer_items( $schema, $line, $order, $received_order, $quantity );
 
                         _receipt_items( $self, $schema, $line, $received_order->ordernumber );
@@ -501,6 +503,23 @@ sub edifact_process_invoice {
 
     $invoice_message->status('received');
     $invoice_message->update;    # status and basketno link
+    return;
+}
+
+sub _add_missing_gir_branches {
+    my ( $self, $inv_line, $order, $quantity ) = @_;
+
+    # Koha::EDI::transfer_items only moves items whose homebranch matches a GIR branch on the invoice line,
+    # vendors such as Brodart send no GIR segments on invoices so use the homebranches of items still on the order
+    my @homebranches = map { $_->homebranch } Koha::Acquisition::Orders->find( $order->ordernumber )->items->search( {}, { order_by => 'itemnumber', rows => $quantity } )->as_list;
+
+    for my $occurrence ( 0 .. $#homebranches ) {
+        next if defined $inv_line->girfield( 'branch', $occurrence );
+
+        # Koha::Edifact::Line has no setter for GIR data, t/db_dependent/add_missing_gir_branches.t fails if it stops storing it like this
+        $inv_line->{GIR}->[$occurrence]->{branch} = $homebranches[$occurrence];
+    }
+
     return;
 }
 
