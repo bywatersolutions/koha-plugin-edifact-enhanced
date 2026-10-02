@@ -5,12 +5,86 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> This changelog is curated and grouped by minor release series rather than by
-> individual tag. Releases that contained only CI, build, or version-bump
-> changes are omitted, and the foundational 2.1.x development series is
-> summarized rather than enumerated commit by commit.
+> Up to 4.3.x this changelog is grouped by minor release series. From 4.4.0
+> each release has its own heading, added automatically when the release is
+> published. Releases that contained only CI, build, or version-bump changes
+> are omitted, and the foundational 2.1.x development series is summarized
+> rather than enumerated commit by commit.
 
 ## [Unreleased]
+
+### Fixed
+
+- Copies received through a part receipt on an invoice with no GIR segments,
+  which is every Brodart invoice, were left with no items linked to them.
+  The item links were moved to the new completed order with
+  `Koha::EDI::transfer_items`, which only moves an item whose homebranch
+  matches a GIR branch on the invoice line, so nothing moved and the received
+  items never got their receipt updates ( `dateaccessioned`, `booksellerid`,
+  prices, not for loan status ). Copies with no GIR branch now get the
+  homebranch of an item still on the order before the line is handed to
+  `Koha::EDI::transfer_items`.
+
+## [4.5.1] - 2026-09-28
+
+### Fixed
+
+- The Buyer SAN was only sent in the `NAD+BY` segment when it was typed into
+  the Buyer SAN setting. When it came from the Library EAN description, the
+  file transport user name, or the first part of the Library EAN it appeared in
+  the `UNB` header but the `NAD+BY` segment was left out, so vendors such as
+  Follett rejected the order. The `NAD+BY` segment now uses the same Buyer SAN
+  as the header, whichever source it comes from.
+
+## [4.5.0] - 2026-09-24
+
+### Changed
+
+- The order contact `CTA+OC` and `COM` segments now follow each ship-to and
+  bill-to `NAD` segment, or the buyer `NAD` segments when neither address is
+  sent. EDIFACT D96A only allows them inside a `NAD` group, and they were
+  always sent straight after the buyer `NAD` segments.
+
+## [4.4.6] - 2026-09-17
+
+### Added
+
+- Product identifiers from MARC fields. "LIN from MARC field" sends a
+  configured field and subfield ( e.g. `037$a` ) with the qualifier the vendor
+  expects as the `LIN` identifier, and "PIA from MARC fields" takes a YAML list
+  of field and qualifier pairs to send as additional `PIA` identifiers. Values
+  are escaped for EDIFACT. Added for Amazon Business, which wants the ASIN and
+  the Amazon Offer ID on each order line.
+
+### Fixed
+
+- GIR mappings that read a MARC field ( e.g. `LSM: 037$a` ) produced nothing.
+  That branch still called `GetMarcBiblio`, which Koha has removed, so every
+  such mapping died inside its try block and left only an "ERROR GENERATING
+  GIR" warning in the log. The record is now loaded through `Koha::Biblios`,
+  once per order line and only when a mapping needs it.
+- The PIA "ISBN-13" checkbox had no effect. The ISBN-13 branch tested the
+  ISBN-10 setting, so ISBN-13s were sent whenever ISBN-10s were and never
+  otherwise. Each checkbox now controls its own identifier type, so an
+  install that relied on "ISBN-10" alone to also send ISBN-13s needs to tick
+  "ISBN-13".
+
+### Removed
+
+- The Library EAN "Header" checkbox ( `branch_ean_in_header` ). It was stored
+  but never read: the Library EAN is what goes in the UNB header whenever no
+  Buyer SAN option claims it, so the box could not change anything.
+
+## [4.4.4] - 2026-09-09
+
+### Added
+
+- An "Append .dl to processed files" option. When it is ticked a downloaded
+  file is marked as processed by adding `.dl` to the end of its name, instead
+  of changing the first character of its three character suffix to `E`
+  ( `.INV` becoming `.ENV` ).
+
+## [4.4.2] - 2026-08-18
 
 ### Added
 
@@ -24,34 +98,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   matched amounts are added to the invoice shipping cost instead of creating an
   adjustment, so a charge a vendor buries under a shared MOA qualifier can go to
   shipping.
-- New "Order contact and addresses" options: send an order contact name and
-  email (`CTA+OC` / `COM`) and full ship-to / bill-to name and address NAD
-  segments built from the basket's delivery and billing libraries, with
-  selectable party qualifiers (DP/ST and IV/BT).
-- Product identifiers from MARC fields. "LIN from MARC field" sends a
-  configured field and subfield ( e.g. `037$a` ) with the qualifier the vendor
-  expects as the `LIN` identifier, and "PIA from MARC fields" takes a YAML list
-  of field and qualifier pairs to send as additional `PIA` identifiers. Values
-  are escaped for EDIFACT. Added for Amazon Business, which wants the ASIN and
-  the Amazon Offer ID on each order line.
 
 ### Fixed
 
-- Copies received through a part receipt on an invoice with no GIR segments,
-  which is every Brodart invoice, were left with no items linked to them.
-  The item links were moved to the new completed order with
-  `Koha::EDI::transfer_items`, which only moves an item whose homebranch
-  matches a GIR branch on the invoice line, so nothing moved and the received
-  items never got their receipt updates ( `dateaccessioned`, `booksellerid`,
-  prices, not for loan status ). Copies with no GIR branch now get the
-  homebranch of an item still on the order before the line is handed to
-  `Koha::EDI::transfer_items`.
-- The Buyer SAN was only sent in the `NAD+BY` segment when it was typed into
-  the Buyer SAN setting. When it came from the Library EAN description, the
-  file transport user name, or the first part of the Library EAN it appeared in
-  the `UNB` header but the `NAD+BY` segment was left out, so vendors such as
-  Follett rejected the order. The `NAD+BY` segment now uses the same Buyer SAN
-  as the header, whichever source it comes from.
 - Interchanges using EDIFACT syntax version 4 were thrown away in their
   entirety. `service_string_advice` compared the UNA against the version 3
   default separators, where the fifth character is reserved and has to be a
@@ -64,16 +113,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that parameter was missing from a configuration save. `CGI::param` returns an
   empty list rather than undef for an absent parameter, which shifted every
   later key/value pair in the hash by one.
-- GIR mappings that read a MARC field ( e.g. `LSM: 037$a` ) produced nothing.
-  That branch still called `GetMarcBiblio`, which Koha has removed, so every
-  such mapping died inside its try block and left only an "ERROR GENERATING
-  GIR" warning in the log. The record is now loaded through `Koha::Biblios`,
-  once per order line and only when a mapping needs it.
-- The PIA "ISBN-13" checkbox had no effect. The ISBN-13 branch tested the
-  ISBN-10 setting, so ISBN-13s were sent whenever ISBN-10s were and never
-  otherwise. Each checkbox now controls its own identifier type, so an
-  install that relied on "ISBN-10" alone to also send ISBN-13s needs to tick
-  "ISBN-13".
 
 ### Changed
 
@@ -92,9 +131,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `shipment_charges_alc_dl` handling. It noted an `ALC+C` carrying a `DL`
   delivery charge, set a flag, and never looked at the flag again. Its
   configuration checkbox was already commented out as having no effect.
-- The Library EAN "Header" checkbox ( `branch_ean_in_header` ). It was stored
-  but never read: the Library EAN is what goes in the UNB header whenever no
-  Buyer SAN option claims it, so the box could not change anything.
+
+## [4.4.1] - 2026-08-17
+
+### Fixed
+
+- Copies received through a part receipt kept their items linked to the
+  original order, so those items never got their receipt updates
+  ( `dateaccessioned`, not for loan status and the rest ). The item links are
+  now moved to the new completed order with `Koha::EDI::transfer_items`, and a
+  line counts as a part receipt when the quantity invoiced is less than the
+  quantity still on order.
+
+## [4.4.0] - 2026-07-27
+
+### Added
+
+- New "Order contact and addresses" options: send an order contact name and
+  email (`CTA+OC` / `COM`) and full ship-to / bill-to name and address NAD
+  segments built from the basket's delivery and billing libraries, with
+  selectable party qualifiers (DP/ST and IV/BT).
+
+### Fixed
+
+- Sending a basket as an EDI order died with a 500 error
+  ( `Can't call method "unblessed" on an undefined value` ) when an item on one
+  of its orderlines had been deleted, so the basket could not be ordered at
+  all. A deleted item is now treated the same as an orderline with no linked
+  item.
+- Marking a downloaded file as processed changes the first character of its
+  suffix to `E`, which leaves a name like Ingram's `.EIN` unchanged. Their
+  SFTP server rejected that rename with "already exists", which aborted the
+  connection for the rest of the run and left the file transports page
+  showing "Rename failed". The rename is now skipped when it would not change
+  the filename.
 
 ## [4.3.x] - 2026-06
 
@@ -380,7 +450,14 @@ Ingram EDI plugin (briefly named `EdifactIngram`) and was generalized into
 - Numerous fixes for Koha API changes and EDIFACT encoding/escaping over the
   life of the series.
 
-[Unreleased]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.3.3...HEAD
+[Unreleased]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.5.1...HEAD
+[4.5.1]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.5.0...v4.5.1
+[4.5.0]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.4.6...v4.5.0
+[4.4.6]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.4.4...v4.4.6
+[4.4.4]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.4.2...v4.4.4
+[4.4.2]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.4.1...v4.4.2
+[4.4.1]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.4.0...v4.4.1
+[4.4.0]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.3.3...v4.4.0
 [4.3.x]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.2.6...v4.3.3
 [4.2.x]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.1.1...v4.2.6
 [4.1.x]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.0.26...v4.1.1

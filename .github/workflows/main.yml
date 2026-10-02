@@ -215,6 +215,23 @@ jobs:
         files: ./*.kpz
         tag_name: ${{ github.ref_name }}
 
+  changelog:
+    name: Update changelog
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-') && github.repository == 'bywatersolutions/koha-plugin-edifact-enhanced' && !failure() && !cancelled() }}
+    needs: release
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+
+    - name: Move the Unreleased changelog entries under this release
+      uses: bywatersolutions/github-action-keepachangelog-release@v1
+      with:
+        release-tag: ${{ github.ref_name }}
+
   discover-vendors:
     name: Discover vendor repos
     if: ${{ startsWith(github.ref, 'refs/tags/v') && github.repository == 'bywatersolutions/koha-plugin-edifact-enhanced' && !failure() && !cancelled() }}
