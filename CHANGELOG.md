@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.5.5] - 2026-11-13
+
 ### Fixed
 
 - Copies received through a part receipt on an invoice with no GIR segments,
@@ -450,7 +452,8 @@ Ingram EDI plugin (briefly named `EdifactIngram`) and was generalized into
 - Numerous fixes for Koha API changes and EDIFACT encoding/escaping over the
   life of the series.
 
-[Unreleased]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.5.1...HEAD
+[Unreleased]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.5.5...HEAD
+[4.5.5]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.5.1...v4.5.5
 [4.5.1]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.5.0...v4.5.1
 [4.5.0]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.4.6...v4.5.0
 [4.4.6]: https://github.com/bywatersolutions/koha-plugin-edifact-enhanced/compare/v4.4.4...v4.4.6
