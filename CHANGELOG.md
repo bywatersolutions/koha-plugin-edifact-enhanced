@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A vendor plugin can now come with that vendor's recommended settings already
+  filled in. The settings are applied once, when the plugin is first installed
+  on a system. Updating a plugin that is already installed never changes the
+  settings a library has saved.
+
 ## [4.5.5] - 2026-11-13
 
 ### Fixed

@@ -25,6 +25,7 @@ use Koha::Acquisition::Orders;
 use Koha::DateUtils qw(dt_from_string);
 use Koha::EDI;
 use Koha::Items;
+use YAML;
 
 ## Here we set our plugin version
 our $VERSION = "4.4.5";
@@ -851,6 +852,11 @@ sub configure {
 ## or false if it failed.
 sub install() {
     my ( $self, $args ) = @_;
+
+    # Vendor plugins ship a defaults.yaml holding the settings that vendor needs.
+    # Koha only calls install the first time a plugin is installed, so an upgrade never replaces a library's own settings
+    my $defaults_file = $self->mbf_dir . '/defaults.yaml';
+    $self->store_data( YAML::LoadFile($defaults_file) ) if -e $defaults_file;
 
     return 1;
 }
